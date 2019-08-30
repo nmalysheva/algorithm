@@ -1,0 +1,1 @@
+/Library/Developer/CommandLineTools/usr/bin/c++   -Wall -Wextra -g -Wl,-search_paths_first -Wl,-headerpad_max_install_names  CMakeFiles/algo.dir/main.cpp.o CMakeFiles/algo.dir/UniqueID.cpp.o CMakeFiles/algo.dir/Specie.cpp.o CMakeFiles/algo.dir/ContactNetwork.cpp.o CMakeFiles/algo.dir/SSA.cpp.o CMakeFiles/algo.dir/NSA.cpp.o  -o algo 
