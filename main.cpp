@@ -244,7 +244,7 @@ void executeNSAOnlyContactUpdate(double tStart, double tEnd, size_t nInfected, s
                                MaxContactsB,
                                0,
                                newContRate,
-                               0,
+                               looseContRate,
                                0,
                                0);
 
@@ -300,7 +300,7 @@ void executeNSAOnlyContactUpdate(double tStart, double tEnd, size_t nInfected, s
 
 int main(int argc, char* argv[])
 {
-    if (argc != 15)
+    /*if (argc != 15)
     {
         std::cout << "wrong parameters" <<std::endl;
     }
@@ -334,31 +334,39 @@ int main(int argc, char* argv[])
         double epsilon = std::strtod(argv[13], 0);
         std::cout<<epsilon << std::endl;
         size_t simulationNumber = std::stoi(argv[14]);
-        std::cout<<simulationNumber << std::endl;
+        std::cout<<simulationNumber << std::endl;*/
 
-        executeNSA(tStart, tEnd, nInfected, nSusceptible, nEdges, maxContactsA, MaxContactsB,
-                transmRate, newContRate, looseContRate, dRate, bRate, epsilon, simulationNumber);
+        /*executeNSA(tStart, tEnd, nInfected, nSusceptible, nEdges, maxContactsA, MaxContactsB,
+                transmRate, newContRate, looseContRate, dRate, bRate, epsilon, simulationNumber);*/
 
-    }
-    /*std::vector<size_t> amount = {100, 500, 1000, 2000, 5000};
+        double tStart = 0;
+        double tEnd   = 2;
+        size_t nInfected = 20;
+        size_t nSusceptible = 480;
+        size_t nEdges = 12475;
 
-    std::vector <double> timesSSA;
-    std::vector <double> timesNSA;
-    for (size_t i = 0; i < amount.size() - 3; i++)
-    {
-        size_t nEdges = static_cast<size_t> (amount.at(i) * (amount.at(i) - 1) / 2 * 0.1);
-        for (size_t j = 0; j < 100; j++)
+        int maxContactsA = 0;
+        int MaxContactsB = 20;
+
+        double newContRate = 1.35;
+
+        //double transmRate = 1.2;
+
+        double looseContRate = 1.4;
+       // double dRate = std::strtod(argv[11], 0);
+        //double bRate = std::strtod(argv[12], 0);
+        //std::cout<<bRate << std::endl;
+        double epsilon = 0.03;
+
+        //size_t simulationNumber = std::stoi(argv[14]);
+
+        for (size_t i = 0; i < 1; i ++)
         {
-            //executeSSA(0, 2, 20, amount.at(i) - 20, nEdges, 1,  20, 0.03, 1.2, 1.25, 0.0004, 2, j);
-            //executeNSA(0, 2, 20, amount.at(i) - 20, nEdges, 1,  20, 0.03, 1.2, 1.25, 0.0004, 2, j);
-            executeSSAOnlyContactUpdate(0, 2, 20, amount.at(i) - 20, nEdges, 1,  20,  1.2, 1.25, j);
-            executeNSAOnlyContactUpdate(0, 2, 20, amount.at(i) - 20, nEdges, 1,  20,  1.2, 1.25,0.03, j);
-
+            executeNSAOnlyContactUpdate(tStart, tEnd, nInfected, nSusceptible, nEdges, maxContactsA, MaxContactsB,
+                                        newContRate, looseContRate, epsilon, i);
+            //executeSSAOnlyContactUpdate(tStart, tEnd, nInfected, nSusceptible, nEdges, maxContactsA, MaxContactsB,
+                                     //   newContRate, looseContRate, i);
         }
-    }
-
-        std::cout << "------------------" <<std::endl;
-
-*/
+        std::cout << "----------" << std::endl;
     return 0;
-}
+    }

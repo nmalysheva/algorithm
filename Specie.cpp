@@ -10,9 +10,9 @@ Specie::Specie()
 {
     //age = static_cast<unsigned char> (-1);
 
-    maxNumberOfContacts = static_cast<unsigned char> (-1);
+    maxNumberOfContacts = static_cast<size_t> (-1);
     //cumNumberOfContacts = static_cast<unsigned char> (-1);
-    numberOfContacts = static_cast<unsigned char> (-1);
+    numberOfContacts = static_cast<size_t> (-1);
 
     deathRate        = std::numeric_limits<double>::min();
     newContactRate   = std::numeric_limits<double>::min();
@@ -24,8 +24,8 @@ Specie::Specie()
 }
 
 
-Specie::Specie(/*unsigned char age, */unsigned char maxNumberOfContacts,
-               unsigned char numberOfContacts, double deathRate,
+Specie::Specie(/*unsigned char age, */size_t maxNumberOfContacts,
+                                      size_t numberOfContacts, double deathRate,
                double newContactRate, double looseContactRate, State st)
 {
     //setAge(age);
@@ -48,7 +48,7 @@ Specie::Specie(/*unsigned char age, */unsigned char maxNumberOfContacts,
     return age;
 }*/
 
-unsigned char Specie::getMaxNumberOfContacts() const
+size_t Specie::getMaxNumberOfContacts() const
 {
     return maxNumberOfContacts;
 }
@@ -59,7 +59,7 @@ unsigned char Specie::getMaxNumberOfContacts() const
     return cumNumberOfContacts;
 }*/
 
-unsigned char Specie::getNumberOfContacts() const
+size_t Specie::getNumberOfContacts() const
 {
     return numberOfContacts;
 }
@@ -67,10 +67,7 @@ unsigned char Specie::getNumberOfContacts() const
 double Specie::getNewContactRate() const
 {
     double result = newContactRate;
-    /*if (cumNumberOfContacts >= maxNumberOfContacts)
-    {
-        result = 0;
-    }*/
+
     if (numberOfContacts == maxNumberOfContacts)
     {
         result = 0;
@@ -109,7 +106,7 @@ void Specie::setMaxNumberOfContacts(unsigned int maxNumOfCont)
     maxNumberOfContacts = maxNumOfCont;
 }
 
-void Specie::setNumberOfContacts(unsigned char nOfCont)
+void Specie::setNumberOfContacts(size_t nOfCont)
 {
     numberOfContacts = nOfCont;
 }

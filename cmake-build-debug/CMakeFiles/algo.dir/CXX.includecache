@@ -6,22 +6,6 @@
 
 #IncludeRegexTransform: 
 
-../lib/lemon-1.3.1/lemon/adaptors.h
-lemon/core.h
--
-lemon/maps.h
--
-lemon/bits/variant.h
--
-lemon/bits/graph_adaptor_extender.h
--
-lemon/bits/map_extender.h
--
-lemon/tolerance.h
--
-algorithm
--
-
 ../lib/lemon-1.3.1/lemon/assert.h
 lemon/error.h
 -
@@ -58,12 +42,6 @@ lemon/bits/vector_map.h
 
 ../lib/lemon-1.3.1/lemon/bits/enable_if.h
 
-../lib/lemon-1.3.1/lemon/bits/graph_adaptor_extender.h
-lemon/core.h
--
-lemon/error.h
--
-
 ../lib/lemon-1.3.1/lemon/bits/graph_extender.h
 lemon/core.h
 -
@@ -96,10 +74,6 @@ lemon/concepts/maps.h
 
 ../lib/lemon-1.3.1/lemon/bits/traits.h
 lemon/bits/enable_if.h
--
-
-../lib/lemon-1.3.1/lemon/bits/variant.h
-lemon/assert.h
 -
 
 ../lib/lemon-1.3.1/lemon/bits/vector_map.h
@@ -174,20 +148,6 @@ vector
 list
 -
 
-../lib/lemon-1.3.1/lemon/maps.h
-iterator
--
-functional
--
-vector
--
-map
--
-lemon/core.h
--
-
-../lib/lemon-1.3.1/lemon/tolerance.h
-
 /Users/nmalysheva/CLionProjects/lemonLib/ContactNetwork.cpp
 ContactNetwork.h
 /Users/nmalysheva/CLionProjects/lemonLib/ContactNetwork.h
@@ -210,78 +170,12 @@ Specie.h
 random
 -
 
-/Users/nmalysheva/CLionProjects/lemonLib/NSA.cpp
-NSA.h
-/Users/nmalysheva/CLionProjects/lemonLib/NSA.h
-math.h
-/Users/nmalysheva/CLionProjects/lemonLib/math.h
-algorithm
--
-
-/Users/nmalysheva/CLionProjects/lemonLib/NSA.h
-ContactNetwork.h
-/Users/nmalysheva/CLionProjects/lemonLib/ContactNetwork.h
-random
--
-
-/Users/nmalysheva/CLionProjects/lemonLib/SSA.cpp
-SSA.h
-/Users/nmalysheva/CLionProjects/lemonLib/SSA.h
-string
--
-iostream
--
-
-/Users/nmalysheva/CLionProjects/lemonLib/SSA.h
-ContactNetwork.h
-/Users/nmalysheva/CLionProjects/lemonLib/ContactNetwork.h
-random
--
-vector
--
-
-/Users/nmalysheva/CLionProjects/lemonLib/Specie.cpp
-Specie.h
 /Users/nmalysheva/CLionProjects/lemonLib/Specie.h
-limits
+stddef.h
 -
-iostream
--
-
-/Users/nmalysheva/CLionProjects/lemonLib/Specie.h
-
-/Users/nmalysheva/CLionProjects/lemonLib/UniqueID.cpp
-UniqueID.h
-/Users/nmalysheva/CLionProjects/lemonLib/UniqueID.h
 
 /Users/nmalysheva/CLionProjects/lemonLib/UniqueID.h
 cstdint
--
-
-/Users/nmalysheva/CLionProjects/lemonLib/main.cpp
-iostream
--
-lemon/list_graph.h
--
-lemon/adaptors.h
--
-UniqueID.h
-/Users/nmalysheva/CLionProjects/lemonLib/UniqueID.h
-lemon/maps.h
--
-ContactNetwork.h
-/Users/nmalysheva/CLionProjects/lemonLib/ContactNetwork.h
-SSA.h
-/Users/nmalysheva/CLionProjects/lemonLib/SSA.h
-NSA.h
-/Users/nmalysheva/CLionProjects/lemonLib/NSA.h
-chrono
--
-unistd.h
--
-fstream
--
-string
 -
 
 deps/lemon/lemon/config.h

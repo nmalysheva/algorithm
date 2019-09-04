@@ -1,18 +1,4 @@
 /Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /Users/nmalysheva/CLionProjects/lemonLib
--- The C compiler identification is AppleClang 10.0.0.10001044
--- The CXX compiler identification is AppleClang 10.0.0.10001044
--- Check for working C compiler: /Library/Developer/CommandLineTools/usr/bin/cc
--- Check for working C compiler: /Library/Developer/CommandLineTools/usr/bin/cc -- works
--- Detecting C compiler ABI info
--- Detecting C compiler ABI info - done
--- Detecting C compile features
--- Detecting C compile features - done
--- Check for working CXX compiler: /Library/Developer/CommandLineTools/usr/bin/c++
--- Check for working CXX compiler: /Library/Developer/CommandLineTools/usr/bin/c++ -- works
--- Detecting CXX compiler ABI info
--- Detecting CXX compiler ABI info - done
--- Detecting CXX compile features
--- Detecting CXX compile features - done
 CMake Deprecation Warning at lib/lemon-1.3.1/CMakeLists.txt:3 (CMAKE_POLICY):
   The OLD behavior for policy CMP0048 will be removed from a future version
   of CMake.
@@ -23,29 +9,13 @@ CMake Deprecation Warning at lib/lemon-1.3.1/CMakeLists.txt:3 (CMAKE_POLICY):
   behavior and not rely on setting a policy to OLD.
 
 
--- Found PythonInterp: /Users/nmalysheva/anaconda3/bin/python (found version "3.7.3") 
 -- Could NOT find Wget (missing: WGET_EXECUTABLE) 
 -- Could NOT find Doxygen (missing: DOXYGEN_EXECUTABLE) 
--- Found Ghostscript: /usr/local/bin/gs  
 -- Could NOT find GLPK (missing: GLPK_LIBRARY GLPK_INCLUDE_DIR GLPK_PROPER_VERSION_FOUND) (Required is at least version "4.33")
 -- Could NOT find ILOG (missing: ILOG_CPLEX_LIBRARY ILOG_CPLEX_INCLUDE_DIR) 
 -- Could NOT find COIN (missing: COIN_INCLUDE_DIR COIN_CBC_LIBRARY COIN_CBC_SOLVER_LIBRARY COIN_CGL_LIBRARY COIN_CLP_LIBRARY COIN_COIN_UTILS_LIBRARY COIN_OSI_LIBRARY COIN_OSI_CBC_LIBRARY COIN_OSI_CLP_LIBRARY) 
 -- Could NOT find SOPLEX (missing: SOPLEX_LIBRARY SOPLEX_INCLUDE_DIR) 
--- Looking for sys/types.h
--- Looking for sys/types.h - found
--- Looking for stdint.h
--- Looking for stdint.h - found
--- Looking for stddef.h
--- Looking for stddef.h - found
--- Check size of long long
--- Check size of long long - done
--- Looking for pthread.h
--- Looking for pthread.h - found
--- Looking for pthread_create
--- Looking for pthread_create - found
--- Found Threads: TRUE  
 -- Could NOT find Doxygen (missing: DOXYGEN_EXECUTABLE) 
--- Found PythonLibs: /Users/nmalysheva/anaconda3/lib/libpython3.7m.dylib
 -- pybind11 v2.3.dev1
 -- Configuring done
 -- Generating done

@@ -56,6 +56,7 @@ public:
     double  getBirthRateSum()const;
     double getTransmissionRateLimit() const;
     size_t getMaxContactsLimitOfInfected()const;
+    size_t getAmountOfEdgesPossibleToAdd() const;
 
     void addEdge(lemon::ListGraph::Edge & complementEdge, double trRate);
 
@@ -97,7 +98,7 @@ private:
 
     //std::exponential_distribution<double> transmitDistribution;
     double transmissionRate;
-    std::uniform_int_distribution<unsigned char> maxContactsDistribution;
+    std::uniform_int_distribution<size_t> maxContactsDistribution;
     //std::exponential_distribution<double> newContactRateDistribution;
     double newContactRate;
     //std::exponential_distribution<double> looseContactRateDistribution;

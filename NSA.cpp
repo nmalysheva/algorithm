@@ -211,7 +211,7 @@ void NSA::updateContacts(double &tStart, double tEnd, ContactNetwork & contNetwo
 
         std::unordered_map<std::string, size_t >kMax {
                 {"edge_del", contNetwork.countEdges()},
-                {"edge_add", contNetwork.size() * (contNetwork.size() - 1) / 2 - contNetwork.countEdges()}
+                {"edge_add", contNetwork.getAmountOfEdgesPossibleToAdd()}
         };
 
         for (auto &it: propensities )
@@ -236,7 +236,6 @@ void NSA::updateContacts(double &tStart, double tEnd, ContactNetwork & contNetwo
         }
 
         std::shuffle(order.begin(), order.end(), generator);
-        //std:: cout <<"---------------"<<std::endl;
         for (size_t i = 0; i < order.size(); i++)
         {
             double r = sampleRandUni();
@@ -256,11 +255,19 @@ double  NSA::proposeTimestep(double epsilon, ContactNetwork & contNetwork) const
 {
 
     //std:: cout <<"edges="<< contNetwork.countEdges() <<" delrsum="<< contNetwork.getEdgeDeletionRateSum()<<std::endl;
-    double pSum = contNetwork.getEdgeDeletionRateSum() + contNetwork.getEdgeAdditionRateSum();
+
     size_t nEdgesExist = contNetwork.countEdges();
-    size_t nEdgesAdd = contNetwork.size() * (contNetwork.size() - 1) / 2 - nEdgesExist;
-    double tau = std::min(epsilon * nEdgesExist /pSum,
-                          epsilon * nEdgesAdd / pSum);
+    size_t nEdgesAdd = contNetwork.getAmountOfEdgesPossibleToAdd();
+    double tau = std::min(epsilon * nEdgesExist /contNetwork.getEdgeDeletionRateSum(),
+                          epsilon * nEdgesAdd / contNetwork.getEdgeAdditionRateSum());
+    std::cout << "edge del.r.s.: " << contNetwork.getEdgeDeletionRateSum() << std::endl;
+    std::cout << "edge add.r.s.: " << contNetwork.getEdgeAdditionRateSum() << std::endl;
+    std::cout << "ed. exist: " << nEdgesExist << std::endl;
+    std::cout << "ed. to_add:" << nEdgesAdd << std::endl;
+    std::cout << "rel1: " << nEdgesExist /contNetwork.getEdgeDeletionRateSum() << std::endl;
+    std::cout << "rel2: " << nEdgesAdd / contNetwork.getEdgeAdditionRateSum() << std::endl;
+
+    std::cout << "tau: " << tau << std::endl;
     return tau;
 }
 
@@ -321,6 +328,8 @@ void NSA::BDtauleap(double tStart, double tEnd, ContactNetwork & contNetwork, do
                std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr)
 {
     double time = tStart;
+    timeSteps.push_back(time);
+    degreeDistr.push_back(contNetwork.getDegreeDistribution());
     std::unordered_map<std::string, double >propensities {
             {"edge_del", contNetwork.getEdgeDeletionRateSum()},
             {"edge_add", contNetwork.getEdgeAdditionRateSum()}
@@ -363,7 +372,7 @@ void NSA::BDtauleap(double tStart, double tEnd, ContactNetwork & contNetwork, do
 
         std::unordered_map<std::string, size_t >kMax {
                 {"edge_del", contNetwork.countEdges()},
-                {"edge_add", contNetwork.size() * (contNetwork.size() - 1) / 2 - contNetwork.countEdges()}
+                {"edge_add", contNetwork.getAmountOfEdgesPossibleToAdd()}
         };
 
         for (auto &it: propensities )
@@ -388,9 +397,13 @@ void NSA::BDtauleap(double tStart, double tEnd, ContactNetwork & contNetwork, do
         }
 
         std::shuffle(order.begin(), order.end(), generator);
-        //std:: cout <<"---------------"<<std::endl;
+        std:: cout << "reactions fired:" << order.size() << std::endl;
+        std:: cout << "deletion fired:" << k.at("edge_del") << std::endl;
+        std:: cout << "addition fired:" << k.at("edge_add") << std::endl;
         for (size_t i = 0; i < order.size(); i++)
         {
+            std::cout <<order.at(i) << " ";
+
             double r = sampleRandUni();
 
             uint32_t  ni = 0;
@@ -399,7 +412,8 @@ void NSA::BDtauleap(double tStart, double tEnd, ContactNetwork & contNetwork, do
             propensities.at("edge_del") = contNetwork.getEdgeDeletionRateSum();
             propensities.at("edge_add") = contNetwork.getEdgeAdditionRateSum();
         }
-
+        std::cout <<std::endl;
+        std:: cout << "------------" << std::endl;
         timeSteps.push_back(time);
 
         degreeDistr.push_back(contNetwork.getDegreeDistribution());

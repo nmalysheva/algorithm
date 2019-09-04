@@ -112,6 +112,7 @@ void ContactNetwork::addEdge(lemon::ListGraph::Edge &complementEdge, double trRa
 
     uint32_t sourceUID = nodeUIDs[cu];
     uint32_t targetUID = nodeUIDs[cv];
+
     population.at(sourceUID).incNumberOfContacts();
     population.at(targetUID).incNumberOfContacts();
 }
@@ -191,8 +192,7 @@ void ContactNetwork::executeEdgeAddition(double rStart, double rBound)
     {
 
         result += getEdgeAdditionRate(eIt);
-        //std::cout << result << std::endl;
-        //result += assembleRates[eIt];
+
         if (result >= rBound)
         {
             double tRate = 0;
@@ -291,7 +291,7 @@ void ContactNetwork::executeBirth(double rStart, double rBound)
     result += birthRate;
     if (result >= rBound)
     {
-        unsigned char maxContacts = maxContactsDistribution(generator);
+        size_t maxContacts = maxContactsDistribution(generator);
         double  dRate = deathRate;//deathRateRateDistribution(generator);
         double newContRate = newContactRate;//newContactRateDistribution(generator);
         double looseContRate = looseContactRate;//looseContactRateDistribution(generator);
@@ -334,7 +334,6 @@ double  ContactNetwork::getEdgeDelitionRate(lemon::ListGraph::EdgeIt networkEdge
     uint32_t sourceUID = nodeUIDs[u];
     uint32_t targetUID = nodeUIDs[v];
     double result = (population.at(sourceUID).getLooseContactRate() + population.at(targetUID).getLooseContactRate()) / 2;
-
     return result;
 
 }
@@ -342,7 +341,6 @@ double  ContactNetwork::getEdgeDelitionRate(lemon::ListGraph::EdgeIt networkEdge
 void ContactNetwork::init(size_t nInfected, size_t nSusceptible, size_t nEdges, int maxContactsA, int MaxContactsB,
                           double transmRate, double newContRate, double looseContRate, double dRate, double bRate)
 {
-
     std::random_device rDev;
     generator = std::mt19937_64(rDev());
     //generator.seed(::time(NULL)); //to change the seed for every run
@@ -350,16 +348,16 @@ void ContactNetwork::init(size_t nInfected, size_t nSusceptible, size_t nEdges, 
 
 
     //transmitDistribution = std::exponential_distribution<double> (8);
-    maxContactsDistribution = std::uniform_int_distribution<unsigned char>(maxContactsA, MaxContactsB);
+    maxContactsDistribution = std::uniform_int_distribution<size_t>(maxContactsA, MaxContactsB);
     transmissionRate = transmRate;
     //newContactRateDistribution = std::exponential_distribution<double>(0.5);
     newContactRate = newContRate;
     //looseContactRateDistribution = std::exponential_distribution<double>(0.5);
     looseContactRate = looseContRate;
+
     //deathRateRateDistribution = std::exponential_distribution<double> (10);
     deathRate = dRate;
     birthRate = bRate;
-
     size_t  nPopulation = nInfected + nSusceptible;
 
     lemon::FullGraph fullG(nPopulation);
@@ -369,11 +367,11 @@ void ContactNetwork::init(size_t nInfected, size_t nSusceptible, size_t nEdges, 
 
     for (size_t i = 0; i < nPopulation; i ++)
     {
-        unsigned char maxContacts = maxContactsDistribution(generator);
+        size_t maxContacts = maxContactsDistribution(generator);
         double  dRate = deathRate;//deathRateRateDistribution(generator);
         double newContRate = newContactRate;//newContactRateDistribution(generator);
         double looseContRate = looseContactRate;//looseContactRateDistribution(generator);
-        //std::cout << "new: " << newContRate << " loose: " << looseContRate << std::endl;
+
         Specie::State st = Specie::S;
         Specie sp = Specie(maxContacts, 0, dRate, newContRate, looseContRate, st);
         uint32_t  id = UniqueID().id;
@@ -427,8 +425,6 @@ void ContactNetwork::init(size_t nInfected, size_t nSusceptible, size_t nEdges, 
     generator.seed(::time(NULL));
     //std::cout << "infected: " << countByState(Specie::I) <<std::endl;
     //std::cout << "edges: " << lemon::countEdges(network) <<std::endl;
-
-
 }
 
 
@@ -477,12 +473,25 @@ std::vector<size_t> ContactNetwork::getDegreeDistribution()
     std::vector<size_t> result;
     for(lemon::ListGraph::NodeIt nIt(network); nIt!=lemon::INVALID; ++nIt)
     {
-        size_t degree =0 ;
+        size_t degree = 0 ;
         for(lemon::ListGraph::IncEdgeIt e(network, nIt); e!=lemon::INVALID; ++e)
         {
             ++ degree;
         }
         result.push_back(degree);
+    }
+    return result;
+}
+
+size_t ContactNetwork::getAmountOfEdgesPossibleToAdd() const
+{
+    size_t result = 0;
+    for (lemon::ListGraph::EdgeIt eIt(complement); eIt != lemon::INVALID; ++eIt)
+    {
+        if (getEdgeAdditionRate(eIt) > 0)
+        {
+            result ++;
+        }
     }
     return result;
 }

@@ -6,6 +6,8 @@
 #define ALGO_SPECIE_H
 
 
+#include <stddef.h>
+
 class Specie {
 public:
     enum State {S, I, R};
@@ -16,9 +18,9 @@ public:
 
     Specie();  //default constructor
     Specie(//unsigned char age,
-           unsigned char maxNumberOfContacts,
+           size_t maxNumberOfContacts,
            //unsigned int cumNumberOfContacts,
-           unsigned char numberOfContacts,
+           size_t numberOfContacts,
            double deathRate,
            double newContactRate,
            double looseContactRate,
@@ -29,8 +31,8 @@ public:
     //unsigned int  const getMaxNumberOfContacts() const; //return max. number of contacts per year
     //unsigned int  const getCumNumberOfContacts() const; //return cumulative number of contacts for the current year
 
-    unsigned char  getMaxNumberOfContacts() const; //return max. number of contacts per any time instance
-    unsigned char  getNumberOfContacts() const; //return max. number of contacts per any time instance
+    size_t  getMaxNumberOfContacts() const; //return max. number of contacts per any time instance
+    size_t  getNumberOfContacts() const; //return max. number of contacts per any time instance
 
     double getNewContactRate() const; //return rate for establishing a new contact
     double getLooseContactRate() const; ////return rate for loosing of the one of already existing contacts
@@ -74,13 +76,13 @@ public:
 
 private:
 
-    void setNumberOfContacts(unsigned char nOfCont);
+    void setNumberOfContacts(size_t nOfCont);
     //unsigned char age;
     //unsigned char  maxNumberOfContacts; // per year
     //unsigned int  cumNumberOfContacts; //cumulative number of contacts. Reset every year.
 
-    unsigned char  maxNumberOfContacts; //at any timepoint
-    unsigned char  numberOfContacts; //current number of contacts
+    size_t  maxNumberOfContacts; //at any timepoint
+    size_t  numberOfContacts; //current number of contacts
     double deathRate;
     double newContactRate;  //rate to establish a new contact
     double looseContactRate;//rate to loose a contact
