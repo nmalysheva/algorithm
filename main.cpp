@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <fstream>
 #include <string>
+#include <vector>
 
 using namespace lemon;
 using namespace std;
@@ -259,7 +260,8 @@ void executeNSAOnlyContactUpdate(double tStart, double tEnd, size_t nInfected, s
     NSA nsa;
     //ContactNetwork cNw2(20, amount.at(i) - 20, nEdges, 1, 20, 0.03, 1.2, 1.25, 0.0004, 2);
     auto start_time = std::chrono::high_resolution_clock::now();
-    nsa.BDtauleap(tStart, tEnd, contNetwork, epsilon, timeSteps, degreeDistr);
+    //nsa.BDtauleap(tStart, tEnd, contNetwork, epsilon, timeSteps, degreeDistr);
+    nsa.PoissonTauleap(tStart, tEnd, contNetwork, epsilon, timeSteps, degreeDistr);
     auto end_time = std::chrono::high_resolution_clock::now();
     auto time = end_time - start_time;
 
@@ -276,6 +278,7 @@ void executeNSAOnlyContactUpdate(double tStart, double tEnd, size_t nInfected, s
     newFile << "rate of loose a contact: " << looseContRate << std::endl;
     newFile << "epsilon: " << epsilon << std::endl;
 
+    std::cout << " timeSteps.size: " <<  timeSteps.size() <<std::endl;
     for (size_t i = 0; i < timeSteps.size(); i++)
     {
         newFile << timeSteps.at(i) << ' ';
@@ -293,6 +296,7 @@ void executeNSAOnlyContactUpdate(double tStart, double tEnd, size_t nInfected, s
         newFile << std::endl;
     }
     newFile.close();
+    std::cout<<"save"<< std::endl;
 
 }
 
@@ -341,18 +345,19 @@ int main(int argc, char* argv[])
 
         double tStart = 0;
         double tEnd   = 2;
-        size_t nInfected = 20;
-        size_t nSusceptible = 480;
-        size_t nEdges = 12475;
+        /*size_t nInfected = 20;
+        size_t nSusceptible = 80;
+        size_t nPop = nInfected + nSusceptible;
+        size_t nEdges = nPop * (nPop - 1) / 2 * 0.1; */
 
         int maxContactsA = 0;
         int MaxContactsB = 20;
 
-        double newContRate = 1.35;
+        double newContRate = 5;
 
-        //double transmRate = 1.2;
+        double transmRate = 3.2;
 
-        double looseContRate = 1.4;
+        double looseContRate = 4;
        // double dRate = std::strtod(argv[11], 0);
         //double bRate = std::strtod(argv[12], 0);
         //std::cout<<bRate << std::endl;
@@ -360,13 +365,33 @@ int main(int argc, char* argv[])
 
         //size_t simulationNumber = std::stoi(argv[14]);
 
-        for (size_t i = 0; i < 1; i ++)
+    /*executeNSA(tStart, tEnd, nInfected, nSusceptible, nEdges, maxContactsA, MaxContactsB,
+               transmRate, newContRate, looseContRate, 0.5, 1, epsilon, 1);
+    executeSSA(tStart, tEnd, nInfected, nSusceptible, nEdges, maxContactsA, MaxContactsB,
+               transmRate, newContRate, looseContRate, 0.5, 1, 1);*/
+        std::vector<size_t> nPops {1000};
+        for (size_t j = 0; j < nPops.size(); j ++)
         {
-            executeNSAOnlyContactUpdate(tStart, tEnd, nInfected, nSusceptible, nEdges, maxContactsA, MaxContactsB,
-                                        newContRate, looseContRate, epsilon, i);
-            //executeSSAOnlyContactUpdate(tStart, tEnd, nInfected, nSusceptible, nEdges, maxContactsA, MaxContactsB,
-                                     //   newContRate, looseContRate, i);
+            size_t nInfected = 20;
+            size_t nSusceptible = nPops.at(j) - nInfected;
+            size_t nPop = nInfected + nSusceptible;
+            size_t nEdges = nPop * (nPop - 1) / 2 * 0.1;
+
+            for (size_t i = 0; i < 1; i ++)
+            {
+
+                /*executeNSA(tStart, tEnd, nInfected, nSusceptible, nEdges, maxContactsA, MaxContactsB,
+                           transmRate, newContRate, looseContRate, 0.5, 1, epsilon, i + 1);
+                executeSSA(tStart, tEnd, nInfected, nSusceptible, nEdges, maxContactsA, MaxContactsB,
+                           transmRate, newContRate, looseContRate, 0.5, 1, i + 1);*/
+                executeNSAOnlyContactUpdate(tStart, tEnd, nInfected, nSusceptible, nEdges, maxContactsA, MaxContactsB,
+                                            newContRate, looseContRate, epsilon, i);
+                //executeSSAOnlyContactUpdate(tStart, tEnd, nInfected, nSusceptible, nEdges, maxContactsA, MaxContactsB,
+                //                            newContRate, looseContRate, i);
+            }
+            std::cout << "----------" << std::endl;
+
         }
-        std::cout << "----------" << std::endl;
+
     return 0;
     }

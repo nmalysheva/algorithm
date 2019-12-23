@@ -7,6 +7,7 @@
 
 #include <unordered_map>
 #include <lemon/list_graph.h>
+#include <lemon/maps.h>
 #include "Specie.h"
 #include <random>
 
@@ -30,7 +31,7 @@ public:
                    double dRate,
                    double bRate) : network(lemon::ListGraph()),
                                    transmissionRates(lemon::ListGraph::EdgeMap<double>(network)),
-                                   nodeUIDs(lemon::ListGraph::NodeMap<double>(network))
+                                   nodeIdMap(lemon::IdMap<lemon::ListGraph, lemon::ListGraph::Node>(network))
                                    {
                                        init(nInfected, nSusceptible, nEdges, maxContactsA, MaxContactsB, transmRate, newContRate, looseContRate, dRate, bRate);
                                    };
@@ -39,7 +40,7 @@ public:
 
     ContactNetwork (const ContactNetwork& other):  network(lemon::ListGraph()),
                       transmissionRates(lemon::ListGraph::EdgeMap<double>(network)),
-                      nodeUIDs(lemon::ListGraph::NodeMap<double>(network)) {copyNetwork(other);};
+                      nodeIdMap(lemon::IdMap<lemon::ListGraph, lemon::ListGraph::Node>(network))  {copyNetwork(other);};
 
     size_t  size() const; //amount of nodes
     size_t  countByState(Specie::State st) const;  //return amount of infected species in network
@@ -50,34 +51,42 @@ public:
 
     //sum of rates of particular reactions
     double  getTransmissionRateSum()const; //return sum of all transmition rates
-    double  getEdgeDeletionRateSum()const;
-    double  getEdgeAdditionRateSum()const;
+    double  getEdgeDeletionRateSum(size_t &nDel)const;
+    double  getEdgeAdditionRateSum(size_t &nAdd)const;
     double  getDeathRateSum()const;
     double  getBirthRateSum()const;
     double getTransmissionRateLimit() const;
     size_t getMaxContactsLimitOfInfected()const;
-    size_t getAmountOfEdgesPossibleToAdd() const;
+    size_t getAmountOfEdgesToAddSafe() const;
+    size_t getAmountOfEdgesToAdd() const;
 
-    void addEdge(lemon::ListGraph::Edge & complementEdge, double trRate);
+    void addEdge(lemon::ListGraph::Edge & complementEdge/*, double trRate*/);
 
 
     void removeEdge(lemon::ListGraph::Edge & edge);
 
     void removeNode(lemon::ListGraph::Node &node);
 
-    void executeEdgeDelition(double rStart, double rBound);
+    void executeEdgeDeletion(double rStart, double rBound);
+    void executeEdgeDeletion(size_t edgeNumber,  size_t maxEdgesToDelete);
+
     void executeEdgeAddition(double rStart, double rBound);
+    void executeEdgeAddition(size_t edgeNumber,  size_t maxEdgesToAdd);
+
+    //void executeEdgeDeletionUniform();
+    //void executeEdgeAdditionUniform();
     void executeTransmission(double rStart, double rBound, double time);
     void executeDeath(double rStart, double rBound);
     void executeBirth(double rStart, double rBound);
 
     std::vector<size_t> getDegreeDistribution();
+    std::vector<size_t> countCapacities() const;
 
 
 private:
 
     double  getEdgeAdditionRate(lemon::ListGraph::Edge complementEdge) const;
-    double  getEdgeDelitionRate(lemon::ListGraph::EdgeIt networkEdgeIt) const;
+    double  getEdgeDeletionRate(lemon::ListGraph::EdgeIt networkEdgeIt) const;
     void init(size_t nInfected, size_t nSusceptible, size_t nEdges, int maxContactsA, int MaxContactsB,
             double transmRate, double newContRate, double looseContRate, double dRate, double bRate);
 
@@ -87,11 +96,14 @@ private:
     lemon::ListGraph network;
     lemon::ListGraph complement;
 
-    lemon::ListGraph::EdgeMap<double> transmissionRates;
-    lemon::ListGraph::NodeMap<double> nodeUIDs;
+    lemon::ListGraph::EdgeMap<double> transmissionRates; //TODO: calculate automatically instead of storing?
 
-    std::unordered_map<uint32_t, Specie> population;
+    lemon::IdMap<lemon::ListGraph, lemon::ListGraph::Node> nodeIdMap;
+    //lemon::ListGraph::NodeMap<double> nodeUIDs;
 
+    //std::unordered_map<uint32_t, Specie> population;
+
+    std::unordered_map<int, Specie> population;
     //std::random_device rDev;
     std::mt19937_64 generator;
 
@@ -108,6 +120,9 @@ private:
 
     double birthRate;
 
+
+    size_t maxContactsLimitA;
+    size_t maxContactsLimitB;
 
 
 };

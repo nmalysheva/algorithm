@@ -40,9 +40,12 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
     nInfected.push_back(nInf);
     degreeDistr.push_back(contNetwork.getDegreeDistribution());
 
+    size_t nDel = 0;
+    size_t nAdd = 0;
+
     std::unordered_map<std::string, double >propensities {
-            {"edge_del", contNetwork.getEdgeDeletionRateSum()},
-            {"edge_add", contNetwork.getEdgeAdditionRateSum()},
+            {"edge_del", contNetwork.getEdgeDeletionRateSum(nDel)},
+            {"edge_add", contNetwork.getEdgeAdditionRateSum(nAdd)},
             {"transmission", contNetwork.getTransmissionRateSum()},
             {"death", contNetwork.getDeathRateSum()},
             {"birth", contNetwork.getBirthRateSum()},
@@ -120,8 +123,8 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
 
         }
         //update propensities
-        propensities.at("edge_del") = contNetwork.getEdgeDeletionRateSum();
-        propensities.at("edge_add") = contNetwork.getEdgeAdditionRateSum();
+        propensities.at("edge_del") = contNetwork.getEdgeDeletionRateSum(nDel);
+        propensities.at("edge_add") = contNetwork.getEdgeAdditionRateSum(nAdd);
         propensities.at("transmission") = contNetwork.getTransmissionRateSum();
         propensities.at("death") = contNetwork.getDeathRateSum();
         propensities.at("birth") = contNetwork.getBirthRateSum();
@@ -139,7 +142,7 @@ void SSA::executeReaction(ContactNetwork & contNetwork, std::string reactId,
     //std::cout << reactId <<std::endl;
     if (reactId == "edge_del")
     {
-        contNetwork.executeEdgeDelition(rStart, rBound);
+        contNetwork.executeEdgeDeletion(rStart, rBound);
        // std::cout  << "edge_del "<<std::endl;
     }
 
