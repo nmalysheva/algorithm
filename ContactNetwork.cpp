@@ -212,12 +212,12 @@ void ContactNetwork::executeEdgeDeletion(double rStart, double rBound)
     }
 }
 
-/*void ContactNetwork::executeEdgeDeletion(size_t edgeNumber, size_t maxEdgesToDelete)
+void ContactNetwork::executeEdgeDeletion(size_t edgeNumber, size_t maxEdgesToDelete)
 {
 
     lemon::ListGraph::EdgeIt eIt(network);
 
-    for (size_t i = 0; i < edgeNumber; i++)
+    for (size_t i = 1; i <= edgeNumber; i++)
     {
         ++eIt;
     }
@@ -230,7 +230,7 @@ void ContactNetwork::executeEdgeDeletion(double rStart, double rBound)
     {
         removeEdge(eIt);
     }
-}*/
+}
 
 
 void ContactNetwork::executeEdgeAddition(double rStart, double rBound)
@@ -261,12 +261,12 @@ void ContactNetwork::executeEdgeAddition(size_t edgeNumber,  size_t maxEdgesToAd
         size_t edgeAdditionRate = getEdgeAdditionRate(eIt);
         if (edgeAdditionRate > 0)
         {
-            currentEdge ++;
             if (currentEdge == edgeNumber)
             {
                 edgeToAddIt = eIt;
                 break;
             }
+            currentEdge ++;
         }
     }
 
@@ -455,11 +455,9 @@ void ContactNetwork::init(size_t nInfected, size_t nSusceptible, size_t nEdges, 
     deathRate = dRate;
     birthRate = bRate;
     size_t  nPopulation = nInfected + nSusceptible;
-
     lemon::FullGraph fullG(nPopulation);
     lemon::GraphCopy<lemon::FullGraph, lemon::ListGraph> cg(fullG, complement);
     cg.run();
-
 
     size_t nInf = 0;
     for (size_t i = 0; i < nPopulation; i ++)
@@ -490,8 +488,10 @@ void ContactNetwork::init(size_t nInfected, size_t nSusceptible, size_t nEdges, 
     // TODO: change edge adding with regarding to the amount of edges possible to add safely.
     for (size_t i = 0; i < nEdges; i ++)
     {
-        std::uniform_int_distribution<int> dist(0, maxNumberOfEdges - 1);
+        //std::cout << maxNumberOfEdges - 1 <<std::endl;
+        std::uniform_int_distribution<int> dist(0, maxNumberOfEdges);
         int edgeId = dist(generator);
+        //std::cout << edgeId <<std::endl;
 
         lemon::ListGraph::Edge cEdge = complement.edgeFromId(edgeId);
         if (complement.valid(cEdge) &&  getEdgeAdditionRate(cEdge) > 0)
@@ -572,7 +572,7 @@ size_t ContactNetwork::getAmountOfEdgesToAddSafe() const
     size_t nEdgesToAdd = 0;
     for (size_t i = 0; i < capacitiesCount.size(); i ++)
     {
-        std::cout <<capacitiesCount.at(i) << " ";
+        //std::cout << capacitiesCount.at(i) << " ";
         if (capacitiesCount.at(i) >= i + 1 + 1)
         {
             size_t nFullBlock = (i + 1 + 1);
@@ -581,7 +581,7 @@ size_t ContactNetwork::getAmountOfEdgesToAddSafe() const
             capacitiesCount.at(i) = capacitiesCount.at(i) % nFullBlock;
         }
     }
-     std::cout <<std::endl;
+    //std::cout <<std::endl;
     //std::cout << "after blocks:" << nEdgesToAdd <<std::endl;
     size_t curNodes = 0;
     for (size_t i = 0; i < capacitiesCount.size(); i ++)
@@ -589,16 +589,17 @@ size_t ContactNetwork::getAmountOfEdgesToAddSafe() const
         //std::cout <<capacitiesCount.at(i) << " ";
         curNodes +=capacitiesCount.at(i);
     }
-    //std::cout <<std::endl;
 
     if (capacitiesCount.size() > 0)
     {
-        size_t in = capacitiesCount.size() - 1;
-        while (in >= 0)
+        size_t in = capacitiesCount.size();
+        //std::cout << in <<std::endl;
+
+        while (in > 0)
         {
-            if (capacitiesCount.at(in) > 0)
+            if (capacitiesCount.at(in - 1) > 0)
             {
-                size_t nRequiredForFullBlock = in + 1 + 1;
+                size_t nRequiredForFullBlock = in - 1 + 1 + 1;
                 //std::cout <<"nRequiredForFullBlock " << nRequiredForFullBlock<<std::endl;
                 //std::cout <<"curNodes " << curNodes<<std::endl;
                 if (nRequiredForFullBlock > curNodes)
@@ -607,7 +608,7 @@ size_t ContactNetwork::getAmountOfEdgesToAddSafe() const
                     size_t currCap = curNodes - 1;
                     size_t toAdd = curNodes * (curNodes - 1) / 2;
                     //std::cout << toAdd << std::endl;
-                    for (size_t i = 0; i < in + 1; i++)
+                    for (size_t i = 0; i < in - 1 + 1; i++)
                     {
                         if (capacitiesCount.at(i) > 0)
                         {
@@ -622,14 +623,14 @@ size_t ContactNetwork::getAmountOfEdgesToAddSafe() const
                 }
                 else
                 {
-                    size_t currentBlock = capacitiesCount.at(in);
-                    capacitiesCount.at(in) = 0;
+                    size_t currentBlock = capacitiesCount.at(in - 1);
+                    capacitiesCount.at(in - 1) = 0;
                     curNodes -= currentBlock;
 
-                    size_t currCap = in;
+                    size_t currCap = in - 1;
                     size_t toAdd = nRequiredForFullBlock * (nRequiredForFullBlock - 1) / 2;
 
-                    int ind = in;
+                    int ind = in - 1;
                     while (currentBlock < nRequiredForFullBlock)
                     {
                         ind--;

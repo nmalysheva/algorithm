@@ -172,9 +172,9 @@ double NSA::proposeTau1(size_t lDel, size_t lAdd, size_t nAdd, double epsilon, s
 
     if (lAdd >= 10)
     {
-        std::cout <<"nAdd: " << nAdd <<std::endl;
+        /*std::cout <<"nAdd: " << nAdd <<std::endl;
         std::cout <<"lAdd: " << lAdd <<std::endl;
-        std::cout <<"lDel: " << lDel <<std::endl;
+        std::cout <<"lDel: " << lDel <<std::endl;*/
 
         timeStep = std::min(timeStep, std::max(epsilon * nAdd, 1.0) / std::abs(mu.at(1)));
         timeStep = std::min(timeStep, std::max(epsilon * nAdd, 1.0) * std::max(epsilon * nAdd, 1.0) / sigmaSq.at(1));
@@ -204,13 +204,13 @@ void NSA::selectTimeStepAndK(double &tau, const std::unordered_map<std::string, 
 
     if (tau1 < tau2)
     {
-        std::cout << "tau1: " << tau1 << std::endl;
+        //std::cout << "tau1: " << tau1 << std::endl;
         tau = tau1;
 
     }
     else
     {
-        std::cout << "tau2: " << tau2 << std::endl;
+        //std::cout << "tau2: " << tau2 << std::endl;
         tau = tau2;
        // size_t randK1, randK2;
         double r = sampleRandUni();
@@ -220,7 +220,7 @@ void NSA::selectTimeStepAndK(double &tau, const std::unordered_map<std::string, 
             if (propensities.at("edge_del") > r * aCrit) {
                 //k.at(0) = 1;
                 kDel = 1;
-                std::cout << "kDel: " << kDel << std::endl;
+                //std::cout << "kDel: " << kDel << std::endl;
             }
             else if (k.at(1) == 0)
             {
@@ -228,7 +228,7 @@ void NSA::selectTimeStepAndK(double &tau, const std::unordered_map<std::string, 
                 {
                     //k.at(1) = 1;
                     kAdd = 1;
-                    std::cout << "kAdd: " << kAdd << std::endl;
+                    //std::cout << "kAdd: " << kAdd << std::endl;
                 }
 
             }
@@ -239,7 +239,7 @@ void NSA::selectTimeStepAndK(double &tau, const std::unordered_map<std::string, 
             {
                 kAdd = 1;
                 //k.at(1) = 1;
-                std::cout << "kAdd: " << kAdd << std::endl;
+                //std::cout << "kAdd: " << kAdd << std::endl;
             }
         }
     }
@@ -248,14 +248,14 @@ void NSA::selectTimeStepAndK(double &tau, const std::unordered_map<std::string, 
     {
         std::poisson_distribution<size_t> poiss(propensities.at("edge_del") * tau);
         kDel = poiss(generator);
-        std::cout<<"kDel: " <<kDel <<std::endl;
+        //std::cout<<"kDel: " <<kDel <<std::endl;
     }
 
     if (k.at(1) == -1)
     {
         std::poisson_distribution<size_t> poiss(propensities.at("edge_add") * tau);
         kAdd = poiss(generator);
-        std::cout<<"kAdd: " <<kAdd <<std::endl;
+        //std::cout<<"kAdd: " <<kAdd <<std::endl;
     }
 
     if (propensities.at("edge_del") == 0)
@@ -296,7 +296,7 @@ void NSA::PoissonTauleap(double tStart, double tEnd, ContactNetwork & contNetwor
     while (t < tEnd)
     {
 
-        std::cout << "new iteration; t = " << t << std::endl;
+        //std::cout << "new iteration; t = " << t << std::endl;
 
         size_t nAdd = 0;
         size_t nDel = 0;
@@ -370,7 +370,7 @@ void NSA::PoissonTauleap(double tStart, double tEnd, ContactNetwork & contNetwor
                 k.at(1) = -1;//static_cast<size_t> (-1);
             }
         }
-        std::cout<<"lAdd: " << lAdd <<std::endl;
+        //std::cout<<"lAdd: " << lAdd <<std::endl;
 
         double tau1 = proposeTau1(lDel, lAdd, nAdd, epsilon, mu, sigmaSq);
 
@@ -381,11 +381,11 @@ void NSA::PoissonTauleap(double tStart, double tEnd, ContactNetwork & contNetwor
 
         while (flag)
         {
-            std::cout <<"tau1: " << tau1 <<std::endl;
+            //std::cout <<"tau1: " << tau1 <<std::endl;
             if (tau1 < 10.0 / (propensities.at("edge_del") + propensities.at("edge_add") ) )
             {
                 //SSA
-                std::cout << "ssa: " << std::endl;
+                //std::cout << "ssa: " << std::endl;
                 for (size_t i = 0; i < 100; i++)
                 {
                     propensities.at("edge_del") = contNetwork.getEdgeDeletionRateSum(nDel);
@@ -473,7 +473,7 @@ void NSA::PoissonTauleap(double tStart, double tEnd, ContactNetwork & contNetwor
 
                     std::vector<int> order;
 
-                    std::cout << "k1 = " << k.at(0) << "; k2 = " << k.at(1) << std::endl;
+                    //std::cout << "k1 = " << k.at(0) << "; k2 = " << k.at(1) << std::endl;
 
                     //size_t i = 0;
                     for (size_t ind = 0; ind < k.size(); ind++)
@@ -523,7 +523,7 @@ void NSA::PoissonTauleap(double tStart, double tEnd, ContactNetwork & contNetwor
                                //std::cout<<lemon::countEdges(network)<<std::endl;
                         }
                     }
-                    std::cout <<"executed" <<std::endl;
+                    //std::cout <<"executed" <<std::endl;
                     flag = false;
                 }
             }

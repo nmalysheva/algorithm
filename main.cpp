@@ -250,7 +250,6 @@ void executeNSAOnlyContactUpdate(double tStart, double tEnd, size_t nPopulation,
                                looseContRate,
                                0,
                                0);
-
     //size_t nPopulation = contNetwork.size();
     size_t startEdges = contNetwork.countEdges();
     std::cout <<"Nodes: "  << nPopulation <<std::endl;
@@ -339,11 +338,10 @@ int main(int argc, char* argv[])
 
         double epsilon = 0.03;
 
-
         executeNSAOnlyContactUpdate(tStart, tEnd, nPopulation, nEdges, maxContactsA, MaxContactsB,
         newContRate, looseContRate, epsilon, simulationNumber);
-        executeSSAOnlyContactUpdate(tStart, tEnd, nPopulation, nEdges, maxContactsA, MaxContactsB,
-                                    newContRate, looseContRate, simulationNumber);
+        //executeSSAOnlyContactUpdate(tStart, tEnd, nPopulation, nEdges, maxContactsA, MaxContactsB,
+                              //      newContRate, looseContRate, simulationNumber);
         std::cout << "----------" << std::endl;
 
     }
