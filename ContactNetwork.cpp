@@ -7,6 +7,7 @@
 #include <random>
 #include <lemon/full_graph.h>
 #include <map>
+#include <unistd.h>
 
 
 size_t  ContactNetwork::countByState(Specie::State st) const
@@ -499,7 +500,7 @@ void ContactNetwork::init(size_t nInfected, size_t nSusceptible, size_t nEdges, 
             addEdge(cEdge);
         }
     }
-    generator.seed(::time(NULL));
+    generator.seed(::time(NULL) * getpid());
     //std::cout << "infected: " << countByState(Specie::I) <<std::endl;
     //std::cout << "edges: " << lemon::countEdges(network) <<std::endl;
 }
