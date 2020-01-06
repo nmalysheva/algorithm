@@ -212,7 +212,7 @@ void ContactNetwork::executeEdgeDeletion(double rStart, double rBound)
     }
 }
 
-void ContactNetwork::executeEdgeDeletion(size_t edgeNumber, size_t maxEdgesToDelete)
+/*void ContactNetwork::executeEdgeDeletion(size_t edgeNumber, size_t maxEdgesToDelete)
 {
 
     lemon::ListGraph::EdgeIt eIt(network);
@@ -230,7 +230,7 @@ void ContactNetwork::executeEdgeDeletion(size_t edgeNumber, size_t maxEdgesToDel
     {
         removeEdge(eIt);
     }
-}
+}*/
 
 
 void ContactNetwork::executeEdgeAddition(double rStart, double rBound)
@@ -591,67 +591,70 @@ size_t ContactNetwork::getAmountOfEdgesToAddSafe() const
     }
     //std::cout <<std::endl;
 
-    int in = capacitiesCount.size() - 1;
-    while (in >= 0)
+    if (capacitiesCount.size() > 0)
     {
-        if (capacitiesCount.at(in) > 0)
+        size_t in = capacitiesCount.size() - 1;
+        while (in >= 0)
         {
-            size_t nRequiredForFullBlock = in + 1 + 1;
-            //std::cout <<"nRequiredForFullBlock " << nRequiredForFullBlock<<std::endl;
-            //std::cout <<"curNodes " << curNodes<<std::endl;
-            if (nRequiredForFullBlock > curNodes)
+            if (capacitiesCount.at(in) > 0)
             {
-                nRequiredForFullBlock = curNodes;
-                size_t currCap = curNodes - 1;
-                size_t toAdd = curNodes * (curNodes - 1) / 2;
-                //std::cout << toAdd << std::endl;
-                for (size_t i = 0; i < in + 1; i ++)
+                size_t nRequiredForFullBlock = in + 1 + 1;
+                //std::cout <<"nRequiredForFullBlock " << nRequiredForFullBlock<<std::endl;
+                //std::cout <<"curNodes " << curNodes<<std::endl;
+                if (nRequiredForFullBlock > curNodes)
                 {
-                    if (capacitiesCount.at(i) > 0)
+                    nRequiredForFullBlock = curNodes;
+                    size_t currCap = curNodes - 1;
+                    size_t toAdd = curNodes * (curNodes - 1) / 2;
+                    //std::cout << toAdd << std::endl;
+                    for (size_t i = 0; i < in + 1; i++)
                     {
-                        //std::cout << "i=" <<i <<" " <<capacitiesCount.at(i)  <<std::endl;;
-                        toAdd -= currCap - std::min(i, currCap) * capacitiesCount.at(i);
+                        if (capacitiesCount.at(i) > 0)
+                        {
+                            //std::cout << "i=" <<i <<" " <<capacitiesCount.at(i)  <<std::endl;;
+                            toAdd -= currCap - std::min(i, currCap) * capacitiesCount.at(i);
+                        }
                     }
+                    nEdgesToAdd += toAdd;
+                    curNodes = 0;
+                    //std::cout << toAdd << std::endl;
+                    break;
                 }
-                nEdgesToAdd += toAdd;
-                curNodes = 0;
-                //std::cout << toAdd << std::endl;
-                break;
-            }
-            else
-            {
-                size_t currentBlock = capacitiesCount.at(in);
-                capacitiesCount.at(in) = 0;
-                curNodes -=currentBlock;
-
-                size_t currCap = in;
-                size_t toAdd = nRequiredForFullBlock * (nRequiredForFullBlock - 1) / 2;
-
-                int ind = in;
-                while (currentBlock < nRequiredForFullBlock)
+                else
                 {
-                    ind--;
-                    if (ind < 0)
-                    {
-                        break;
-                    }
+                    size_t currentBlock = capacitiesCount.at(in);
+                    capacitiesCount.at(in) = 0;
+                    curNodes -= currentBlock;
 
-                    size_t nCuradd = std::min(nRequiredForFullBlock - currentBlock, capacitiesCount.at(ind));
-                    toAdd -= std::min(nRequiredForFullBlock - currentBlock, capacitiesCount.at(ind)) * (currCap - ind);
-                    capacitiesCount.at(ind) -= nCuradd;
-                    curNodes -= nCuradd;
-                    currentBlock += nCuradd;
+                    size_t currCap = in;
+                    size_t toAdd = nRequiredForFullBlock * (nRequiredForFullBlock - 1) / 2;
+
+                    int ind = in;
+                    while (currentBlock < nRequiredForFullBlock)
+                    {
+                        ind--;
+                        if (ind < 0)
+                        {
+                            break;
+                        }
+
+                        size_t nCuradd = std::min(nRequiredForFullBlock - currentBlock, capacitiesCount.at(ind));
+                        toAdd -= std::min(nRequiredForFullBlock - currentBlock, capacitiesCount.at(ind)) *
+                                 (currCap - ind);
+                        capacitiesCount.at(ind) -= nCuradd;
+                        curNodes -= nCuradd;
+                        currentBlock += nCuradd;
+
+                    }
+                    //std::cout << "toAdd = " << toAdd <<std::endl;
+                    nEdgesToAdd += toAdd;
 
                 }
-                //std::cout << "toAdd = " << toAdd <<std::endl;
-                nEdgesToAdd += toAdd;
 
             }
-
+            in--;
         }
-        in--;
     }
-
     return nEdgesToAdd;
 }
 

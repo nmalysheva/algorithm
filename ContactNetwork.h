@@ -68,7 +68,7 @@ public:
     void removeNode(lemon::ListGraph::Node &node);
 
     void executeEdgeDeletion(double rStart, double rBound);
-    void executeEdgeDeletion(size_t edgeNumber,  size_t maxEdgesToDelete);
+    //void executeEdgeDeletion(size_t edgeNumber,  size_t maxEdgesToDelete);
 
     void executeEdgeAddition(double rStart, double rBound);
     void executeEdgeAddition(size_t edgeNumber,  size_t maxEdgesToAdd);

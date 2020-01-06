@@ -161,6 +161,7 @@ void SSA::executeReaction(ContactNetwork & contNetwork, std::string reactId,
     else if (reactId == "death")
     {
         contNetwork.executeDeath(rStart, rBound);
+        nInf = contNetwork.countByState(Specie::State::I);
         //std::cout  << "death " << time << " " << contNetwork.countByState(Specie::I) << " " << contNetwork.size()  <<std::endl;
     }
 

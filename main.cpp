@@ -167,22 +167,21 @@ void executeNSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
 
 }
 
-void executeSSAOnlyContactUpdate(double tStart, double tEnd, size_t nInfected, size_t nSusceptible, size_t nEdges,int maxContactsA, int MaxContactsB,
+void executeSSAOnlyContactUpdate(double tStart, double tEnd, size_t nPopulation, size_t nEdges,int maxContactsA, int maxContactsB,
                  double newContRate, double looseContRate,  size_t simulationNumber)
 {
     UniqueID().reset();
-    ContactNetwork contNetwork(nInfected,
-                               nSusceptible,
+    ContactNetwork contNetwork(0,
+                               nPopulation,
                                nEdges,
                                maxContactsA,
-                               MaxContactsB,
+                               maxContactsB,
                                0,
                                newContRate,
                                looseContRate,
                                0,
                                0);
 
-    size_t nPopulation = contNetwork.size();
     size_t startEdges = contNetwork.countEdges();
     std::cout <<"Nodes: "  << nPopulation <<std::endl;
     std::cout <<"Edges: "  << startEdges <<std::endl;
@@ -198,15 +197,18 @@ void executeSSAOnlyContactUpdate(double tStart, double tEnd, size_t nInfected, s
     auto time = end_time - start_time;
 
     ofstream newFile;
-    newFile.open("ConntDyn_SSA_" + std::to_string(nPopulation) + "_" + std::to_string(simulationNumber) + ".txt");
+    newFile.open("ConntDyn_SSA_" + std::to_string(nPopulation) + "_MaxCont_" +
+                 std::to_string(maxContactsA) + "-" + std::to_string(maxContactsB) + "_addR_" +
+                 std::to_string(newContRate) +"_delR_" + std::to_string(looseContRate) + "_" +
+                 std::to_string(simulationNumber) + ".txt");
 
     //newFile << "duration in CPU time: " << time;
     newFile << "duration in milliseconds: " << chrono::duration <double, milli> (time).count() << std::endl;
     newFile << "nodes: " << nPopulation << std::endl;
     newFile << "edges: " << startEdges << std::endl;
-    newFile << "infected: " << nInfected << std::endl;
+    newFile << "population: " << nPopulation << std::endl;
 
-    newFile << "max contact range: " << maxContactsA << " "  << MaxContactsB << std::endl;
+    newFile << "max contact range: " << maxContactsA << " "  << maxContactsB << std::endl;
     newFile << "rate of make a new contact: " << newContRate << std::endl;
     newFile << "rate of loose a contact: " << looseContRate << std::endl;
 
@@ -234,22 +236,22 @@ void executeSSAOnlyContactUpdate(double tStart, double tEnd, size_t nInfected, s
 }
 
 
-void executeNSAOnlyContactUpdate(double tStart, double tEnd, size_t nInfected, size_t nSusceptible, size_t nEdges,int maxContactsA, int MaxContactsB,
+void executeNSAOnlyContactUpdate(double tStart, double tEnd, size_t nPopulation, size_t nEdges,int maxContactsA, int maxContactsB,
                 double newContRate, double looseContRate, double epsilon, size_t simulationNumber)
 {
     UniqueID().reset();
-    ContactNetwork contNetwork(nInfected,
-                               nSusceptible,
+    ContactNetwork contNetwork(0,
+                               nPopulation,
                                nEdges,
                                maxContactsA,
-                               MaxContactsB,
+                               maxContactsB,
                                0,
                                newContRate,
                                looseContRate,
                                0,
                                0);
 
-    size_t nPopulation = contNetwork.size();
+    //size_t nPopulation = contNetwork.size();
     size_t startEdges = contNetwork.countEdges();
     std::cout <<"Nodes: "  << nPopulation <<std::endl;
     std::cout <<"Edges: "  << startEdges <<std::endl;
@@ -266,14 +268,17 @@ void executeNSAOnlyContactUpdate(double tStart, double tEnd, size_t nInfected, s
     auto time = end_time - start_time;
 
     ofstream newFile;
-    newFile.open("ConntDyn_NSA_" + std::to_string(nPopulation) + "_" + std::to_string(simulationNumber) + ".txt");
+    newFile.open("ContDyn_NSA_" + std::to_string(nPopulation) + "_MaxCont_" +
+                     std::to_string(maxContactsA) + "-" + std::to_string(maxContactsB) + "_addR_" +
+                     std::to_string(newContRate) +"_delR_" + std::to_string(looseContRate) + "_" +
+                     std::to_string(simulationNumber) + ".txt");
 
     newFile << "duration in milliseconds: " << chrono::duration <double, milli> (time).count() << std::endl;
     newFile << "nodes: " << nPopulation << std::endl;
     newFile << "edges: " << startEdges << std::endl;
-    newFile << "infected: " << nInfected << std::endl;
+    newFile << "population: " << nPopulation << std::endl;
 
-    newFile << "max contact range: " << maxContactsA << " "  << MaxContactsB << std::endl;
+    newFile << "max contact range: " << maxContactsA << " "  << maxContactsB << std::endl;
     newFile << "rate of make a new contact: " << newContRate << std::endl;
     newFile << "rate of loose a contact: " << looseContRate << std::endl;
     newFile << "epsilon: " << epsilon << std::endl;
@@ -300,9 +305,53 @@ void executeNSAOnlyContactUpdate(double tStart, double tEnd, size_t nInfected, s
 
 }
 
-
-
 int main(int argc, char* argv[])
+{
+    if (argc != 10)
+    {
+        std::cout << "wrong parameters" <<std::endl;
+    }
+    else
+    {
+
+        double tStart = std::strtod(argv[1], 0);
+        double tEnd   = std::strtod(argv[2], 0);
+        std::cout << "Simulation time t=[" << tStart << ", " << tEnd << "]" << std::endl;
+
+        size_t nPopulation = std::stoi(argv[3]);
+        std::cout << "Population size: " << nPopulation << std::endl;
+
+        size_t nEdges = std::stoi(argv[4]);
+        std::cout << "Max edges: " << nEdges << std::endl;
+
+        int maxContactsA = std::stoi(argv[5]);
+        int MaxContactsB = std::stoi(argv[6]);
+        std::cout << "Max. contact boundaries =[" << maxContactsA << ", " << MaxContactsB << "]" << std::endl;
+
+        double newContRate = std::strtod(argv[7], 0);
+        std::cout << "New Contact Rate: " << newContRate << std::endl;
+
+        double looseContRate = std::strtod(argv[8], 0);
+        std::cout << "Loose Contact Rate: " << looseContRate << std::endl;
+
+        size_t simulationNumber = std::stoi(argv[9]);
+        std::cout<<simulationNumber << std::endl;
+
+        double epsilon = 0.03;
+
+
+        executeNSAOnlyContactUpdate(tStart, tEnd, nPopulation, nEdges, maxContactsA, MaxContactsB,
+        newContRate, looseContRate, epsilon, simulationNumber);
+        executeSSAOnlyContactUpdate(tStart, tEnd, nPopulation, nEdges, maxContactsA, MaxContactsB,
+                                    newContRate, looseContRate, simulationNumber);
+        std::cout << "----------" << std::endl;
+
+    }
+
+    return 0;
+}
+
+int main2(int argc, char* argv[])
 {
     /*if (argc != 15)
     {
@@ -355,7 +404,7 @@ int main(int argc, char* argv[])
 
         double newContRate = 5;
 
-        double transmRate = 3.2;
+        double transmRate = 0.8;
 
         double looseContRate = 4;
        // double dRate = std::strtod(argv[11], 0);
@@ -369,7 +418,7 @@ int main(int argc, char* argv[])
                transmRate, newContRate, looseContRate, 0.5, 1, epsilon, 1);
     executeSSA(tStart, tEnd, nInfected, nSusceptible, nEdges, maxContactsA, MaxContactsB,
                transmRate, newContRate, looseContRate, 0.5, 1, 1);*/
-        std::vector<size_t> nPops {1000};
+        std::vector<size_t> nPops {500};
         for (size_t j = 0; j < nPops.size(); j ++)
         {
             size_t nInfected = 20;
@@ -377,15 +426,15 @@ int main(int argc, char* argv[])
             size_t nPop = nInfected + nSusceptible;
             size_t nEdges = nPop * (nPop - 1) / 2 * 0.1;
 
-            for (size_t i = 0; i < 1; i ++)
+            for (size_t i = 0; i < 10; i ++)
             {
 
-                /*executeNSA(tStart, tEnd, nInfected, nSusceptible, nEdges, maxContactsA, MaxContactsB,
+                executeNSA(tStart, tEnd, nInfected, nSusceptible, nEdges, maxContactsA, MaxContactsB,
                            transmRate, newContRate, looseContRate, 0.5, 1, epsilon, i + 1);
                 executeSSA(tStart, tEnd, nInfected, nSusceptible, nEdges, maxContactsA, MaxContactsB,
-                           transmRate, newContRate, looseContRate, 0.5, 1, i + 1);*/
-                executeNSAOnlyContactUpdate(tStart, tEnd, nInfected, nSusceptible, nEdges, maxContactsA, MaxContactsB,
-                                            newContRate, looseContRate, epsilon, i);
+                           transmRate, newContRate, looseContRate, 0.5, 1, i + 1);
+                //executeNSAOnlyContactUpdate(tStart, tEnd, nInfected, nSusceptible, nEdges, maxContactsA, MaxContactsB,
+                                            //newContRate, looseContRate, epsilon, i);
                 //executeSSAOnlyContactUpdate(tStart, tEnd, nInfected, nSusceptible, nEdges, maxContactsA, MaxContactsB,
                 //                            newContRate, looseContRate, i);
             }
