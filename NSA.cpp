@@ -6,11 +6,12 @@
 #include "math.h"
 #include <algorithm>
 #include <vector>
+#include <unistd.h>
 
 NSA::NSA()
 {
     generator = std::mt19937_64(rDev());
-    generator.seed(::time(NULL)); //to change the seed for every run
+    generator.seed(::time(NULL) * getpid()); //to change the seed for every run
     randuni  = std::uniform_real_distribution<>(0.0, 1.0);
 
 }

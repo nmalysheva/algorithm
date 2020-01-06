@@ -338,10 +338,10 @@ int main(int argc, char* argv[])
 
         double epsilon = 0.03;
 
-        /*executeNSAOnlyContactUpdate(tStart, tEnd, nPopulation, nEdges, maxContactsA, MaxContactsB,
-                         newContRate, looseContRate, epsilon, simulationNumber);*/
-        executeSSAOnlyContactUpdate(tStart, tEnd, nPopulation, nEdges, maxContactsA, MaxContactsB,
-                                    newContRate, looseContRate, simulationNumber);
+        executeNSAOnlyContactUpdate(tStart, tEnd, nPopulation, nEdges, maxContactsA, MaxContactsB,
+                         newContRate, looseContRate, epsilon, simulationNumber);
+        /*executeSSAOnlyContactUpdate(tStart, tEnd, nPopulation, nEdges, maxContactsA, MaxContactsB,
+                                    newContRate, looseContRate, simulationNumber);*/
 
     }
 
