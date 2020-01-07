@@ -15,7 +15,7 @@
 using namespace lemon;
 using namespace std;
 
-void executeSSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptible, size_t nEdges,int maxContactsA, int MaxContactsB,
+void executeSSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptible, size_t nEdges,int maxContactsA, int maxContactsB,
         double transmRate, double newContRate, double looseContRate, double dRate, double bRate, size_t simulationNumber)
 {
     UniqueID().reset();
@@ -23,7 +23,7 @@ void executeSSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
                                nSusceptible,
                                nEdges,
                                maxContactsA,
-                               MaxContactsB,
+                               maxContactsB,
                                transmRate,
                                newContRate,
                                looseContRate,
@@ -46,7 +46,11 @@ void executeSSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
     auto time = end_time - start_time;
 
     ofstream newFile;
-    newFile.open("SSA_" + std::to_string(nPopulation) + "_" + std::to_string(simulationNumber) + ".txt");
+    newFile.open("SSA_"  + std::to_string(nPopulation) + "_nInf_" + std::to_string(nInfected) +
+                    "_MaxCont_" + std::to_string(maxContactsA) + "-" + std::to_string(maxContactsB) +
+                    "_addR_" + std::to_string(newContRate) + "_delR_" + std::to_string(looseContRate) + "_" +
+                    "_birthR_" + std::to_string(bRate) + "_deathR_" + std::to_string(dRate) + "_" +
+                    std::to_string(simulationNumber) + ".txt");
 
     //newFile << "duration in CPU time: " << time;
     newFile << "duration in milliseconds: " << chrono::duration <double, milli> (time).count() << std::endl;
@@ -54,7 +58,7 @@ void executeSSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
     newFile << "edges: " << startEdges << std::endl;
     newFile << "infected: " << nInfected << std::endl;
 
-    newFile << "max contact range: " << maxContactsA << " "  << MaxContactsB << std::endl;
+    newFile << "max contact range: " << maxContactsA << " "  << maxContactsB << std::endl;
     newFile << "transmission rate: " << transmRate << std::endl;
     newFile << "rate of make a new contact: " << newContRate << std::endl;
     newFile << "rate of loose a contact: " << looseContRate << std::endl;
@@ -87,7 +91,7 @@ void executeSSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
 
 }
 
-void executeNSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptible, size_t nEdges,int maxContactsA, int MaxContactsB,
+void executeNSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptible, size_t nEdges,int maxContactsA, int maxContactsB,
                 double transmRate, double newContRate, double looseContRate, double dRate, double bRate, double epsilon, size_t simulationNumber)
 {
     UniqueID().reset();
@@ -95,7 +99,7 @@ void executeNSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
                                nSusceptible,
                                nEdges,
                                maxContactsA,
-                               MaxContactsB,
+                               maxContactsB,
                                transmRate,
                                newContRate,
                                looseContRate,
@@ -124,14 +128,18 @@ void executeNSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
     auto time = end_time - start_time;
 
     ofstream newFile;
-    newFile.open("NSA_" + std::to_string(nPopulation) + "_" + std::to_string(simulationNumber) + ".txt");
+    newFile.open("NSA_" + std::to_string(nPopulation) + "_nInf_" + std::to_string(nInfected) +
+                          "_MaxCont_" + std::to_string(maxContactsA) + "-" + std::to_string(maxContactsB) +
+                          "_addR_" + std::to_string(newContRate) + "_delR_" + std::to_string(looseContRate) + "_" +
+                          "_birthR_" + std::to_string(bRate) + "_deathR_" + std::to_string(dRate) + "_" +
+                          std::to_string(simulationNumber) + ".txt");
 
     newFile << "duration in milliseconds: " << chrono::duration <double, milli> (time).count() << std::endl;
     newFile << "nodes: " << nPopulation << std::endl;
     newFile << "edges: " << startEdges << std::endl;
     newFile << "infected: " << nInfected << std::endl;
 
-    newFile << "max contact range: " << maxContactsA << " "  << MaxContactsB << std::endl;
+    newFile << "max contact range: " << maxContactsA << " "  << maxContactsB << std::endl;
     newFile << "transmission rate: " << transmRate << std::endl;
     newFile << "rate of make a new contact: " << newContRate << std::endl;
     newFile << "rate of loose a contact: " << looseContRate << std::endl;
@@ -197,7 +205,7 @@ void executeSSAOnlyContactUpdate(double tStart, double tEnd, size_t nPopulation,
     auto time = end_time - start_time;
 
     ofstream newFile;
-    newFile.open("ConntDyn_SSA_" + std::to_string(nPopulation) + "_MaxCont_" +
+    newFile.open("ContDyn_SSA_" + std::to_string(nPopulation) + "_MaxCont_" +
                  std::to_string(maxContactsA) + "-" + std::to_string(maxContactsB) + "_addR_" +
                  std::to_string(newContRate) +"_delR_" + std::to_string(looseContRate) + "_" +
                  std::to_string(simulationNumber) + ".txt");
@@ -304,7 +312,7 @@ void executeNSAOnlyContactUpdate(double tStart, double tEnd, size_t nPopulation,
 
 }
 
-int main(int argc, char* argv[])
+void contactDynamics(int argc, char* argv[])
 {
     if (argc != 10)
     {
@@ -345,12 +353,11 @@ int main(int argc, char* argv[])
 
     }
 
-    return 0;
 }
 
-int main2(int argc, char* argv[])
+void viralDynamics(int argc, char* argv[])
 {
-    /*if (argc != 15)
+    if (argc != 14)
     {
         std::cout << "wrong parameters" <<std::endl;
     }
@@ -358,86 +365,54 @@ int main2(int argc, char* argv[])
     {
 
         double tStart = std::strtod(argv[1], 0);
-        std::cout<<tStart << std::endl;
         double tEnd   = std::strtod(argv[2], 0);
-        std::cout<<tEnd << std::endl;
-        size_t nInfected = std::stoi(argv[3]);
-        std::cout<<nInfected << std::endl;
-        size_t nSusceptible = std::stoi(argv[4]);
-        std::cout<<nSusceptible << std::endl;
+        std::cout << "Simulation time t=[" << tStart << ", " << tEnd << "]" << std::endl;
+
+        size_t nPopulation = std::stoi(argv[3]);
+        std::cout << "Population size: " << nPopulation << std::endl;
+
+        size_t nInfected = std::stoi(argv[4]);
+        std::cout << "Number of infected: " << nInfected << std::endl;
+
         size_t nEdges = std::stoi(argv[5]);
-        std::cout<<nEdges << std::endl;
+        std::cout << "Max edges: " << nEdges << std::endl;
+
         int maxContactsA = std::stoi(argv[6]);
-        std::cout<<maxContactsA << std::endl;
         int MaxContactsB = std::stoi(argv[7]);
-        std::cout<<MaxContactsB << std::endl;
+        std::cout << "Max. contact boundaries =[" << maxContactsA << ", " << MaxContactsB << "]" << std::endl;
+
         double newContRate = std::strtod(argv[8], 0);
-        std::cout<<newContRate << std::endl;
-        double transmRate = std::strtod(argv[9], 0);
-        std::cout<<transmRate << std::endl;
-        double looseContRate = std::strtod(argv[10], 0);
-        std::cout<<looseContRate << std::endl;
-        double dRate = std::strtod(argv[11], 0);
-        std::cout<<dRate << std::endl;
-        double bRate = std::strtod(argv[12], 0);
-        std::cout<<bRate << std::endl;
-        double epsilon = std::strtod(argv[13], 0);
-        std::cout<<epsilon << std::endl;
-        size_t simulationNumber = std::stoi(argv[14]);
-        std::cout<<simulationNumber << std::endl;*/
+        std::cout << "New Contact Rate: " << newContRate << std::endl;
 
-        /*executeNSA(tStart, tEnd, nInfected, nSusceptible, nEdges, maxContactsA, MaxContactsB,
-                transmRate, newContRate, looseContRate, dRate, bRate, epsilon, simulationNumber);*/
+        double looseContRate = std::strtod(argv[9], 0);
+        std::cout << "Loose Contact Rate: " << looseContRate << std::endl;
 
-        double tStart = 0;
-        double tEnd   = 2;
-        /*size_t nInfected = 20;
-        size_t nSusceptible = 80;
-        size_t nPop = nInfected + nSusceptible;
-        size_t nEdges = nPop * (nPop - 1) / 2 * 0.1; */
+        double birthRate = std::strtod(argv[10], 0);
+        std::cout << "Birth rate: " << birthRate << std::endl;
 
-        int maxContactsA = 0;
-        int MaxContactsB = 20;
+        double deathRate = std::strtod(argv[11], 0);
+        std::cout << "Death rate: " << deathRate << std::endl;
 
-        double newContRate = 5;
+        double transmitRate = std::strtod(argv[12], 0);
+        std::cout << "Transmission rate: " << transmitRate << std::endl;
 
-        double transmRate = 0.8;
+        size_t simulationNumber = std::stoi(argv[13]);
+        std::cout<<simulationNumber << std::endl;
 
-        double looseContRate = 4;
-       // double dRate = std::strtod(argv[11], 0);
-        //double bRate = std::strtod(argv[12], 0);
-        //std::cout<<bRate << std::endl;
         double epsilon = 0.03;
 
-        //size_t simulationNumber = std::stoi(argv[14]);
+        executeNSA(tStart, tEnd, nInfected, nPopulation - nInfected, nEdges, maxContactsA, MaxContactsB,
+                   transmitRate, newContRate, looseContRate, deathRate, birthRate, epsilon, simulationNumber);
+        executeSSA(tStart, tEnd, nInfected, nPopulation - nInfected, nEdges, maxContactsA, MaxContactsB,
+                   transmitRate, newContRate, looseContRate, deathRate, birthRate, simulationNumber);
 
-    /*executeNSA(tStart, tEnd, nInfected, nSusceptible, nEdges, maxContactsA, MaxContactsB,
-               transmRate, newContRate, looseContRate, 0.5, 1, epsilon, 1);
-    executeSSA(tStart, tEnd, nInfected, nSusceptible, nEdges, maxContactsA, MaxContactsB,
-               transmRate, newContRate, looseContRate, 0.5, 1, 1);*/
-        std::vector<size_t> nPops {500};
-        for (size_t j = 0; j < nPops.size(); j ++)
-        {
-            size_t nInfected = 20;
-            size_t nSusceptible = nPops.at(j) - nInfected;
-            size_t nPop = nInfected + nSusceptible;
-            size_t nEdges = nPop * (nPop - 1) / 2 * 0.1;
-
-            for (size_t i = 0; i < 10; i ++)
-            {
-
-                executeNSA(tStart, tEnd, nInfected, nSusceptible, nEdges, maxContactsA, MaxContactsB,
-                           transmRate, newContRate, looseContRate, 0.5, 1, epsilon, i + 1);
-                executeSSA(tStart, tEnd, nInfected, nSusceptible, nEdges, maxContactsA, MaxContactsB,
-                           transmRate, newContRate, looseContRate, 0.5, 1, i + 1);
-                //executeNSAOnlyContactUpdate(tStart, tEnd, nInfected, nSusceptible, nEdges, maxContactsA, MaxContactsB,
-                                            //newContRate, looseContRate, epsilon, i);
-                //executeSSAOnlyContactUpdate(tStart, tEnd, nInfected, nSusceptible, nEdges, maxContactsA, MaxContactsB,
-                //                            newContRate, looseContRate, i);
-            }
-            std::cout << "----------" << std::endl;
-
-        }
-
-    return 0;
     }
+
+}
+
+int main(int argc, char* argv[])
+{
+    contactDynamics(argc, argv);
+    viralDynamics(argc, argv);
+    return 0;
+}
