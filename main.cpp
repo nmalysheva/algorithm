@@ -50,7 +50,8 @@ void executeSSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
                     "_MaxCont_" + std::to_string(maxContactsA) + "-" + std::to_string(maxContactsB) +
                     "_addR_" + std::to_string(newContRate) + "_delR_" + std::to_string(looseContRate) + "_" +
                     "_birthR_" + std::to_string(bRate) + "_deathR_" + std::to_string(dRate) + "_" +
-                    std::to_string(simulationNumber) + ".txt");
+                    "_trR_" + std::to_string(transmRate) + "_" +
+                     std::to_string(simulationNumber) + ".txt");
 
     //newFile << "duration in CPU time: " << time;
     newFile << "duration in milliseconds: " << chrono::duration <double, milli> (time).count() << std::endl;
@@ -132,7 +133,8 @@ void executeNSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
                           "_MaxCont_" + std::to_string(maxContactsA) + "-" + std::to_string(maxContactsB) +
                           "_addR_" + std::to_string(newContRate) + "_delR_" + std::to_string(looseContRate) + "_" +
                           "_birthR_" + std::to_string(bRate) + "_deathR_" + std::to_string(dRate) + "_" +
-                          std::to_string(simulationNumber) + ".txt");
+                         "_trR_" + std::to_string(transmRate) + "_" +
+                         std::to_string(simulationNumber) + ".txt");
 
     newFile << "duration in milliseconds: " << chrono::duration <double, milli> (time).count() << std::endl;
     newFile << "nodes: " << nPopulation << std::endl;
