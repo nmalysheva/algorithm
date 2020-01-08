@@ -11,6 +11,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <iomanip>
 
 using namespace lemon;
 using namespace std;
@@ -45,13 +46,36 @@ void executeSSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
     auto end_time = std::chrono::high_resolution_clock::now();
     auto time = end_time - start_time;
 
+    std::ostringstream strs;
+    strs << std::fixed << std::setprecision(1)  << newContRate;
+    std::string newContRateStr = strs.str();
+    strs.str("");
+
+    strs << std::fixed << std::setprecision(1)  << looseContRate;
+    std::string looseContRateStr = strs.str();
+    strs.str("");
+
+    strs << std::fixed << std::setprecision(1)  << bRate;
+    std::string bRateStr = strs.str();
+    strs.str("");
+
+    strs << std::fixed << std::setprecision(1)  << dRate;
+    std::string dRateStr = strs.str();
+    strs.str("");
+
+    strs << std::fixed << std::setprecision(1)  << transmRate;
+    std::string transmRateStr = strs.str();
+    strs.str("");
+
+    string fileName = "SSA_"  + std::to_string(nPopulation) + "_nInf_" + std::to_string(nInfected) +
+                      "_MaxCont_" + std::to_string(maxContactsA) + "-" + std::to_string(maxContactsB) +
+                      "_addR_" + newContRateStr + "_delR_" + looseContRateStr +
+                      "_birthR_" + bRateStr + "_deathR_" + dRateStr +
+                      "_trR_" + transmRateStr + "_" +
+                      std::to_string(simulationNumber) + ".txt";
+
     ofstream newFile;
-    newFile.open("SSA_"  + std::to_string(nPopulation) + "_nInf_" + std::to_string(nInfected) +
-                    "_MaxCont_" + std::to_string(maxContactsA) + "-" + std::to_string(maxContactsB) +
-                    "_addR_" + std::to_string(newContRate) + "_delR_" + std::to_string(looseContRate) + "_" +
-                    "_birthR_" + std::to_string(bRate) + "_deathR_" + std::to_string(dRate) + "_" +
-                    "_trR_" + std::to_string(transmRate) + "_" +
-                     std::to_string(simulationNumber) + ".txt");
+    newFile.open(fileName);
 
     //newFile << "duration in CPU time: " << time;
     newFile << "duration in milliseconds: " << chrono::duration <double, milli> (time).count() << std::endl;
@@ -65,6 +89,7 @@ void executeSSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
     newFile << "rate of loose a contact: " << looseContRate << std::endl;
     newFile << "death rate: " << dRate << std::endl;
     newFile << "birth rate: " << bRate << std::endl;
+    newFile << "transmission rate: " << transmRate << std::endl;
 
     for (size_t i = 0; i < timeSteps.size(); i++)
     {
@@ -128,13 +153,36 @@ void executeNSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
     auto end_time = std::chrono::high_resolution_clock::now();
     auto time = end_time - start_time;
 
+    std::ostringstream strs;
+    strs << std::fixed << std::setprecision(1)  << newContRate;
+    std::string newContRateStr = strs.str();
+    strs.str("");
+
+    strs << std::fixed << std::setprecision(1)  << looseContRate;
+    std::string looseContRateStr = strs.str();
+    strs.str("");
+
+    strs << std::fixed << std::setprecision(1)  << bRate;
+    std::string bRateStr = strs.str();
+    strs.str("");
+
+    strs << std::fixed << std::setprecision(1)  << dRate;
+    std::string dRateStr = strs.str();
+    strs.str("");
+
+    strs << std::fixed << std::setprecision(1)  << transmRate;
+    std::string transmRateStr = strs.str();
+    strs.str("");
+
+    string fileName = "NSA_"  + std::to_string(nPopulation) + "_nInf_" + std::to_string(nInfected) +
+                      "_MaxCont_" + std::to_string(maxContactsA) + "-" + std::to_string(maxContactsB) +
+                      "_addR_" + newContRateStr + "_delR_" + looseContRateStr +
+                      "_birthR_" + bRateStr + "_deathR_" + dRateStr +
+                      "_trR_" + transmRateStr + "_" +
+                      std::to_string(simulationNumber) + ".txt";
+
     ofstream newFile;
-    newFile.open("NSA_" + std::to_string(nPopulation) + "_nInf_" + std::to_string(nInfected) +
-                          "_MaxCont_" + std::to_string(maxContactsA) + "-" + std::to_string(maxContactsB) +
-                          "_addR_" + std::to_string(newContRate) + "_delR_" + std::to_string(looseContRate) + "_" +
-                          "_birthR_" + std::to_string(bRate) + "_deathR_" + std::to_string(dRate) + "_" +
-                         "_trR_" + std::to_string(transmRate) + "_" +
-                         std::to_string(simulationNumber) + ".txt");
+    newFile.open(fileName);
 
     newFile << "duration in milliseconds: " << chrono::duration <double, milli> (time).count() << std::endl;
     newFile << "nodes: " << nPopulation << std::endl;
@@ -147,6 +195,7 @@ void executeNSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
     newFile << "rate of loose a contact: " << looseContRate << std::endl;
     newFile << "death rate: " << dRate << std::endl;
     newFile << "birth rate: " << bRate << std::endl;
+    newFile << "transmission rate: " << transmRate << std::endl;
     newFile << "epsilon: " << epsilon << std::endl;
 
     for (size_t i = 0; i < timeSteps.size(); i++)
@@ -162,7 +211,7 @@ void executeNSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
     newFile <<  std::endl;
     newFile << "rejected: " << nRejections << std::endl;
     newFile << "accepted: " << nAcceptance << std::endl;
-    newFile << "thined: "   <<nThin << std::endl;
+    newFile << "thined: "   << nThin << std::endl;
     newFile << "degree distribution:" << std::endl;
     for (size_t i = 0; i < degreeDistr.size(); i++)
     {
@@ -206,11 +255,23 @@ void executeSSAOnlyContactUpdate(double tStart, double tEnd, size_t nPopulation,
     auto end_time = std::chrono::high_resolution_clock::now();
     auto time = end_time - start_time;
 
+    std::ostringstream strs;
+    strs << std::fixed << std::setprecision(1)  << newContRate;
+    std::string newContRateStr = strs.str();
+    strs.str("");
+
+    strs << std::fixed << std::setprecision(1)  << looseContRate;
+    std::string looseContRateStr = strs.str();
+    strs.str("");
+
+    string fileName = "ContDyn_SSA_" + std::to_string(nPopulation) + "_MaxCont_" +
+                      std::to_string(maxContactsA) + "-" + std::to_string(maxContactsB) + "_addR_" +
+                      newContRateStr +"_delR_" + looseContRateStr + "_" +
+                      std::to_string(simulationNumber) + ".txt";
+
+
     ofstream newFile;
-    newFile.open("ContDyn_SSA_" + std::to_string(nPopulation) + "_MaxCont_" +
-                 std::to_string(maxContactsA) + "-" + std::to_string(maxContactsB) + "_addR_" +
-                 std::to_string(newContRate) +"_delR_" + std::to_string(looseContRate) + "_" +
-                 std::to_string(simulationNumber) + ".txt");
+    newFile.open(fileName);
 
     //newFile << "duration in CPU time: " << time;
     newFile << "duration in milliseconds: " << chrono::duration <double, milli> (time).count() << std::endl;
@@ -276,11 +337,23 @@ void executeNSAOnlyContactUpdate(double tStart, double tEnd, size_t nPopulation,
     auto end_time = std::chrono::high_resolution_clock::now();
     auto time = end_time - start_time;
 
+    std::ostringstream strs;
+    strs << std::fixed << std::setprecision(1)  << newContRate;
+    std::string newContRateStr = strs.str();
+    strs.str("");
+
+    strs << std::fixed << std::setprecision(1)  << looseContRate;
+    std::string looseContRateStr = strs.str();
+    strs.str("");
+
+    string fileName = "ContDyn_SSA_" + std::to_string(nPopulation) + "_MaxCont_" +
+                      std::to_string(maxContactsA) + "-" + std::to_string(maxContactsB) + "_addR_" +
+                      newContRateStr +"_delR_" + looseContRateStr + "_" +
+                      std::to_string(simulationNumber) + ".txt";
+
+
     ofstream newFile;
-    newFile.open("ContDyn_NSA_" + std::to_string(nPopulation) + "_MaxCont_" +
-                     std::to_string(maxContactsA) + "-" + std::to_string(maxContactsB) + "_addR_" +
-                     std::to_string(newContRate) +"_delR_" + std::to_string(looseContRate) + "_" +
-                     std::to_string(simulationNumber) + ".txt");
+    newFile.open(fileName);
 
     newFile << "duration in milliseconds: " << chrono::duration <double, milli> (time).count() << std::endl;
     newFile << "nodes: " << nPopulation << std::endl;
@@ -403,8 +476,8 @@ void viralDynamics(int argc, char* argv[])
 
         double epsilon = 0.03;
 
-        executeNSA(tStart, tEnd, nInfected, nPopulation - nInfected, nEdges, maxContactsA, MaxContactsB,
-                   transmitRate, newContRate, looseContRate, deathRate, birthRate, epsilon, simulationNumber);
+        //executeNSA(tStart, tEnd, nInfected, nPopulation - nInfected, nEdges, maxContactsA, MaxContactsB,
+        //           transmitRate, newContRate, looseContRate, deathRate, birthRate, epsilon, simulationNumber);
         executeSSA(tStart, tEnd, nInfected, nPopulation - nInfected, nEdges, maxContactsA, MaxContactsB,
                    transmitRate, newContRate, looseContRate, deathRate, birthRate, simulationNumber);
 

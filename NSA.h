@@ -23,7 +23,6 @@ public:
 
 private:
 
-    void updateContacts(double &tStart, double tEnd, ContactNetwork & contNetwork, double epsilon = 0.03);
     double  getPropUpperLimit (double lookAheadTime, ContactNetwork & contNetwork) const;
     double  recycleRandUni(double r); //recycle random number so we dont need to sample it again
     void selectTimeStepAndK(double &tau, const std::unordered_map<std::string, double> &propensities, const std::vector<int> &k,
