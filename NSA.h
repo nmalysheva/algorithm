@@ -16,7 +16,7 @@ public:
     void execute(double tStart, double tEnd, ContactNetwork &contNetwork, std::vector<double> &tSteps,
             std::vector<uint32_t> &nInfected, std::vector<std::vector<size_t>> &degreeDistr,
             double epsilon, size_t &nRejections, size_t &nAcceptance, size_t &nThin);
-    void PoissonTauleap(double tStart, double tEnd, ContactNetwork & contNetwork, double epsilon,
+    void PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & contNetwork, double epsilon,
                         std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr, bool updateDegreeDistr = true);
     
     ~NSA() {};

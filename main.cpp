@@ -476,8 +476,8 @@ void viralDynamics(int argc, char* argv[])
 
         double epsilon = 0.03;
 
-        //executeNSA(tStart, tEnd, nInfected, nPopulation - nInfected, nEdges, maxContactsA, MaxContactsB,
-        //           transmitRate, newContRate, looseContRate, deathRate, birthRate, epsilon, simulationNumber);
+        executeNSA(tStart, tEnd, nInfected, nPopulation - nInfected, nEdges, maxContactsA, MaxContactsB,
+                   transmitRate, newContRate, looseContRate, deathRate, birthRate, epsilon, simulationNumber);
         executeSSA(tStart, tEnd, nInfected, nPopulation - nInfected, nEdges, maxContactsA, MaxContactsB,
                    transmitRate, newContRate, looseContRate, deathRate, birthRate, simulationNumber);
 
@@ -487,7 +487,7 @@ void viralDynamics(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-    contactDynamics(argc, argv);
+    //contactDynamics(argc, argv);
     viralDynamics(argc, argv);
     return 0;
 }

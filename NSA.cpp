@@ -72,9 +72,8 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
             else
             {
                 time += proposedTime;
-
                 PoissonTauleap(networkLastUpdate, time, contNetwork, epsilon, tSteps, degreeDistr, false);
-                networkLastUpdate = time;
+                //networkLastUpdate = time;
 
                 propensities.at("transmission") = contNetwork.getTransmissionRateSum();
                 propensities.at("death") = contNetwork.getDeathRateSum();
@@ -100,6 +99,7 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
                         if (pSum + it.second >= propUpperLimit * r)
                         {
                             executeReaction(contNetwork, it.first, pSum, propUpperLimit * r, time, nInf);
+                            //std::cout << it.first << std::endl;
 
                             if (it.first == "transmission")
                             {
@@ -135,9 +135,11 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
                 else
                 {
                    nThin++;
+                   //std::cout << "thin" << std::endl;
                 }
 
             }
+            //std::cout <<"---------" <<std::endl;
 
         }
 
@@ -149,7 +151,7 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
 
 double  NSA::getPropUpperLimit (double lookAheadTime, ContactNetwork & contNetwork) const
 {
-    double result = contNetwork.getMaxContactsLimitOfInfected() * contNetwork.getTransmissionRateLimit() +
+    double result = contNetwork.getMaxContactsLimitOfInfected() / 2 * contNetwork.getTransmissionRateLimit() +
               contNetwork.getDeathRateSum() + contNetwork.getBirthRateSum();
     return result;
 }
@@ -274,7 +276,7 @@ void NSA::selectTimeStepAndK(double &tau, const std::unordered_map<std::string, 
 
 }
 
-void NSA::PoissonTauleap(double tStart, double tEnd, ContactNetwork & contNetwork, double epsilon,
+void NSA::PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & contNetwork, double epsilon,
                     std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr, bool updateDegreeDistr)
 {
     //double eps = 0.03;
@@ -286,7 +288,7 @@ void NSA::PoissonTauleap(double tStart, double tEnd, ContactNetwork & contNetwor
             {"edge_del", 0},
             {"edge_add", 0} };
 
-    double t = tStart;
+    double t = tLastNetworkUpdate;
 
     if (updateDegreeDistr)
     {
@@ -386,7 +388,7 @@ void NSA::PoissonTauleap(double tStart, double tEnd, ContactNetwork & contNetwor
             if (tau1 < 10.0 / (propensities.at("edge_del") + propensities.at("edge_add") ) )
             {
                 //SSA
-                //std::cout << "ssa: " << std::endl;
+                //std::cout << "ssa: ";
                 for (size_t i = 0; i < 100; i++)
                 {
                     propensities.at("edge_del") = contNetwork.getEdgeDeletionRateSum(nDel);
@@ -396,6 +398,7 @@ void NSA::PoissonTauleap(double tStart, double tEnd, ContactNetwork & contNetwor
 
                     if (propensitiesSum == 0)
                     {
+                        tLastNetworkUpdate = tEnd; //used to update netw.Upd.Time
                         t = tEnd;
                         if (updateDegreeDistr)
                         {
@@ -411,6 +414,7 @@ void NSA::PoissonTauleap(double tStart, double tEnd, ContactNetwork & contNetwor
 
                     if (t + proposedTime > tEnd)
                     {
+                        tLastNetworkUpdate = t;
                         t = tEnd;
                         if (updateDegreeDistr)
                         {
@@ -421,7 +425,7 @@ void NSA::PoissonTauleap(double tStart, double tEnd, ContactNetwork & contNetwor
                     }
 
                     t += proposedTime;
-
+                    tLastNetworkUpdate = t; //used to update netw.Upd.Time
 
                     r = sampleRandUni();
                     //deletion
@@ -437,6 +441,7 @@ void NSA::PoissonTauleap(double tStart, double tEnd, ContactNetwork & contNetwor
                     //std::cout << "t=" << t << std::endl;
 
                 }
+                //std::cout << "countSSA" << countSSA << std::endl;
                 flag = false;
 
             }
@@ -459,13 +464,16 @@ void NSA::PoissonTauleap(double tStart, double tEnd, ContactNetwork & contNetwor
 
                 else if (t + tau > tEnd)
                 {
-                   t = tEnd;
-                   flag = false;
+                    //std::cout << "tEnd - t =" << tEnd - t << "; tau = " << tau << std::endl;
+                    tLastNetworkUpdate = t;
+                    t = tEnd;
+                    flag = false;
                 }
 
                 else
                 {
                     t = t + tau;
+                    tLastNetworkUpdate = t;
                     k.at(0) = kDel;
                     k.at(1) = kAdd;
 
