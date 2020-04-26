@@ -18,7 +18,9 @@ public:
             double epsilon, size_t &nRejections, size_t &nAcceptance, size_t &nThin);
     void PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & contNetwork, double epsilon,
                         std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr, bool updateDegreeDistr = true);
-    
+    void RKF45Approximation(double &tLastNetworkUpdate, double tEnd, ContactNetwork & contNetwork,
+                            double dtMax, double dtMin, double errorMax, double errorMin, std::vector<double> &timeSteps,
+                            std::vector<std::vector<size_t>> &degreeDistr, bool updateDegreeDistr = true);
     ~NSA() {};
 
 private:

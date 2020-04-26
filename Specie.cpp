@@ -5,6 +5,8 @@
 #include "Specie.h"
 #include <limits>
 #include <iostream>
+#include <math.h>
+
 
 Specie::Specie()
 {
@@ -66,22 +68,22 @@ size_t Specie::getNumberOfContacts() const
 
 double Specie::getNewContactRate() const
 {
-    double result = newContactRate;
+    double result = newContactRate * (maxNumberOfContacts - numberOfContacts);
 
-    if (numberOfContacts == maxNumberOfContacts)
+    /*if (numberOfContacts == maxNumberOfContacts)
     {
         result = 0;
-    }
+    }*/
     return result;
 }
 
 double Specie::getLooseContactRate() const
 {
-    double result = looseContactRate;
-    if (numberOfContacts == 0)
+    double result = looseContactRate;// / numberOfContacts; //* numberOfContacts;
+    /*if (numberOfContacts == 0)
     {
         result = 0;
-    }
+    }*/
     return result;
 }
 
@@ -215,4 +217,36 @@ bool Specie::operator== (const Specie &sp) const
                    state == sp.getState());
     return result;
 
+}
+
+
+double Specie::getNumberOfContactsLimit(double t) const
+{
+    double a = newContactRate * maxNumberOfContacts;
+    double b = newContactRate + looseContactRate;
+    /*std::cout << "a: " << a << "; b: " << b << std::endl;
+
+    std::cout << "numberOfContacts: " << numberOfContacts << std::endl;
+    std::cout << "ExpectationOfContacts: " << ExpectationOfContacts(a, b, t) << std::endl;
+    std::cout << "t: " << t << std::endl;*/
+    double numConStart = numberOfContacts;
+    double numConEnd   = ExpectationOfContacts(a, b, t) + 2 * sqrt(VarianceOfContacts(a, b, t));
+    numConEnd = std::min(numConEnd, static_cast<double>(maxNumberOfContacts));
+    /*std::cout << "numConStart:" << numConStart << std::endl;
+    std::cout << "numConEnd:" << numConEnd << std::endl;*/
+    double result = std::max(numConStart, numConEnd);
+
+    return result;
+
+}
+
+double Specie::ExpectationOfContacts(double a, double b, double t)const
+{
+
+    return (a / b - (a / b - numberOfContacts) * exp(-b * t));
+}
+
+double Specie::VarianceOfContacts(double a, double b, double t)const
+{
+    return (ExpectationOfContacts(a, b, t) - numberOfContacts * exp(-2 * b * t));
 }

@@ -44,6 +44,8 @@ public:
 
     State  getState() const; // return epidemic state of the specie
 
+    double getNumberOfContactsLimit(double t) const;
+
     //setters
     //void setAge(unsigned char age);
     void setMaxNumberOfContacts(unsigned int maxNumOfCont);
@@ -77,6 +79,9 @@ public:
 private:
 
     void setNumberOfContacts(size_t nOfCont);
+
+    double ExpectationOfContacts(double a, double b, double t)const;
+    double VarianceOfContacts(double a, double b, double t)const;
     //unsigned char age;
     //unsigned char  maxNumberOfContacts; // per year
     //unsigned int  cumNumberOfContacts; //cumulative number of contacts. Reset every year.
@@ -89,6 +94,7 @@ private:
 
     double infectionTime;  //last infection time
     double recoveryTime;   //last recovery time
+
 
     State state;
 

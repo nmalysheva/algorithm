@@ -49,6 +49,7 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
         // if there is no transmition possible anymore
         if (propUpperLimit == 0)
         {
+            std::cout << "B=0" << std::endl;
             time = tEnd;
             tSteps.push_back(time);
             nInfected.push_back(nInf);
@@ -63,7 +64,7 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
             if (proposedTime > lookAheadTime)
             {
                 nRejections ++;
-                //std::cout<<"rehject" <<std::endl;
+                //std::cout<<"reject" <<std::endl;
                 time += lookAheadTime;
                 tSteps.push_back(time);
                 nInfected.push_back(nInf);
@@ -72,8 +73,9 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
             else
             {
                 time += proposedTime;
+
                 PoissonTauleap(networkLastUpdate, time, contNetwork, epsilon, tSteps, degreeDistr, false);
-                //networkLastUpdate = time;
+                std::cout << "_______________-________________" <<std::endl;
 
                 propensities.at("transmission") = contNetwork.getTransmissionRateSum();
                 propensities.at("death") = contNetwork.getDeathRateSum();
@@ -98,8 +100,8 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
 
                         if (pSum + it.second >= propUpperLimit * r)
                         {
+                            std::cout << "accepted" << std::endl;
                             executeReaction(contNetwork, it.first, pSum, propUpperLimit * r, time, nInf);
-                            //std::cout << it.first << std::endl;
 
                             if (it.first == "transmission")
                             {
@@ -110,15 +112,10 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
 
                             if (it.first  == "death" )
                             {
-                               // size_t newNInf = contNetwork.countByState(Specie::State::I);
-                                //if (newNInf != nInf)
-                               // {
-                                    //nInf = newNInf;
-                                    nInf = contNetwork.countByState(Specie::State::I);
-                                    tSteps.push_back(time);
-                                    nInfected.push_back(nInf);
-                                    degreeDistr.push_back(contNetwork.getDegreeDistribution());
-                                //}
+                                nInf = contNetwork.countByState(Specie::State::I);
+                                tSteps.push_back(time);
+                                nInfected.push_back(nInf);
+                                degreeDistr.push_back(contNetwork.getDegreeDistribution());
                             }
 
                             propensities.at("transmission") = contNetwork.getTransmissionRateSum();
@@ -135,24 +132,41 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
                 else
                 {
                    nThin++;
-                   //std::cout << "thin" << std::endl;
+                   //time += proposedTime;//!!!!!!!
+                   std::cout << "thin" << std::endl;
                 }
 
             }
-            //std::cout <<"---------" <<std::endl;
-
         }
-
     }
-    //std::time(&programEnd);
-    //std::cout << "time of execution: " << programEnd - programStart << std::endl;
-
 }
 
 double  NSA::getPropUpperLimit (double lookAheadTime, ContactNetwork & contNetwork) const
 {
-    double result = contNetwork.getMaxContactsLimitOfInfected() / 2 * contNetwork.getTransmissionRateLimit() +
-              contNetwork.getDeathRateSum() + contNetwork.getBirthRateSum();
+    /*double result = contNetwork.getMaxContactsLimitOfInfected()  * contNetwork.getTransmissionRateLimit() +
+              contNetwork.getDeathRateSum() + contNetwork.getBirthRateSum();*/
+
+    /*size_t edgesLimit = contNetwork.countByState(Specie::I) * 3.5 * lookAheadTime + contNetwork.getNumberContactsOfInfected();
+    edgesLimit = std::min(edgesLimit, contNetwork.getMaxContactsLimitOfInfected());
+    double result = contNetwork.getDeathRateSum() + contNetwork.getBirthRateSum() + edgesLimit * contNetwork.getTransmissionRateLimit();
+     */
+    //std::cout << "-----------------------------" <<  std::endl;
+
+    double maxContInf = contNetwork.getMaxContactsLimitOfInfected(lookAheadTime);
+    //std::cout << "max.cont.inf: " << maxContInf <<  std::endl;
+    //std::cout << "****************************************" <<  std::endl;
+    double maxContSusc = contNetwork.getMaxContactsLimitOfSusceptible(lookAheadTime);
+    //std::cout << "****************************************" <<  std::endl;
+    //std::cout << "max.cont.susc: " << maxContSusc <<  std::endl;
+    //std::cout << "death rate: " << contNetwork.getDeathRateSum() <<  std::endl;
+    //std::cout << "birth rate: " << contNetwork.getBirthRateSum() <<  std::endl;
+    std::cout << "n.inf : " << contNetwork.countByState(Specie::I) <<"; "; //<<  std::endl;
+
+    double rmc = std::min(maxContInf, maxContSusc);
+    //std::cout << "rmc : " << rmc <<  std::endl;
+    double result = rmc * contNetwork.getTransmissionRateLimit() +
+                    contNetwork.getDeathRateSum() + contNetwork.getBirthRateSum();
+    //std::cout << "-----------------------------" <<  std::endl;
     return result;
 }
 
@@ -166,21 +180,17 @@ double NSA::proposeTau1(size_t lDel, size_t lAdd, size_t nAdd, double epsilon, s
 {
     double timeStep = std::numeric_limits<double>::infinity();
 
+
     if (lDel >= 10)
     {
         timeStep = std::min(timeStep, std::max(epsilon * lDel, 1.0) / std::abs(mu.at(0)));
         timeStep = std::min(timeStep, std::max(epsilon * lDel, 1.0) * std::max(epsilon * lDel, 1.0) / sigmaSq.at(0));
-        //std::cout <<" del tau: " << tau1 <<std::endl;
     }
 
     if (lAdd >= 10)
     {
-        /*std::cout <<"nAdd: " << nAdd <<std::endl;
-        std::cout <<"lAdd: " << lAdd <<std::endl;
-        std::cout <<"lDel: " << lDel <<std::endl;*/
-
-        timeStep = std::min(timeStep, std::max(epsilon * nAdd, 1.0) / std::abs(mu.at(1)));
-        timeStep = std::min(timeStep, std::max(epsilon * nAdd, 1.0) * std::max(epsilon * nAdd, 1.0) / sigmaSq.at(1));
+        timeStep = std::min(timeStep, std::max(epsilon * /*lAdd*/ nAdd, 1.0) / std::abs(mu.at(1)));
+        timeStep = std::min(timeStep, std::max(epsilon * /*lAdd*/ nAdd, 1.0) * std::max(epsilon * /*lAdd*/ nAdd, 1.0) / sigmaSq.at(1));
     }
 
     return timeStep;
@@ -203,25 +213,23 @@ void NSA::selectTimeStepAndK(double &tau, const std::unordered_map<std::string, 
 {
     tau = 0;
 
-    //size_t randK1, randK2;
-
     if (tau1 < tau2)
     {
-        //std::cout << "tau1: " << tau1 << std::endl;
+        std::cout << "tau1: " << tau1 << std::endl;
         tau = tau1;
 
     }
     else
     {
-        //std::cout << "tau2: " << tau2 << std::endl;
+        std::cout << "tau2: " << tau2 << std::endl;
         tau = tau2;
        // size_t randK1, randK2;
         double r = sampleRandUni();
 
         if (k.at(0) == 0)
         {
-            if (propensities.at("edge_del") > r * aCrit) {
-                //k.at(0) = 1;
+            if (propensities.at("edge_del") > r * aCrit)
+            {
                 kDel = 1;
                 //std::cout << "kDel: " << kDel << std::endl;
             }
@@ -251,14 +259,14 @@ void NSA::selectTimeStepAndK(double &tau, const std::unordered_map<std::string, 
     {
         std::poisson_distribution<size_t> poiss(propensities.at("edge_del") * tau);
         kDel = poiss(generator);
-        //std::cout<<"kDel: " <<kDel <<std::endl;
+        //std::cout<<"kDel_poiss: " <<kDel <<std::endl;
     }
 
     if (k.at(1) == -1)
     {
         std::poisson_distribution<size_t> poiss(propensities.at("edge_add") * tau);
         kAdd = poiss(generator);
-        //std::cout<<"kAdd: " <<kAdd <<std::endl;
+        //std::cout<<"kAdd_poiss: " <<kAdd <<std::endl;
     }
 
     if (propensities.at("edge_del") == 0)
@@ -270,16 +278,11 @@ void NSA::selectTimeStepAndK(double &tau, const std::unordered_map<std::string, 
     {
         kAdd = 0;
     }
-
-
-
-
 }
 
 void NSA::PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & contNetwork, double epsilon,
                     std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr, bool updateDegreeDistr)
 {
-    //double eps = 0.03;
 
     int N = 2;
     int M = 2;
@@ -306,6 +309,11 @@ void NSA::PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork
 
         propensities.at("edge_del") = contNetwork.getEdgeDeletionRateSum(nDel);
         propensities.at("edge_add") = contNetwork.getEdgeAdditionRateSum(nAdd);
+        std::cout << "edge_del_prop " << propensities.at("edge_del") << std::endl;
+        std::cout << "edge_add_prop " << propensities.at("edge_add") << std::endl;
+
+        //bool equil = abs(propensities.at("edge_del") - propensities.at("edge_add")) < 0.05 * std::min(propensities.at("edge_del"), propensities.at("edge_add"));
+        //std::cout << "equilibrium: " << equil << std::endl;
 
         if (propensities.at("edge_del") + propensities.at("edge_add") == 0)
         {
@@ -329,8 +337,7 @@ void NSA::PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork
 
 
         size_t lDel = nDel;
-
-        //std::cout<<"lDel: " << lDel <<std::endl;
+        std::cout << "lDel = " << lDel << std::endl;
 
         double aCrit = 0;
 
@@ -342,7 +349,7 @@ void NSA::PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork
             }
             else
             {
-                mu.at(0) += - propensities.at("edge_del");
+                mu.at(0) -=  propensities.at("edge_del");
                 sigmaSq.at(0) +=  propensities.at("edge_del");
 
                 mu.at(1) += propensities.at("edge_del");
@@ -357,38 +364,36 @@ void NSA::PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork
 
         if (propensities.at("edge_add") > 0)
         {
+            lAdd = contNetwork.subgraph();
+            std::cout << "lAdd = " << lAdd << std::endl;
 
-            lAdd = contNetwork.getAmountOfEdgesToAddSafe();
             if (lAdd < 10)
             {
                 aCrit += propensities.at("edge_add");
             }
             else
             {
-                mu.at(0) += + propensities.at("edge_add");
-                sigmaSq.at(0) +=  + propensities.at("edge_add");
+                mu.at(0) +=  propensities.at("edge_add");
+                sigmaSq.at(0) +=   propensities.at("edge_add");
 
-                mu.at(1) += - propensities.at("edge_add");
+                mu.at(1) -=  propensities.at("edge_add");
                 sigmaSq.at(1) +=  propensities.at("edge_add");
                 k.at(1) = -1;//static_cast<size_t> (-1);
             }
         }
-        //std::cout<<"lAdd: " << lAdd <<std::endl;
 
         double tau1 = proposeTau1(lDel, lAdd, nAdd, epsilon, mu, sigmaSq);
 
-        //std::cout <<"tau: " << tau1 <<std::endl;
-
-
         bool flag = true;
-
         while (flag)
         {
             //std::cout <<"tau1: " << tau1 <<std::endl;
             if (tau1 < 10.0 / (propensities.at("edge_del") + propensities.at("edge_add") ) )
             {
                 //SSA
-                //std::cout << "ssa: ";
+                std::cout << "prop.sum: " << (propensities.at("edge_del") + propensities.at("edge_add") ) << std::endl;
+                std::cout << "lAdd: " << lAdd << "; lDel: " << lDel << std::endl;
+                std::cout << "ssa. start time =  " << t <<"; ";
                 for (size_t i = 0; i < 100; i++)
                 {
                     propensities.at("edge_del") = contNetwork.getEdgeDeletionRateSum(nDel);
@@ -431,19 +436,17 @@ void NSA::PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork
                     //deletion
                     if (propensities.at("edge_del") > r * propensitiesSum)
                     {
+                        std::cout << i << "=del, ";
                         contNetwork.executeEdgeDeletion(0, r * propensitiesSum);
                     }
                     else
                     {
+                        std::cout << i << "=add, ";
                         contNetwork.executeEdgeAddition(propensities.at("edge_del"), r * propensitiesSum);
                     }
-
-                    //std::cout << "t=" << t << std::endl;
-
                 }
-                //std::cout << "countSSA" << countSSA << std::endl;
+                std::cout << std::endl;
                 flag = false;
-
             }
             else
             {
@@ -457,6 +460,7 @@ void NSA::PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork
 
                 selectTimeStepAndK(tau, propensities, k, kDel, kAdd, tau1, tau2, aCrit);
 
+                //std::cout << "tau = "
                 if (kDel > lDel || kAdd > lAdd)
                 {
                     tau1 = tau1 / 2;
@@ -464,7 +468,6 @@ void NSA::PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork
 
                 else if (t + tau > tEnd)
                 {
-                    //std::cout << "tEnd - t =" << tEnd - t << "; tau = " << tau << std::endl;
                     tLastNetworkUpdate = t;
                     t = tEnd;
                     flag = false;
@@ -473,6 +476,7 @@ void NSA::PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork
                 else
                 {
                     t = t + tau;
+                    std::cout << "t = " << t << std::endl;
                     tLastNetworkUpdate = t;
                     k.at(0) = kDel;
                     k.at(1) = kAdd;
@@ -482,18 +486,15 @@ void NSA::PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork
 
                     std::vector<int> order;
 
-                    //std::cout << "k1 = " << k.at(0) << "; k2 = " << k.at(1) << std::endl;
+                    std::cout << "k_Del = " << k.at(0) << "; k_Add = " << k.at(1) << std::endl;
 
-                    //size_t i = 0;
+
                     for (size_t ind = 0; ind < k.size(); ind++)
                     {
-                        // i++;
                         order.insert(order.end(), k.at(ind), ind);
-
                     }
                     std::shuffle(order.begin(), order.end(), generator);
 
-                    //std::cout <<"check1" <<std::endl;
                     int maxEdgesDelete = nDel;
                     for (size_t ind = 0; ind < order.size(); ind++)
                     {
@@ -501,38 +502,21 @@ void NSA::PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork
                         if (order.at(ind) == 1)
                         {
                             int maxEdgesAdd    = contNetwork.getAmountOfEdgesToAdd();
-                            //std::cout <<"check2" <<std::endl;
-                            //  std::cout <<"Unif. add " <<std::endl;
-                            //contNetwork.executeEdgeAdditionUniform();
-                            //int maxEdges = lemon::countEdges(complement);
                             std::uniform_int_distribution<size_t> dist(0, maxEdgesAdd - 1);
                             size_t edgeNum = dist(generator);
                             contNetwork.executeEdgeAddition(edgeNum, maxEdgesAdd);
                             maxEdgesDelete++;
-                            //std::cout <<"check3" <<std::endl;
-
                         }
                         else if (order.at(ind) == 0)
 
                         {
-
-                            //  std::cout <<"Unif. del " <<std::endl;
-                            //int maxEdges = lemon::countEdges(network);
-
-                            //std::cout <<"maxEdgeId " << maxEdgeId << " " << lemon::countEdges(network) <<std::endl;
                             std::uniform_int_distribution<size_t> dist(0, maxEdgesDelete - 1);
-
 
                             size_t ind = dist(generator);
                             contNetwork.executeEdgeDeletion(ind, maxEdgesDelete);
                             maxEdgesDelete--;
-                            //std::cout <<"check4" <<std::endl;
-
-
-                               //std::cout<<lemon::countEdges(network)<<std::endl;
                         }
                     }
-                    //std::cout <<"executed" <<std::endl;
                     flag = false;
                 }
             }
@@ -543,9 +527,7 @@ void NSA::PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork
             timeSteps.push_back(t);
             degreeDistr.push_back(contNetwork.getDegreeDistribution());
         }
-
     }
-
 }
 
 
@@ -567,32 +549,52 @@ void NSA::executeReaction(ContactNetwork & contNetwork, std::string reactId,
     if (reactId == "edge_del")
     {
         contNetwork.executeEdgeDeletion(rStart, rBound);
-        //contNetwork.executeEdgeDelitionUniform();
     }
 
     else if (reactId == "edge_add")
     {
         contNetwork.executeEdgeAddition(rStart, rBound);
-        //contNetwork.executeEdgeAdditionUniform();
-
     }
+
     else if (reactId == "transmission")
     {
         contNetwork.executeTransmission(rStart, rBound, time);
         nInf++;
-        //std::cout << "transmission " << time << " " << contNetwork.countByState(Specie::I) << " " << contNetwork.size() <<std::endl;
     }
 
     else if (reactId == "death")
     {
         contNetwork.executeDeath(rStart, rBound);
-         //std::cout  << "death " << time << " " << contNetwork.countByState(Specie::I)  << " " << contNetwork.size() <<std::endl;
     }
 
     else if (reactId == "birth")
     {
         contNetwork.executeBirth(rStart, rBound);
-        //std::cout << "birth " << time << " " << contNetwork.countByState(Specie::I)  << " " << contNetwork.size() <<std::endl;
     }
-    //std::cout << "------------------" <<std::endl;
+}
+
+
+void NSA::RKF45Approximation(double &tLastNetworkUpdate, double tEnd, ContactNetwork & contNetwork,
+        double dtMax, double dtMin, double errorMax, double errorMin, std::vector<double> &timeSteps,
+        std::vector<std::vector<size_t>> &degreeDistr, bool updateDegreeDistr)
+{
+    double t = tLastNetworkUpdate;
+
+    if (updateDegreeDistr)
+    {
+        timeSteps.push_back(t);
+        degreeDistr.push_back(contNetwork.getDegreeDistribution());
+    }
+
+    double dt = dtMax;
+    while (t < tEnd)
+    {
+        dt = std::min(std::max(dt, dtMin), dtMax);
+
+        double nEdgesToAddTotal = static_cast<double>(contNetwork.getAmountOfEdgesToAdd());
+
+        /*
+         *
+         */
+    }
 }

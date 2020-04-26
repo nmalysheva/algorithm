@@ -134,8 +134,8 @@ void executeNSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
 
     size_t nPopulation = contNetwork.size();
     size_t startEdges = contNetwork.countEdges();
-    std::cout <<"Nodes: "  << nPopulation <<std::endl;
-    std::cout <<"Edges: "  << startEdges <<std::endl;
+    //std::cout <<"Nodes: "  << nPopulation <<std::endl;
+    //std::cout <<"Edges: "  << startEdges <<std::endl;
 
     std::vector<double> timeSteps;
     std::vector<uint32_t> infectedSteps;
@@ -328,7 +328,6 @@ void executeNSAOnlyContactUpdate(double tStart, double tEnd, size_t nPopulation,
 
     std::vector<double> timeSteps;
     std::vector<std::vector<size_t>> degreeDistr; // vector stores degree dist. per time step
-
     NSA nsa;
     //ContactNetwork cNw2(20, amount.at(i) - 20, nEdges, 1, 20, 0.03, 1.2, 1.25, 0.0004, 2);
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -346,7 +345,7 @@ void executeNSAOnlyContactUpdate(double tStart, double tEnd, size_t nPopulation,
     std::string looseContRateStr = strs.str();
     strs.str("");
 
-    string fileName = "ContDyn_SSA_" + std::to_string(nPopulation) + "_MaxCont_" +
+    string fileName = "ContDyn_NSA_" + std::to_string(nPopulation) + "_MaxCont_" +
                       std::to_string(maxContactsA) + "-" + std::to_string(maxContactsB) + "_addR_" +
                       newContRateStr +"_delR_" + looseContRateStr + "_" +
                       std::to_string(simulationNumber) + ".txt";
@@ -423,8 +422,8 @@ void contactDynamics(int argc, char* argv[])
 
         executeNSAOnlyContactUpdate(tStart, tEnd, nPopulation, nEdges, maxContactsA, MaxContactsB,
                          newContRate, looseContRate, epsilon, simulationNumber);
-        /*executeSSAOnlyContactUpdate(tStart, tEnd, nPopulation, nEdges, maxContactsA, MaxContactsB,
-                                    newContRate, looseContRate, simulationNumber);*/
+        executeSSAOnlyContactUpdate(tStart, tEnd, nPopulation, nEdges, maxContactsA, MaxContactsB,
+                                    newContRate, looseContRate, simulationNumber);
 
     }
 
@@ -487,7 +486,7 @@ void viralDynamics(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-    //contactDynamics(argc, argv);
-    viralDynamics(argc, argv);
+    contactDynamics(argc, argv);
+    //viralDynamics(argc, argv);
     return 0;
 }
