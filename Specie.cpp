@@ -6,6 +6,8 @@
 #include <limits>
 #include <iostream>
 #include <math.h>
+#include <stdexcept>
+
 
 
 Specie::Specie()
@@ -43,23 +45,10 @@ Specie::Specie(/*unsigned char age, */size_t maxNumberOfContacts,
 
 }
 
-
-//getters
-/*unsigned char const Specie::getAge() const
-{
-    return age;
-}*/
-
 size_t Specie::getMaxNumberOfContacts() const
 {
     return maxNumberOfContacts;
 }
-
-
-/*unsigned int const Specie::getCumNumberOfContacts() const
-{
-    return cumNumberOfContacts;
-}*/
 
 size_t Specie::getNumberOfContacts() const
 {
@@ -97,12 +86,6 @@ Specie::State Specie::getState() const
     return state;
 }
 
-//setters
-/*void Specie::setAge(unsigned char age)
-{
-    this->age = age;
-}*/
-
 void Specie::setMaxNumberOfContacts(unsigned int maxNumOfCont)
 {
     maxNumberOfContacts = maxNumOfCont;
@@ -112,25 +95,6 @@ void Specie::setNumberOfContacts(size_t nOfCont)
 {
     numberOfContacts = nOfCont;
 }
-
-/*void Specie::setCumNumberOfContacts(unsigned int cumNumOfCont)
-{
-    cumNumberOfContacts = cumNumOfCont;
-}*/
-
-/*void Specie::incCumNumberOfContacts()
-{
-    cumNumberOfContacts++;
-    //if (cumNumberOfContacts >= maxNumberOfContacts)
-    //{
-    //    newContactRate = 0;
-    //}
-}*/
-
-/*void Specie::resetCumNumberOfContacts()
-{
-    cumNumberOfContacts = 0;
-}*/
 
 void Specie::incNumberOfContacts()
 {
@@ -164,12 +128,15 @@ bool Specie::infect (double infectTime)
     {
         state = I;
         infectionTime = infectTime;
+        setNewContactRate(getNewContactRate() * 0.03);
+        setLooseContactRate(getLooseContactRate() * 2.3);
         result = true;
 
     }
-    else //throw exception
+    else
     {
-        std::cout << "EXCEPTION. ONLY SUSCEPTIBLE CAN BE INFECTED";
+        std::string msg = "EXCEPTION. ONLY SUSCEPTIBLE CAN BE INFECTED";
+        throw std::domain_error(msg);
     }
     return result;
 }
@@ -184,9 +151,9 @@ bool Specie::recover(double recTime)
         result = true;
 
     }
-    else //throw exception
+    else
     {
-        std::cout << "EXCEPTION. ONLY Infected CAN RECOVER";
+        throw std::domain_error("Current status is .ONLY Infected CAN RECOVER");
     }
     return result;
 }
@@ -203,11 +170,8 @@ double Specie::getRecoveryTime() const
 
 bool Specie::operator== (const Specie &sp) const
 {
-    //bool result = age == sp.getAge();
-
     bool result = ( /*age == sp.getAge() &&*/
                    maxNumberOfContacts == sp.getMaxNumberOfContacts() &&
-                   //cumNumberOfContacts == sp.getCumNumberOfContacts() &&
                    numberOfContacts == sp.getNumberOfContacts() &&
                    deathRate == sp.getDeathRate() &&
                    newContactRate == sp.getNewContactRate() &&

@@ -12,6 +12,18 @@
 #include <random>
 
 
+struct BenStructure
+{
+    double t;
+    int u;
+    int v;
+    bool state;
+
+    BenStructure(double _t,int _u, int _v, bool _st);
+    bool isValid();
+
+};
+
 class ContactNetwork {
 
 public:
@@ -19,8 +31,8 @@ public:
     ContactNetwork(size_t nInfected,
                    size_t nSusceptible,
                    size_t nEdges,
-                   int maxContactsA,
-                   int MaxContactsB,
+                   int maxContactsL,
+                   int MaxContactsU,
                    double transmRate,
                    double newContRate,
                    double looseContRate,
@@ -30,81 +42,81 @@ public:
                                    transmissionRates(network),
                                    nodeIdMap(network),
                                    edgesIdMap (network),
-                                   edgesIdMapInv(edgesIdMap),
-                                   nEdgesPossibleAdd(complement, 10)
+                                   edgesIdMapInv(edgesIdMap.inverse()),
+                                   complementAdjacentEdges(complement)
 
                                    {
-                                       init(nInfected, nSusceptible, nEdges, maxContactsA, MaxContactsB,
+                                       init(nInfected, nSusceptible, nEdges, maxContactsL, MaxContactsU,
                                                transmRate, newContRate, looseContRate, dRate, bRate);
                                    };
 
     ContactNetwork& operator=(const ContactNetwork& other);
 
-    /*ContactNetwork (const ContactNetwork& other):  network(lemon::ListGraph()),
-                      transmissionRates(lemon::ListGraph::EdgeMap<double>(network)),
-                      //nEdgesComplement(lemon::ListGraph::NodeMap<size_t>(complement)),
-                      nodeIdMap(lemon::IdMap<lemon::ListGraph, lemon::ListGraph::Node>(network)) ,
-                      //edgesIdMap (lemon::RangeIdMap<lemon::ListGraph, lemon::ListGraph::Edge>(network)){copyNetwork(other);};
-                      edgesIdMap (network),
-                      edgesIdMapInv(edgesIdMap)
-                      {
-                          copyNetwork(other);
-                      };*/
-
     size_t  size() const; //amount of nodes
-    size_t  countByState(Specie::State st) const;  //return amount of infected species in network
+    size_t  countByState(Specie::State st) const;  //return amount of I/S/R etc. species in network
     size_t  countEdges() const;
 
 
     //sum of rates of particular reactions
     double  getTransmissionRateSum()const; //return sum of all transmition rates
+    //std::vector<double> getTransmissionRateSum()const;
     double  getEdgeDeletionRateSum(size_t &nDel)const;
+    std::vector<std::pair<double, lemon::ListGraph::Edge>> getEdgeDeletionRateSum()const;
+    double  getExpectedEdgeDeletionRate()const;
+
     double  getEdgeAdditionRateSum(size_t &nAdd)const;
+    std::vector<std::pair<double, lemon::ListGraph::Edge>> getEdgeAdditionRateSum()const;
+    double  getExpectedEdgeAdditionRate(size_t &nAdd)const;
+
     double  getDeathRateSum()const;
     double  getBirthRateSum()const;
-    double getTransmissionRateLimit() const;
-    size_t getMaxContactsLimitOfInfected()const;
-    size_t getMaxContactsLimitOfInfected(double t)const;
-    size_t getMaxContactsLimitOfSusceptible(double t)const;
-    size_t getNumberContactsOfInfected()const;
-    size_t getAmountOfEdgesToAddSafe();
-    size_t getAmountOfEdgesToAdd() const;
 
-    void addEdge(lemon::ListGraph::Edge & complementEdge/*, double trRate*/);
+    double  getTransmissionRateLimit() const;
 
+    size_t  getMaxContactsLimitOfInfected(double t)const;
+    size_t  getMaxContactsLimitOfSusceptible(double t)const;
 
-    void removeEdge(lemon::ListGraph::Edge & edge);
+    size_t  getAmountOfEdgesToAddSafe();
+    size_t  getAmountOfEdgesToAdd() const;
 
-    void removeNode(lemon::ListGraph::Node &node);
+    //void addEdge(lemon::ListGraph::Edge & complementEdge);
+    std::pair<int, int> addEdge(lemon::ListGraph::Edge & complementEdge);
+    //void removeEdge(lemon::ListGraph::Edge & edge);
+    std::pair<int, int> removeEdge(lemon::ListGraph::Edge & edge);
+    void removeNode(lemon::ListGraph::Node & node);
 
-    void executeEdgeDeletion(double rStart, double rBound);
-    void executeEdgeDeletion(size_t edgeNumber,  size_t maxEdgesToDelete);
+    void executeEdgeDeletion(double rStart, double rBound/*, BenStructure &b*/);
+    void executeEdgeDeletion(size_t edgeNumber);
 
-    void executeEdgeAddition(double rStart, double rBound);
-    void executeEdgeAddition(size_t edgeNumber,  size_t maxEdgesToAdd);
+    void executeEdgeAddition(double rStart, double rBound/*, BenStructure &b*/);
+    void executeEdgeAddition(size_t edgeNumber);
 
     void executeTransmission(double rStart, double rBound, double time);
     void executeDeath(double rStart, double rBound);
     void executeBirth(double rStart, double rBound);
 
+    size_t updateSurvivalProbability(size_t nDeletions, size_t nAdditions/*, std::vector<BenStructure> &benToFile, double time*/);
+
     std::vector<size_t> getDegreeDistribution();
-    std::vector<size_t> countCapacities() const;
 
+    //std::vector<BenStructure> getBenStructure(double t);
 
-
-    size_t minNumOfEdges;
-    //!!!
-    size_t subgraph();
 
 
 private:
 
+    void initRandomGenerator();
+    void initRates(int maxContactsL, int MaxContactsU, double transmRate, double newContRate, double looseContRate,
+                   double dRate, double bRate);
+    void initComplementNetwork(size_t nPopulation);
+
     double  getEdgeAdditionRate(lemon::ListGraph::Edge complementEdge) const;
     double  getEdgeDeletionRate(lemon::ListGraph::EdgeIt networkEdgeIt) const;
-    void init(size_t nInfected, size_t nSusceptible, size_t nEdges, int maxContactsA, int MaxContactsB,
+
+    void init(size_t nInfected, size_t nSusceptible, size_t nEdges, int maxContactsL, int MaxContactsU,
             double transmRate, double newContRate, double looseContRate, double dRate, double bRate);
 
-    void copyNetwork (const ContactNetwork& other);
+    size_t countAdjacentEdges(const lemon::ListGraph::Node &complementNode) const;
 
 
     lemon::ListGraph network;
@@ -114,34 +126,33 @@ private:
 
     lemon::IdMap<lemon::ListGraph, lemon::ListGraph::Node> nodeIdMap;
 
-    lemon::RangeIdMap<lemon::ListGraph, lemon::ListGraph::Edge>::InverseMap edgesIdMapInv;
     lemon::RangeIdMap<lemon::ListGraph, lemon::ListGraph::Edge> edgesIdMap;
+    lemon::RangeIdMap<lemon::ListGraph, lemon::ListGraph::Edge>::InverseMap edgesIdMapInv;
 
 
     // node map for complement graph; stores amount of adjucent edges with addition rate > 0
-    lemon::ListGraph::NodeMap<size_t> nEdgesPossibleAdd;
+    lemon::ListGraph::NodeMap<size_t> complementAdjacentEdges;
 
     std::unordered_map<int, Specie> population;
+
     //std::random_device rDev;
     std::mt19937_64 generator;
-
-
-    //std::exponential_distribution<double> transmitDistribution;
-    double transmissionRate;
+    
+    // TODO: replace all rates with rate distributions to have different rates sampled for different species/edges
     std::uniform_int_distribution<size_t> maxContactsDistribution;
-    //std::exponential_distribution<double> newContactRateDistribution;
+    double transmissionRate;
     double newContactRate;
-    //std::exponential_distribution<double> looseContactRateDistribution;
     double looseContactRate;
-    //std::exponential_distribution<double> deathRateRateDistribution;
     double deathRate;
 
     double birthRate;
 
+    bool isContactsLimited;
 
 
-    size_t maxContactsLimitA;
-    size_t maxContactsLimitB;
+
+    size_t maxContactsLimitL;
+    size_t maxContactsLimitU;
 
 
 

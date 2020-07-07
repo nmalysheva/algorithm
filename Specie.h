@@ -19,23 +19,18 @@ public:
     Specie();  //default constructor
     Specie(//unsigned char age,
            size_t maxNumberOfContacts,
-           //unsigned int cumNumberOfContacts,
            size_t numberOfContacts,
            double deathRate,
            double newContactRate,
            double looseContactRate,
            State st = S);
 
-    //getters
     //unsigned char const getAge() const; //return age of the specie
-    //unsigned int  const getMaxNumberOfContacts() const; //return max. number of contacts per year
-    //unsigned int  const getCumNumberOfContacts() const; //return cumulative number of contacts for the current year
-
     size_t  getMaxNumberOfContacts() const; //return max. number of contacts per any time instance
     size_t  getNumberOfContacts() const; //return max. number of contacts per any time instance
 
-    double getNewContactRate() const; //return rate for establishing a new contact
-    double getLooseContactRate() const; ////return rate for loosing of the one of already existing contacts
+    double getNewContactRate() const;   //return rate for establishing a new contact
+    double getLooseContactRate() const; //return rate for loosing of the one of already existing contacts
 
     double  getDeathRate() const;  //return specie's death rate
 
@@ -49,9 +44,7 @@ public:
     //setters
     //void setAge(unsigned char age);
     void setMaxNumberOfContacts(unsigned int maxNumOfCont);
-    //void setCumNumberOfContacts(unsigned int cumNumOfCont);
-    //void incCumNumberOfContacts();
-    //void resetCumNumberOfContacts();
+
     void incNumberOfContacts();
     void decNumberOfContacts();
 

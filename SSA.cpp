@@ -31,33 +31,41 @@ void SSA::exe()
 }
 
 void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
-                  std::vector<double> &tSteps, std::vector<uint32_t> &nInfected, std::vector<std::vector<size_t>> &degreeDistr)
+                  std::vector<double> &tSteps, std::vector<uint32_t> &nInfected,
+                  std::vector<std::vector<size_t>> &degreeDistr/*, std::vector<BenStructure> &benToFile*/)
 {
-    //time_t programStart, programEnd;
-    //std::time(&programStart);
     uint32_t  nInf = contNetwork.countByState(Specie::State::I);
     double time = tStart;
     tSteps.push_back(time);
     nInfected.push_back(nInf);
     degreeDistr.push_back(contNetwork.getDegreeDistribution());
 
-    size_t nDel = 0;
-    size_t nAdd = 0;
+    std::vector<std::pair<double, lemon::ListGraph::Edge>> propDel;
+    propDel.reserve(1e6 + 1);
+    std::vector<std::pair<double, lemon::ListGraph::Edge>> propAdd;
+    propAdd.reserve(1e6 + 1);
 
     std::unordered_map<std::string, double >propensities {
-            {"edge_del", contNetwork.getEdgeDeletionRateSum(nDel)},
-            {"edge_add", contNetwork.getEdgeAdditionRateSum(nAdd)},
-            {"transmission", contNetwork.getTransmissionRateSum()},
-            {"death", contNetwork.getDeathRateSum()},
-            {"birth", contNetwork.getBirthRateSum()},
+            {"edge_del", 0},
+            {"edge_add", 0},
+            {"transmission", 0},
+            {"death", 0},
+            {"birth", 0},
     };
     while (time < tEnd)
     {
+        propDel = contNetwork.getEdgeDeletionRateSum();
+        propAdd = contNetwork.getEdgeAdditionRateSum();
+        propensities.at("edge_del") = propDel.at(propDel.size() - 1).first;
+        propensities.at("edge_add") = propAdd.at(propAdd.size() - 1).first;
+        propensities.at("transmission") = contNetwork.getTransmissionRateSum();
+        propensities.at("death") = contNetwork.getDeathRateSum();
+        propensities.at("birth") = contNetwork.getBirthRateSum();
+
         double propensitieSum = 0;
         for (auto &it: propensities)
         {
             propensitieSum += it.second;
-
         }
 
         if (propensitieSum == 0)
@@ -93,28 +101,25 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
 
                 if (pSum + it.second >= propensitieSum * r)
                 {
-                    executeReaction(contNetwork, it.first, pSum, propensitieSum * r, time, nInf);
+                    executeReaction(contNetwork, it.first, pSum, propensitieSum * r, time, nInf/*, benToFile*/);
 
-                    /*if (it.first == "transmission")
-                    {*/
-                        tSteps.push_back(time);
-                        nInfected.push_back(nInf);
-                        degreeDistr.push_back(contNetwork.getDegreeDistribution());
+                    /// TEMPORAL SOLUTION
 
-
-                    //}
-
-                    /*if (it.first  == "death" )
+                    if (it.first == "edge_del")
                     {
-                        size_t newNInf = contNetwork.countByState(Specie::State::I);
-                        if (newNInf != nInf)
-                        {
-                            nInf = newNInf;
-                            tSteps.push_back(time);
-                            nInfected.push_back(nInf);
-                            degreeDistr.push_back(contNetwork.getDegreeDistribution());
-                        }
-                    }*/
+                        lemon::ListGraph::Edge e = binarySearch(propDel, 0, propDel.size() - 1, pSum, propensitieSum * r);
+                        contNetwork.removeEdge(e);
+                    }
+                    else if (it.first == "edge_add")
+                    {
+                        lemon::ListGraph::Edge e = binarySearch(propAdd, 0, propAdd.size() - 1, pSum, propensitieSum * r);
+                        contNetwork.addEdge(e);
+                    }
+
+                    /// TEMPORAL SOLUTION
+                    tSteps.push_back(time);
+                    nInfected.push_back(nInf);
+                    degreeDistr.push_back(contNetwork.getDegreeDistribution());
 
                     break;
                 }
@@ -123,33 +128,32 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
             }
 
         }
-        //update propensities
-        propensities.at("edge_del") = contNetwork.getEdgeDeletionRateSum(nDel);
-        propensities.at("edge_add") = contNetwork.getEdgeAdditionRateSum(nAdd);
-        propensities.at("transmission") = contNetwork.getTransmissionRateSum();
-        propensities.at("death") = contNetwork.getDeathRateSum();
-        propensities.at("birth") = contNetwork.getBirthRateSum();
-
     }
 
-    //std::time(&programEnd);
-    //std::cout << "time of execution: " << programEnd - programStart << std::endl;
 
 }
 
 void SSA::executeReaction(ContactNetwork & contNetwork, std::string reactId,
-                          double rStart, double rBound, double time, uint32_t &nInf)
+                          double rStart, double rBound, double time, uint32_t &nInf/*,
+                          std::vector<BenStructure> &benToFile*/)
 {
-    //std::cout << reactId <<std::endl;
     if (reactId == "edge_del")
     {
-        contNetwork.executeEdgeDeletion(rStart, rBound);
-       // std::cout  << "edge_del "<<std::endl;
+        /*BenStructure b (time, -1, -1, false);
+        contNetwork.executeEdgeDeletion(rStart, rBound, b);
+        benToFile.push_back(b);*/
+
+        //contNetwork.executeEdgeDeletion(rStart, rBound);
+
     }
 
     else if (reactId == "edge_add")
     {
-        contNetwork.executeEdgeAddition(rStart, rBound);
+        /*BenStructure b (time, -1, -1, true);
+        contNetwork.executeEdgeAddition(rStart, rBound, b);
+        benToFile.push_back(b);*/
+
+        //contNetwork.executeEdgeAddition(rStart, rBound);
         //std::cout  << "edge_add "<<std::endl;
     }
     else if (reactId == "transmission")
@@ -172,4 +176,41 @@ void SSA::executeReaction(ContactNetwork & contNetwork, std::string reactId,
         //std::cout << "birth " << time << " " << contNetwork.countByState(Specie::I)  << " " << contNetwork.size() <<std::endl;
     }
     //std::cout << "------------------" <<std::endl;
+}
+
+lemon::ListGraph::Edge SSA::binarySearch(std::vector<std::pair<double, lemon::ListGraph::Edge>> propCumSum,
+        size_t indL, size_t indR, double rStart, double rBound)
+{
+    lemon::ListGraph::Edge result(lemon::INVALID);
+
+    if (indR == indL)
+    {
+        return propCumSum.at(indR).second;
+    }
+    else if (indR >= indL)
+    {
+        int mid = indL + (indR - indL) / 2;
+
+        // If the element is present at the middle
+        // itself
+        if (propCumSum.at(mid).first + rStart < rBound)
+        {
+            return binarySearch(propCumSum, mid + 1, indR, rStart, rBound);
+        }
+
+        // If element is smaller than mid, then
+        // it can only be present in left subarray
+        else
+        {
+            return binarySearch(propCumSum, indL, mid, rStart, rBound);
+        }
+
+        // Else the element can only be present
+        // in right subarray
+        //return binarySearch(propCumSum, mid + 1, indR, rBound);
+    }
+
+    // We reach here when element is not
+    // present in array
+    //return result;
 }
