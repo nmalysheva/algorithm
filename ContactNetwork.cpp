@@ -1166,8 +1166,8 @@ double  ContactNetwork::getExpectedEdgeDeletionRate()const
     return result;
 }
 
-size_t ContactNetwork::updateSurvivalProbability(size_t nDeletions, size_t nAdditions/*,
-        std::vector<BenStructure> &benToFile, double time*/)
+size_t ContactNetwork::updateSurvivalProbability(size_t nDeletions, size_t nAdditions,
+        std::vector<BenStructure> &benToFile, double time)
 {
     bool isPositive = (nAdditions >= nDeletions);
     double change = 0;
@@ -1212,7 +1212,7 @@ size_t ContactNetwork::updateSurvivalProbability(size_t nDeletions, size_t nAddi
             ++eIt;
             std::pair<int, int> bP = removeEdge(eTemp);
 
-            /*BenStructure b(time, -1, -1, false);
+            BenStructure b(time, -1, -1, false);
             if (bP.first < bP.second)
             {
                 b.u = bP.first;
@@ -1223,7 +1223,7 @@ size_t ContactNetwork::updateSurvivalProbability(size_t nDeletions, size_t nAddi
                 b.v = bP.first;
                 b.u = bP.second;
             }
-            benToFile.push_back(b);*/
+            benToFile.push_back(b);
         }
         else
         {
@@ -1253,7 +1253,7 @@ size_t ContactNetwork::updateSurvivalProbability(size_t nDeletions, size_t nAddi
     return result;
 }*/
 
-/*std::vector<BenStructure> ContactNetwork::getBenStructure(double t)
+std::vector<BenStructure> ContactNetwork::getBenStructure(double t)
 {
     std::vector<BenStructure> result;
     for (lemon::ListGraph::EdgeIt eIt(network); eIt != lemon::INVALID; ++eIt)
@@ -1275,7 +1275,7 @@ size_t ContactNetwork::updateSurvivalProbability(size_t nDeletions, size_t nAddi
     return result;
 
 }
-*/
+
 BenStructure::BenStructure(double _t,int _u, int _v, bool _st)
 {
     t = _t;

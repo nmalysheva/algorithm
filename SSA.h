@@ -29,8 +29,6 @@ private:
                            double rBound, double time, uint32_t &nInf/*, std::vector<BenStructure> &benToFile*/);
     double recycleRandUni();
 
-    lemon::ListGraph::Edge binarySearch(std::vector<std::pair<double, lemon::ListGraph::Edge>> propCumSum, size_t indL, size_t indR, double rStart, double rBound);
-
 private:
     std::random_device rDev;
     std::mt19937_64 generator;

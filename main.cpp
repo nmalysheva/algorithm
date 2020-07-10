@@ -688,8 +688,8 @@ void contactDynamics(int argc, char* argv[])
                          newContRate, looseContRate, epsilon, simulationNumber);
         executeSSAOnlyContactUpdate(tStart, tEnd, nPopulation, nEdges, maxContactsA, MaxContactsB,
                                     newContRate, looseContRate, simulationNumber);
-        /*executeRKF45OnlyContactUpdate(tStart, tEnd, nPopulation, nEdges, maxContactsA, MaxContactsB,
-                                      newContRate, looseContRate, epsilon, simulationNumber);*/
+        executeRKF45OnlyContactUpdate(tStart, tEnd, nPopulation, nEdges, maxContactsA, MaxContactsB,
+                                      newContRate, looseContRate, epsilon, simulationNumber);
 
 
     }

@@ -6,7 +6,9 @@
 #include "math.h"
 #include <algorithm>
 #include <vector>
+#include <fstream>
 #include <unistd.h>
+#include "Utility.h"
 
 NSA::NSA()
 {
@@ -280,6 +282,8 @@ void NSA::PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork
                     std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr,
                     bool updateDegreeDistr/*, std::vector<BenStructure> &benToFile*/)
 {
+    std::vector<BenStructure> benToFile = contNetwork.getBenStructure(0);
+
     int N = 2;
     int M = 2;
 
@@ -387,7 +391,7 @@ void NSA::PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork
         bool flag = true;
         while (flag)
         {
-            //std::cout <<"tau1: " << tau1 <<std::endl;
+            std::cout <<"tau1: " << tau1 <<std::endl;
             if (tau1 < 10.0 / (propensities.at("edge_del") + propensities.at("edge_add") ) )
             {
                 //SSA
@@ -446,7 +450,7 @@ void NSA::PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork
                         //contNetwork.executeEdgeDeletion(0, r * propensitiesSum/*, b*/);
                         lemon::ListGraph::Edge e = binarySearch(propDel, 0, propDel.size() - 1, 0, r * propensitiesSum);
                         std::pair<int, int> b = contNetwork.removeEdge(e);
-                        std::cout <<  b.first << ", " << b.second << std::endl;
+                        benToFile.push_back(BenStructure(t, b.first, b.second, false));
 
                         //benToFile.push_back(b);
                     }
@@ -456,7 +460,8 @@ void NSA::PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork
                         //BenStructure b(t, -1, -1, true);
                         //contNetwork.executeEdgeAddition(propensities.at("edge_del"), r * propensitiesSum/*, b*/);
                         lemon::ListGraph::Edge e = binarySearch(propAdd, 0, propAdd.size() - 1, propensities.at("edge_del"), r * propensitiesSum);
-                        contNetwork.addEdge(e);
+                        std::pair<int, int> b = contNetwork.addEdge(e);
+                        benToFile.push_back(BenStructure(t, b.first, b.second, true));
                         //benToFile.push_back(b);
                     }
                 }
@@ -522,8 +527,8 @@ void NSA::PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork
                             //BenStructure b(t, -1, -1, true);
                             //contNetwork.executeEdgeAddition(0, r * propensities.at("edge_add")/*, b*/);
                             lemon::ListGraph::Edge e = binarySearch(propAdd, 0, propAdd.size() - 1, 0, r * propensities.at("edge_add"));
-                            contNetwork.addEdge(e);
-                            //benToFile.push_back(b);
+                            std::pair<int, int> b = contNetwork.addEdge(e);
+                            benToFile.push_back(BenStructure(t, b.first, b.second, true));
                             maxEdgesDelete++;
                         }
                         else if (order.at(ind) == 0)
@@ -542,7 +547,8 @@ void NSA::PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork
                             //BenStructure b(t, -1, -1, false);
                             //contNetwork.executeEdgeDeletion(0, r * propensities.at("edge_del")/*, b*/);
                             lemon::ListGraph::Edge e = binarySearch(propDel, 0, propDel.size() - 1, 0, r * propensities.at("edge_del"));
-                            contNetwork.removeEdge(e);
+                            std::pair<int, int> b = contNetwork.removeEdge(e);
+                            benToFile.push_back(BenStructure(t, b.first, b.second, false));
                             //std::cout <<  b.first << ", " << b.second << std::endl;
                             //benToFile.push_back(b);
                             maxEdgesDelete--;
@@ -559,6 +565,27 @@ void NSA::PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork
             degreeDistr.push_back(contNetwork.getDegreeDistribution());
         }
     }
+
+    //-----------ben format
+    std::string fileNameBen = "Ben_ContDyn_NSA.txt";
+    std::ofstream benFile;
+    benFile.open(fileNameBen);
+    for (auto &it: benToFile)
+    {
+        std::string stateStr = "";
+        if (it.state)
+        {
+            stateStr = "True";
+        }
+        else
+        {
+            stateStr = "False";
+        }
+        benFile << it.t << " " << it.u << " " << it.v << " " << stateStr << std::endl;
+    }
+    benFile.close();
+
+
 }
 
 
@@ -628,8 +655,7 @@ void NSA::RKF45Approximation(double &tLastNetworkUpdate, double tEnd, ContactNet
     std::vector<double> d({16.0/135.0, 0.0, 6656.0/12825.0, 28561.0/56430.0, 9.0/50.0, 2.0/55.0});
 
 
-    //double theta = contNetwork.getExpectedEdgeDeletionRate();
-    //std::cout << "theta: " << theta << std::endl;
+    std::vector<BenStructure> benToFile = contNetwork.getBenStructure(0);
 
     double t = tLastNetworkUpdate;
 
@@ -638,6 +664,13 @@ void NSA::RKF45Approximation(double &tLastNetworkUpdate, double tEnd, ContactNet
         timeSteps.push_back(t);
         degreeDistr.push_back(contNetwork.getDegreeDistribution());
     }
+
+
+    std::vector<std::pair<double, lemon::ListGraph::Edge>> propDel;
+    propDel.reserve(1e6 + 1);
+    std::vector<std::pair<double, lemon::ListGraph::Edge>> propAdd;
+    propAdd.reserve(1e6 + 1);
+
 
     dtMax = (tEnd - tLastNetworkUpdate);
     double dt = dtMax;
@@ -740,16 +773,18 @@ void NSA::RKF45Approximation(double &tLastNetworkUpdate, double tEnd, ContactNet
             }
             else
             {
-                size_t nSurv = contNetwork.updateSurvivalProbability(mDel, mAdd/*, benToFile, t*/);
+                size_t nSurv = contNetwork.updateSurvivalProbability(mDel, mAdd, benToFile, t);
+                //std::cout << "nSurv = " << nSurv << std::endl;
 
-                std::cout << "nSurv = " << nSurv << std::endl;
-                double nnn = contNetwork.getEdgeAdditionRateSum(nX);
-                std::cout << "nEdges = " << contNetwork.countEdges() << std::endl;
-                std::cout << "to add = " << abs(X + m - nSurv) << std::endl;
+                //std::cout << "nEdges = " << contNetwork.countEdges() << std::endl;
+                //std::cout << "to add = " << abs(X + m - nSurv) << std::endl;
                 int change = X + m - nSurv;
 
                 if (change > 0)
                 {
+                    propAdd = contNetwork.getEdgeAdditionRateSum();
+                    double nnn = propAdd.at(propAdd.size() - 1).first;
+
                     for (int i = 0; i < change; i ++)
                     {
 
@@ -762,19 +797,36 @@ void NSA::RKF45Approximation(double &tLastNetworkUpdate, double tEnd, ContactNet
                         contNetwork.executeEdgeAddition(0, r * nnn, b);
                         benToFile.push_back(b);*/
 
-                        contNetwork.executeEdgeAddition(0, r * nnn);
+                        //contNetwork.executeEdgeAddition(0, r * nnn);
+
+
+                        lemon::ListGraph::Edge e = binarySearch(propAdd, 0, propAdd.size() - 1, 0, r * nnn);
+                        std::pair<int, int> b = contNetwork.addEdge(e);
+                        benToFile.push_back(BenStructure(t, b.first, b.second, true));
                     }
 
                 }
                 else
                 {
-                    int nDel =  contNetwork.countEdges();
+                    //int nDel =  contNetwork.countEdges();
+                    propDel = contNetwork.getEdgeDeletionRateSum();
+                    nDel = propDel.size() - 1;
+                    double nnn = propDel.at(propDel.size() - 1).first;
                     for (int i = 0; i < abs(change); i ++)
                     {
-                        std::uniform_int_distribution<size_t> dist(0, nDel - 1);
+                        /*std::uniform_int_distribution<size_t> dist(0, nDel - 1);
 
                         size_t ind = dist(generator);
                         contNetwork.executeEdgeDeletion(ind);
+                        nDel--;*/
+                        double r = randuni(generator);
+                        while (r == 0)
+                        {
+                            r = randuni(generator);
+                        }
+                        lemon::ListGraph::Edge e = binarySearch(propDel, 0, propDel.size() - 1, 0, r * nnn);
+                        std::pair<int, int> b = contNetwork.removeEdge(e);
+                        benToFile.push_back(BenStructure(t, b.first, b.second, false));
                         nDel--;
                     }
                 }
@@ -793,6 +845,25 @@ void NSA::RKF45Approximation(double &tLastNetworkUpdate, double tEnd, ContactNet
             }
         }
     }
+
+    //-----------ben format
+    std::string fileNameBen = "Ben_ContDyn_RKF45.txt";
+    std::ofstream benFile;
+    benFile.open(fileNameBen);
+    for (auto &it: benToFile)
+    {
+        std::string stateStr = "";
+        if (it.state)
+        {
+            stateStr = "True";
+        }
+        else
+        {
+            stateStr = "False";
+        }
+        benFile << it.t << " " << it.u << " " << it.v << " " << stateStr << std::endl;
+    }
+    benFile.close();
 }
 
 /*void NSA::MidpointApproximation(double &tLastNetworkUpdate, double tEnd, ContactNetwork & contNetwork,
@@ -1421,44 +1492,4 @@ double NSA::getNdel(double X, double Y, double lam, double theta, std::vector<st
             - Y*a.at(4).at(4)*d.at(5)*lam*std::pow(dt, 2)*theta ;
     return ndel;
 
-}
-
-lemon::ListGraph::Edge NSA::binarySearch(std::vector<std::pair<double, lemon::ListGraph::Edge>> &propCumSum,
-                                         size_t indL, size_t indR, double rStart, double rBound)
-{
-    lemon::ListGraph::Edge result(lemon::INVALID);
-
-    if (indR == indL)
-    {
-        lemon::ListGraph::Edge result = propCumSum.at(indR).second;
-        propCumSum.erase(propCumSum.begin() + indR);
-        return result;
-
-    }
-    else if (indR >= indL)
-    {
-        int mid = indL + (indR - indL) / 2;
-
-        // If the element is present at the middle
-        // itself
-        if (propCumSum.at(mid).first + rStart < rBound)
-        {
-            return binarySearch(propCumSum, mid + 1, indR, rStart, rBound);
-        }
-
-            // If element is smaller than mid, then
-            // it can only be present in left subarray
-        else
-        {
-            return binarySearch(propCumSum, indL, mid, rStart, rBound);
-        }
-
-        // Else the element can only be present
-        // in right subarray
-        //return binarySearch(propCumSum, mid + 1, indR, rBound);
-    }
-
-    // We reach here when element is not
-    // present in array
-    //return result;
 }

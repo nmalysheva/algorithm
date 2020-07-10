@@ -95,11 +95,11 @@ public:
     void executeDeath(double rStart, double rBound);
     void executeBirth(double rStart, double rBound);
 
-    size_t updateSurvivalProbability(size_t nDeletions, size_t nAdditions/*, std::vector<BenStructure> &benToFile, double time*/);
+    size_t updateSurvivalProbability(size_t nDeletions, size_t nAdditions, std::vector<BenStructure> &benToFile, double time);
 
     std::vector<size_t> getDegreeDistribution();
 
-    //std::vector<BenStructure> getBenStructure(double t);
+    std::vector<BenStructure> getBenStructure(double t);
 
 
 

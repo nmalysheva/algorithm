@@ -38,8 +38,6 @@ private:
     double proposeTau1(size_t lDel, size_t lAdd, size_t nAdd, double epsilon, std::vector<double> mu, std::vector<double> sigmaSq);
     double proposeTau2(double aCrit);
     double sampleRandUni();
-    lemon::ListGraph::Edge binarySearch(std::vector<std::pair<double, lemon::ListGraph::Edge>> &propCumSum,
-            size_t indL, size_t indR, double rStart, double rBound);
 private:
     void executeReaction(ContactNetwork & contNetwork, std::string reactId,
                               double rStart, double rBound, double time, uint32_t &nInf/*, std::vector<BenStructure> &benToFile*/);
