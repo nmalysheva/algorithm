@@ -16,7 +16,6 @@ class SSA
 public:
     SSA();
     void exe();
-    //time assumed to be in years
     void execute(double tStart, double tEnd, ContactNetwork &contNetwork,
                  std::vector<double> &tSteps, std::vector<uint32_t> &nInfected,
                  std::vector<std::vector<size_t>> &degreeDistr/*, std::vector<BenStructure> &benToFile*/);

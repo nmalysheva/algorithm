@@ -3,14 +3,20 @@
 //
 #include "Utility.h"
 
-lemon::ListGraph::Edge binarySearch(std::vector<std::pair<double, lemon::ListGraph::Edge>> propCumSum,
+size_t binarySearch(std::vector<std::pair<double, lemon::ListGraph::Edge>> propCumSum,
                                          size_t indL, size_t indR, double rStart, double rBound)
 {
-    lemon::ListGraph::Edge result(lemon::INVALID);
+    size_t result = size_t(-1);
 
     if (indR == indL)
     {
-        return propCumSum.at(indR).second;
+        if (propCumSum.at(indR).first + rStart  >= rBound)
+        {
+            result = indR;
+            //propCumSum.erase(propCumSum.begin() + indR);
+        }
+        return result;
+
     }
     else if (indR >= indL)
     {
@@ -38,4 +44,16 @@ lemon::ListGraph::Edge binarySearch(std::vector<std::pair<double, lemon::ListGra
     // We reach here when element is not
     // present in array
     //return result;
+}
+
+
+double sampleRandUni(std::mt19937_64 generator)
+{
+    std::uniform_real_distribution<> randuni;
+    double r = randuni(generator);
+    while (r == 0)
+    {
+        r = randuni(generator);
+    }
+    return r;
 }

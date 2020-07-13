@@ -12,6 +12,8 @@
 #include <string>
 #include <vector>
 #include <iomanip>
+#include "PoissonTauLeap.h"
+#include "RKF45.h"
 
 using namespace lemon;
 using namespace std;
@@ -99,7 +101,7 @@ void executeSSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
     {
         newFile << infectedSteps.at(i) << ' ';
     }
-    newFile << std::endl;
+    //newFile << std::endl;
     newFile << "degree distribution:" << std::endl;
     for (size_t i = 0; i < degreeDistr.size(); i++)
     {
@@ -459,7 +461,12 @@ void executeNSAOnlyContactUpdate(double tStart, double tEnd, size_t nPopulation,
     //ContactNetwork cNw2(20, amount.at(i) - 20, nEdges, 1, 20, 0.03, 1.2, 1.25, 0.0004, 2);
     auto start_time = std::chrono::high_resolution_clock::now();
     //nsa.BDtauleap(tStart, tEnd, contNetwork, epsilon, timeSteps, degreeDistr);
-    nsa.PoissonTauleap(tStart, tEnd, contNetwork, epsilon, timeSteps, degreeDistr, true/*, benToFile*/);
+
+    std::random_device rDev;
+    std::mt19937_64 generator = std::mt19937_64(rDev());
+    generator.seed(::time(NULL) * getpid()); //to change the seed for every run
+
+    PoissonTauleap(tStart, tEnd, contNetwork, epsilon, timeSteps, degreeDistr, true/*, benToFile*/, generator);
     auto end_time = std::chrono::high_resolution_clock::now();
     auto time = end_time - start_time;
 
@@ -561,13 +568,17 @@ void executeRKF45OnlyContactUpdate(double tStart, double tEnd, size_t nPopulatio
     NSA nsa;
     //ContactNetwork cNw2(20, amount.at(i) - 20, nEdges, 1, 20, 0.03, 1.2, 1.25, 0.0004, 2);
 
+    std::random_device rDev;
+    std::mt19937_64 generator = std::mt19937_64(rDev());
+    generator.seed(::time(NULL) * getpid());
+
     double dtMax = (tEnd - tStart) / 2;
     double dtMin = (tEnd - tStart) * 1e-4;
     double errorMax = 1e-1;
     double errorMin = 1e-3; //1e-3;
     auto start_time = std::chrono::high_resolution_clock::now();
-    nsa.RKF45Approximation(tStart, tEnd, contNetwork, dtMax, dtMin, errorMax, errorMin, timeSteps,
-            degreeDistr, true/*, benToFile*/);
+    RKF45Approximation(tStart, tEnd, contNetwork, dtMax, dtMin, errorMax, errorMin, timeSteps,
+            degreeDistr, true/*, benToFile*/, generator);
     /*nsa.MidpointApproximation(tStart, tEnd, contNetwork, dtMax, dtMin, errorMax, errorMin, timeSteps,
                            degreeDistr);*/
     auto end_time = std::chrono::high_resolution_clock::now();
@@ -688,8 +699,8 @@ void contactDynamics(int argc, char* argv[])
                          newContRate, looseContRate, epsilon, simulationNumber);
         executeSSAOnlyContactUpdate(tStart, tEnd, nPopulation, nEdges, maxContactsA, MaxContactsB,
                                     newContRate, looseContRate, simulationNumber);
-        executeRKF45OnlyContactUpdate(tStart, tEnd, nPopulation, nEdges, maxContactsA, MaxContactsB,
-                                      newContRate, looseContRate, epsilon, simulationNumber);
+        //executeRKF45OnlyContactUpdate(tStart, tEnd, nPopulation, nEdges, maxContactsA, MaxContactsB,
+        //                              newContRate, looseContRate, epsilon, simulationNumber);
 
 
     }
@@ -753,7 +764,7 @@ void viralDynamics(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-    contactDynamics(argc, argv);
-    //viralDynamics(argc, argv);
+    //contactDynamics(argc, argv);
+    viralDynamics(argc, argv);
     return 0;
 }

@@ -216,16 +216,19 @@ std::vector<std::pair<double, lemon::ListGraph::Edge>> ContactNetwork::getEdgeAd
     propCumSum.push_back(elem2);
 
     size_t index = 1;
+    //std::cout << "rates:";
     for (lemon::ListGraph::EdgeIt eIt(complement); eIt != lemon::INVALID; ++eIt)
     {
         double rate = getEdgeAdditionRate(eIt);
         if (rate > 0)
         {
+            //std::cout << " " << rate;
             std::pair<double, lemon::ListGraph::Edge> elem {propCumSum.at(index - 1).first + rate, eIt};
             propCumSum.push_back(elem);
             index ++;
         }
     }
+    //std::cout << std::endl;
     propCumSum.shrink_to_fit();
     return propCumSum;
 }
@@ -677,14 +680,15 @@ double  ContactNetwork::getEdgeAdditionRate(lemon::ListGraph::Edge complementEdg
         double targetAddEdges = complementAdjacentEdges[complV];
 
         //std::cout << "sourceRate = " << sourceRate << "; targetRate = " << targetRate << std::endl;
-        //std::cout << "sourceAddEdges = " << sourceAddEdges << "; targetAddEdges = " << targetAddEdges << std::endl;
+       // std::cout << "sourceAddEdges = " << sourceAddEdges << "; targetAddEdges = " << targetAddEdges << std::endl;
 
         if ( (sourceAddEdges == 0) || (targetAddEdges == 0) )
         {
             std::cout << "LOLLL" <<std::endl;
-            std::cout << "sourceRate = " << sourceRate << "; targetRate = " << targetRate << std::endl;
+            //std::cout << "sourceRate = " << sourceRate << "; targetRate = " << targetRate << std::endl;
             std::cout << "sourceAddEdges = " << sourceAddEdges << "; targetAddEdges = " << targetAddEdges << std::endl;
             std::cout << "--------------------------!!!!-----------------------" << std::endl;
+
 
 
         }
@@ -700,10 +704,10 @@ double  ContactNetwork::getEdgeAdditionRate(lemon::ListGraph::Edge complementEdg
     return result;
 }
 
-double  ContactNetwork::getEdgeDeletionRate(lemon::ListGraph::EdgeIt networkEdgeIt) const
+double  ContactNetwork::getEdgeDeletionRate(lemon::ListGraph::Edge networkEdge) const
 {
-    lemon::ListGraph::Node networkU = network.u(networkEdgeIt);
-    lemon::ListGraph::Node networkV = network.v(networkEdgeIt);
+    lemon::ListGraph::Node networkU = network.u(networkEdge);
+    lemon::ListGraph::Node networkV = network.v(networkEdge);
 
     int sourceUID = nodeIdMap[networkU];
     int targetUID = nodeIdMap[networkV];

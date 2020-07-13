@@ -102,6 +102,9 @@ public:
     std::vector<BenStructure> getBenStructure(double t);
 
 
+    double  getEdgeAdditionRate(lemon::ListGraph::Edge complementEdge) const;
+    double  getEdgeDeletionRate(lemon::ListGraph::Edge networkEdge) const;
+
 
 private:
 
@@ -110,8 +113,6 @@ private:
                    double dRate, double bRate);
     void initComplementNetwork(size_t nPopulation);
 
-    double  getEdgeAdditionRate(lemon::ListGraph::Edge complementEdge) const;
-    double  getEdgeDeletionRate(lemon::ListGraph::EdgeIt networkEdgeIt) const;
 
     void init(size_t nInfected, size_t nSusceptible, size_t nEdges, int maxContactsL, int MaxContactsU,
             double transmRate, double newContRate, double looseContRate, double dRate, double bRate);

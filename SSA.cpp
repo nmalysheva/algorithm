@@ -60,8 +60,22 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
     {
         propDel = contNetwork.getEdgeDeletionRateSum();
         propAdd = contNetwork.getEdgeAdditionRateSum();
-        propensities.at("edge_del") = propDel.at(propDel.size() - 1).first;
-        propensities.at("edge_add") = propAdd.at(propAdd.size() - 1).first;
+        if (propDel.size() == 0)
+        {
+            propensities.at("edge_del") = 0;
+        }
+        else
+        {
+            propensities.at("edge_del") = propDel.at(propDel.size() - 1).first;
+        }
+        if (propAdd.size() == 0)
+        {
+            propensities.at("edge_add") = 0;
+        }
+        else
+        {
+            propensities.at("edge_add") = propAdd.at(propAdd.size() - 1).first;
+        }
         propensities.at("transmission") = contNetwork.getTransmissionRateSum();
         propensities.at("death") = contNetwork.getDeathRateSum();
         propensities.at("birth") = contNetwork.getBirthRateSum();
@@ -111,15 +125,17 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
 
                     if (it.first == "edge_del")
                     {
-                        lemon::ListGraph::Edge e = binarySearch(propDel, 0, propDel.size() - 1, pSum, propensitieSum * r);
-                        std::pair<int, int> b = contNetwork.removeEdge(e);
+                        size_t index = binarySearch(propDel, 0, propDel.size() - 1, pSum, propensitieSum * r);
+                        std::pair<int, int> b = contNetwork.removeEdge(propDel.at(index).second);
+                        propDel.erase(propDel.begin() + index);
                         benToFile.push_back(BenStructure(time, b.first, b.second, false));
 
                     }
                     else if (it.first == "edge_add")
                     {
-                        lemon::ListGraph::Edge e = binarySearch(propAdd, 0, propAdd.size() - 1, pSum, propensitieSum * r);
-                        std::pair<int, int> b = contNetwork.addEdge(e);
+                        size_t index = binarySearch(propAdd, 0, propAdd.size() - 1, pSum, propensitieSum * r);
+                        std::pair<int, int> b = contNetwork.addEdge(propAdd.at(index).second);
+                        propAdd.erase(propAdd.begin() + index);
                         benToFile.push_back(BenStructure(time, b.first, b.second, true));
                     }
 
@@ -138,7 +154,7 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
     }
 
     //-----------ben format
-    std::string fileNameBen = "Ben_ContDyn_SSA.txt";
+   /* std::string fileNameBen = "Ben_ContDyn_SSA.txt";
     std::ofstream benFile;
     benFile.open(fileNameBen);
     for (auto &it: benToFile)
@@ -154,7 +170,7 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
         }
         benFile << it.t << " " << it.u << " " << it.v << " " << stateStr << std::endl;
     }
-    benFile.close();
+    benFile.close();*/
 
 }
 
