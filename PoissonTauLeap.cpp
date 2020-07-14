@@ -5,6 +5,7 @@
 #include "PoissonTauLeap.h"
 #include "Utility.h"
 
+
 void PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & contNetwork, double epsilon,
                          std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr,
                          bool updateDegreeDistr, std::mt19937_64 generator/*, std::vector<BenStructure> &benToFile*/)
@@ -247,25 +248,6 @@ void PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & co
             degreeDistr.push_back(contNetwork.getDegreeDistribution());
         }
     }
-
-    //-----------ben format
-    /* std::string fileNameBen = "Ben_ContDyn_NSA.txt";
-     std::ofstream benFile;
-     benFile.open(fileNameBen);
-     for (auto &it: benToFile)
-     {
-         std::string stateStr = "";
-         if (it.state)
-         {
-             stateStr = "True";
-         }
-         else
-         {
-             stateStr = "False";
-         }
-         benFile << it.t << " " << it.u << " " << it.v << " " << stateStr << std::endl;
-     }
-     benFile.close();*/
 }
 
 double proposeTau1(size_t lDel, size_t lAdd, size_t nAdd, double epsilon, std::vector<double> mu, std::vector<double> sigmaSq)

@@ -60,22 +60,10 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
     {
         propDel = contNetwork.getEdgeDeletionRateSum();
         propAdd = contNetwork.getEdgeAdditionRateSum();
-        if (propDel.size() == 0)
-        {
-            propensities.at("edge_del") = 0;
-        }
-        else
-        {
-            propensities.at("edge_del") = propDel.at(propDel.size() - 1).first;
-        }
-        if (propAdd.size() == 0)
-        {
-            propensities.at("edge_add") = 0;
-        }
-        else
-        {
-            propensities.at("edge_add") = propAdd.at(propAdd.size() - 1).first;
-        }
+
+        propensities.at("edge_del") = propDel.at(propDel.size() - 1).first;
+        propensities.at("edge_add") = propAdd.at(propAdd.size() - 1).first;
+
         propensities.at("transmission") = contNetwork.getTransmissionRateSum();
         propensities.at("death") = contNetwork.getDeathRateSum();
         propensities.at("birth") = contNetwork.getBirthRateSum();
@@ -152,26 +140,6 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
 
         }
     }
-
-    //-----------ben format
-   /* std::string fileNameBen = "Ben_ContDyn_SSA.txt";
-    std::ofstream benFile;
-    benFile.open(fileNameBen);
-    for (auto &it: benToFile)
-    {
-        std::string stateStr = "";
-        if (it.state)
-        {
-            stateStr = "True";
-        }
-        else
-        {
-            stateStr = "False";
-        }
-        benFile << it.t << " " << it.u << " " << it.v << " " << stateStr << std::endl;
-    }
-    benFile.close();*/
-
 }
 
 void SSA::executeReaction(ContactNetwork & contNetwork, std::string reactId,

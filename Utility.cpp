@@ -2,6 +2,8 @@
 // Created by Malysheva, Nadezhda on 10.07.20.
 //
 #include "Utility.h"
+#include <fstream>
+
 
 size_t binarySearch(std::vector<std::pair<double, lemon::ListGraph::Edge>> propCumSum,
                                          size_t indL, size_t indR, double rStart, double rBound)
@@ -56,4 +58,21 @@ double sampleRandUni(std::mt19937_64 generator)
         r = randuni(generator);
     }
     return r;
+}
+
+void printBenFile(std::string fileName, const std::vector<BenStructure> &benToFile)
+{
+    std::ofstream benFile;
+    benFile.open(fileName);
+    for (auto &it: benToFile)
+    {
+        std::string stateStr = "False";
+        if (it.state)
+        {
+            stateStr = "True";
+        }
+        benFile << it.t << " " << it.u << " " << it.v << " " << stateStr << std::endl;
+    }
+    benFile.close();
+
 }
