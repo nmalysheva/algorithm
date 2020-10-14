@@ -13,6 +13,7 @@
 #include <vector>
 #include <iomanip>
 #include "PoissonTauLeap.h"
+#include "AndersonTauLeap.h"
 #include "RKF45.h"
 
 using namespace lemon;
@@ -466,7 +467,9 @@ void executeNSAOnlyContactUpdate(double tStart, double tEnd, size_t nPopulation,
     std::mt19937_64 generator = std::mt19937_64(rDev());
     generator.seed(::time(NULL) * getpid()); //to change the seed for every run
 
-    PoissonTauleap(tStart, tEnd, contNetwork, epsilon, timeSteps, degreeDistr, true/*, benToFile*/, generator);
+    //PoissonTauleap(tStart, tEnd, contNetwork, epsilon, timeSteps, degreeDistr, true/*, benToFile*/, generator);
+    AndersonTauLeap(tStart, tEnd, contNetwork, epsilon, timeSteps, degreeDistr, true/*, benToFile*/, generator);
+
     auto end_time = std::chrono::high_resolution_clock::now();
     auto time = end_time - start_time;
 
@@ -764,7 +767,23 @@ void viralDynamics(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-    //contactDynamics(argc, argv);
-    viralDynamics(argc, argv);
+    contactDynamics(argc, argv);
+    //viralDynamics(argc, argv);
+
+    /*std::random_device rDev;
+    std::mt19937_64 generator = std::mt19937_64(rDev());
+    std::uniform_int_distribution<> distrib(0, 200);
+    std::uniform_int_distribution<> distrib2(0, 250);
+    int N = 50;
+    for (int i = 0; i < 1; i++)
+    {
+        int nAdd = 10;//distrib(generator);
+        int nDel = 50;//distrib2(generator);
+
+        std::cout << "nAdd = " << nAdd << ", nDel = " << nDel<<  ",  " <<nAdd - nDel << ", ";
+        int a = splitRandomNumber( nDel,  nAdd,  N,  generator);
+        std::cout << a << std::endl;
+
+    }*/
     return 0;
 }

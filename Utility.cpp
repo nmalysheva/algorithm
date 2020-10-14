@@ -49,7 +49,7 @@ size_t binarySearch(std::vector<std::pair<double, lemon::ListGraph::Edge>> propC
 }
 
 
-double sampleRandUni(std::mt19937_64 generator)
+double sampleRandUni(std::mt19937_64 &generator)
 {
     std::uniform_real_distribution<> randuni;
     double r = randuni(generator);

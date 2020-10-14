@@ -42,8 +42,7 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
-
 add_subdirectory(lib/pybind11-master)
 
 #pybind11_add_module(pywrap UniqueID.cpp UniqueID.h Specie.cpp Specie.h ContactNetwork.cpp ContactNetwork.h SSA.cpp SSA.h py_wrap.cpp)
-add_executable(algo main.cpp UniqueID.cpp UniqueID.h Specie.cpp Specie.h ContactNetwork.cpp ContactNetwork.h SSA.cpp SSA.h NSA.cpp NSA.h Utility.h Utility.cpp RKF45.h RKF45.cpp PoissonTauLeap.h PoissonTauLeap.cpp MidpointApproximation.cpp MidpointApproximation.h)
+add_executable(algo main.cpp UniqueID.cpp UniqueID.h Specie.cpp Specie.h ContactNetwork.cpp ContactNetwork.h SSA.cpp SSA.h NSA.cpp NSA.h Utility.h Utility.cpp RKF45.h RKF45.cpp PoissonTauLeap.h PoissonTauLeap.cpp MidpointApproximation.cpp MidpointApproximation.h AndersonTauLeap.h AndersonTauLeap.cpp)

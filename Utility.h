@@ -14,5 +14,5 @@ size_t binarySearch(std::vector<std::pair<double, lemon::ListGraph::Edge>> propC
         size_t indL, size_t indR, double rStart, double rBound);
 void printBenFile(std::string fileName, const std::vector<BenStructure> &benToFile);
 
-double sampleRandUni(std::mt19937_64 generator);
+double sampleRandUni(std::mt19937_64 &generator);
 #endif //ALGO_UTILITY_H

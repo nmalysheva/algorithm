@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <lemon/adaptors.h>
 #include <stdexcept>
+#include <iostream>
 
 void ContactNetwork::init(size_t nInfected, size_t nSusceptible, size_t nEdges, int maxContactsL, int MaxContactsU,
                           double transmRate, double newContRate, double looseContRate, double dRate, double bRate)
@@ -107,14 +108,25 @@ size_t ContactNetwork::countAdjacentEdges(const lemon::ListGraph::Node &compleme
     double sourceRate = population.at(sourceUID).getNewContactRate();
     //std::cout << "sourceRateCnt = " << sourceRate <<std::endl;
     if (sourceRate > 0)
+    //if (true)
     {
+        //std::cout << "cae 1 " <<std::endl;
         for(lemon::ListGraph::IncEdgeIt eIt(complement, complementNode); eIt!=lemon::INVALID; ++eIt)
         {
+            //std::cout << "cae 2 " <<std::endl;
             lemon::ListGraph::Node oppositeNode = complement.oppositeNode(complementNode, eIt);
             int oppositeUID = nodeIdMap[network.nodeFromId(complement.id(oppositeNode))];
 
             double oppositeRate = population.at(oppositeUID).getNewContactRate();
 
+            //std::cout << "edges = " << lemon::countEdges(complement)<< ", " << lemon::countEdges(network) << ";  sourceUID = " << sourceUID << ", oppositeUID = " << oppositeUID  <<std::endl;
+
+            /*if (lemon::countEdges(complement) + lemon::countEdges(network) != 4950)
+            {
+                std::cout << "edges = " << lemon::countEdges(complement)<< ", " << lemon::countEdges(network) << ";  sourceUID = " << sourceUID << ", oppositeUID = " << oppositeUID  <<std::endl;
+                std::string msg = "ERROR: INVALID COUNTADJ add!";
+                throw std::domain_error(msg);
+            }*/
             if (oppositeRate > 0)
             {
                 result++;
@@ -123,7 +135,7 @@ size_t ContactNetwork::countAdjacentEdges(const lemon::ListGraph::Node &compleme
     }
     else
     {
-
+        //std::cout << "cae else " <<std::endl;
     }
 
 
@@ -263,6 +275,11 @@ size_t ContactNetwork::size() const
 
 std::pair<int, int> ContactNetwork::addEdge(lemon::ListGraph::Edge &complementEdge)
 {
+    if (!complement.valid(complementEdge))
+    {
+        std::string msg = "ERROR: INVALID EDGE TO ADD!";
+        throw std::domain_error(msg);
+    }
     //nodes of the given edge in a complement graph
     lemon::ListGraph::Node complU = complement.u(complementEdge);
     lemon::ListGraph::Node complV = complement.v(complementEdge);
@@ -271,9 +288,19 @@ std::pair<int, int> ContactNetwork::addEdge(lemon::ListGraph::Edge &complementEd
     lemon::ListGraph::Node networkU = network.nodeFromId(complement.id(complU));
     lemon::ListGraph::Node networkV = network.nodeFromId(complement.id(complV));
 
+
+    //size_t before = lemon::countEdges(complement);
     //erase given edge from complement graph
     complement.erase(complementEdge);
 
+    /*size_t after = lemon::countEdges(complement);
+
+    if (before == after)
+    {
+        std::cout << "err;" << complement.id(complU) << "; " << complement.id(complV) << std::endl;
+    }*/
+    //std::cout << "before: " << lemon::countEdges(complement) << "; ";
+    //std::cout << "after: " << lemon::countEdges(complement) << std::endl;
     //add new edge to the network with given transmission rate
     lemon::ListGraph::Edge newEdge = network.addEdge(networkU, networkV);
 
@@ -332,6 +359,11 @@ std::pair<int, int> ContactNetwork::addEdge(lemon::ListGraph::Edge &complementEd
 
 std::pair<int, int> ContactNetwork::removeEdge(lemon::ListGraph::Edge &edge)
 {
+    if (!network.valid(edge))
+    {
+        std::string msg = "ERROR: INVALID EDGE TO DEL!";
+        throw std::domain_error(msg);
+    }
     //nodes of the given edge in a graph
     lemon::ListGraph::Node networkU = network.u(edge);
     lemon::ListGraph::Node networkV = network.v(edge);
@@ -357,6 +389,7 @@ std::pair<int, int> ContactNetwork::removeEdge(lemon::ListGraph::Edge &edge)
 
     if (oldSourceRate == 0)
     {
+        //std::cout << " start d" << std::endl;
         for (lemon::ListGraph::IncEdgeIt eIt(complement, complU); eIt != lemon::INVALID; ++eIt)
         {
             lemon::ListGraph::Node oppositeNode = complement.oppositeNode(complU, eIt);
@@ -369,6 +402,7 @@ std::pair<int, int> ContactNetwork::removeEdge(lemon::ListGraph::Edge &edge)
 
     if (oldTargetRate == 0)
     {
+        //std::cout << " start d2" << std::endl;
         for (lemon::ListGraph::IncEdgeIt eIt(complement, complV); eIt != lemon::INVALID; ++eIt)
         {
             lemon::ListGraph::Node oppositeNode = complement.oppositeNode(complV, eIt);
@@ -378,10 +412,11 @@ std::pair<int, int> ContactNetwork::removeEdge(lemon::ListGraph::Edge &edge)
             }
         }
     }
-
+    //std::cout << " end d" << std::endl;
     complementAdjacentEdges[complU] = countAdjacentEdges(complU);
+   // std::cout << " end d1" << std::endl;
     complementAdjacentEdges[complV] = countAdjacentEdges(complV);
-
+    //std::cout << " end d2" << std::endl;
     return result;
 
 }

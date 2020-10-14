@@ -107,7 +107,7 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
 
                 if (pSum + it.second >= propensitieSum * r)
                 {
-                    executeReaction(contNetwork, it.first, pSum, propensitieSum * r, time, nInf/*, benToFile*/);
+                   // executeReaction(contNetwork, it.first, pSum, propensitieSum * r, time, nInf/*, benToFile*/);
 
                     /// TEMPORAL SOLUTION
 

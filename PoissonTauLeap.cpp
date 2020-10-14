@@ -8,12 +8,12 @@
 
 void PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & contNetwork, double epsilon,
                          std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr,
-                         bool updateDegreeDistr, std::mt19937_64 generator/*, std::vector<BenStructure> &benToFile*/)
+                         bool updateDegreeDistr, std::mt19937_64 &generator/*, std::vector<BenStructure> &benToFile*/)
 {
     std::vector<BenStructure> benToFile = contNetwork.getBenStructure(0);
 
-    int N = 2;
-    int M = 2;
+    int N = 2; // number of reactants -
+    int M = 2; //number of reactions, size of propensity vector
 
     std::unordered_map<std::string, double> propensities {
             {"edge_del", 0},
@@ -21,11 +21,7 @@ void PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & co
 
     double t = tLastNetworkUpdate;
 
-    if (updateDegreeDistr)
-    {
-        timeSteps.push_back(t);
-        degreeDistr.push_back(contNetwork.getDegreeDistribution());
-    }
+    updateDegreeDistribution(updateDegreeDistr, t, timeSteps, degreeDistr, contNetwork);
 
     std::vector<std::pair<double, lemon::ListGraph::Edge>> propDel;
     propDel.reserve(1e6 + 1);
@@ -34,8 +30,8 @@ void PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & co
 
     while (t < tEnd)
     {
-        size_t nAdd = 0;
-        size_t nDel = 0;
+        //size_t nAdd = 0;
+        //size_t nDel = 0;
 
 
         //propensities.at("edge_del") = contNetwork.getEdgeDeletionRateSum(nDel);
@@ -46,17 +42,13 @@ void PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & co
         propensities.at("edge_del") = propDel.at(propDel.size() - 1).first;
         propensities.at("edge_add") = propAdd.at(propAdd.size() - 1).first;
 
-        nDel = propDel.size() - 1;
-        nAdd = propAdd.size() - 1;
+        size_t nDel = propDel.size() - 1;
+        size_t nAdd = propAdd.size() - 1;
 
         if (propensities.at("edge_del") + propensities.at("edge_add") == 0)
         {
             t = tEnd;
-            if (updateDegreeDistr)
-            {
-                timeSteps.push_back(t);
-                degreeDistr.push_back(contNetwork.getDegreeDistribution());
-            }
+            updateDegreeDistribution(updateDegreeDistr, t, timeSteps, degreeDistr, contNetwork);
             break;
         }
 
@@ -66,7 +58,6 @@ void PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & co
 
 
         size_t lDel = nDel;
-        //std::cout << "lDel = " << lDel << std::endl;
 
         double aCrit = 0;
 
@@ -94,7 +85,7 @@ void PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & co
         if (propensities.at("edge_add") > 0)
         {
             lAdd = contNetwork.getAmountOfEdgesToAddSafe();
-            std::cout << "lAdd = " << lAdd << std::endl;
+            std::cout << "lAdd = " << lAdd << "; lDel = "<< lDel<< std::endl;
 
             if (lAdd < 10)
             {
@@ -120,9 +111,9 @@ void PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & co
             if (tau1 < 10.0 / (propensities.at("edge_del") + propensities.at("edge_add") ) )
             {
                 //SSA
-                std::cout << "prop.sum: " << (propensities.at("edge_del") + propensities.at("edge_add") ) << std::endl;
-                std::cout << "lAdd: " << lAdd << "; lDel: " << lDel << std::endl;
-                std::cout << "ssa. start time =  " << t <<"; ";
+                //std::cout << "prop.sum: " << (propensities.at("edge_del") + propensities.at("edge_add") ) << std::endl;
+                //std::cout << "lAdd: " << lAdd << "; lDel: " << lDel << std::endl;
+                std::cout << "SSA. start time =  " << t <<"; ";
 
                 executeSSA(100,  tEnd, contNetwork, t, tLastNetworkUpdate, timeSteps, degreeDistr, updateDegreeDistr, generator);
                 flag = false;
@@ -139,10 +130,20 @@ void PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & co
 
                 selectTimeStepAndK(tau, propensities, k, kDel, kAdd, tau1, tau2, aCrit, generator);
 
-                //std::cout << "tau = "
-                if (kDel > lDel || kAdd > lAdd)
+                size_t nnn = contNetwork.size();
+                //If events are captured correctly
+                /*if (kDel > lDel || kAdd > lAdd)
                 {
                     tau1 = tau1 / 2;
+                    // TODO! SPLIT
+                }*/
+
+                //size_t nnn = contNetwork.size();
+                if (nDel - kDel + kAdd < 0 || nDel - kDel + kAdd > nnn*(nnn-1)/2 )
+                {
+                    tau1 = tau1 / 2;
+                    std::cout <<"TAU/2" << std::endl;
+                    // TODO! SPLIT
                 }
 
                 else if (t + tau > tEnd)
@@ -162,91 +163,16 @@ void PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & co
 
                     //TODO get EdgeidList of network and Complement. May be EdgeUIDs?
 
-
-                    std::vector<int> order;
-
                     std::cout << "k_Del = " << k.at(0) << "; k_Add = " << k.at(1) << std::endl;
 
+                    //updateNetwork(benToFile, k, nDel, generator, propAdd, propDel, t, contNetwork, propensities);
 
-                    for (size_t ind = 0; ind < k.size(); ind++)
-                    {
-                        order.insert(order.end(), k.at(ind), ind);
-                    }
-                    std::shuffle(order.begin(), order.end(), generator);
-
-                    int maxEdgesDelete = nDel;
-                    for (size_t ind = 0; ind < order.size(); ind++)
-                    {
-                        if (order.at(ind) == 1)
-                        {
-                            double r = sampleRandUni(generator);
-                            //BenStructure b(t, -1, -1, true);
-                            //contNetwork.executeEdgeAddition(0, r * propensities.at("edge_add")/*, b*/);
-                            propAdd = contNetwork.getEdgeAdditionRateSum();
-                            propensities.at("edge_add") = propAdd.at(propAdd.size() - 1).first;
-                            /*lemon::ListGraph::Edge e = binarySearch(propAdd, 0, propAdd.size() - 1, 0, r * propensities.at("edge_add"));
-                            propensities.at("edge_add") = propensities.at("edge_add") - contNetwork.getEdgeAdditionRate(e);
-                            if (e == lemon::INVALID)
-                            {
-                                std::string msg = "ERROR: INVALID add!";
-                                throw std::domain_error(msg);
-                            }
-                            std::pair<int, int> b = contNetwork.addEdge(e);
-
-                            benToFile.push_back(BenStructure(t, b.first, b.second, true));*/
-                            size_t index = binarySearch(propAdd, 0, propAdd.size() - 1, 0, r * propensities.at("edge_add"));
-
-                            if (propAdd.at(index).second == lemon::INVALID)
-                            {
-                                std::string msg = "ERROR: INVALID SSA del!";
-                                throw std::domain_error(msg);
-                            }
-
-                            std::pair<int, int> b = contNetwork.removeEdge(propAdd.at(index).second);
-                            propDel.erase(propAdd.begin() + index);
-                            benToFile.push_back(BenStructure(t, b.first, b.second, true));
-                            maxEdgesDelete++;
-                        }
-                        else if (order.at(ind) == 0)
-                        {
-                            //std::uniform_int_distribution<size_t> dist(0, maxEdgesDelete - 1);
-                            /*NOTE: we can delete uniformely when all edge del. rates are the same. When we have adaptivity case
-                             * - we can not do this anymore!!!*/
-                            //size_t ind = dist(generator);
-                            //contNetwork.executeEdgeDeletion(ind);
-                            propDel = contNetwork.getEdgeDeletionRateSum();
-                            propensities.at("edge_del") = propDel.at(propDel.size() - 1).first;
-                            double r = sampleRandUni(generator);
-                            //BenStructure b(t, -1, -1, false);
-                            //contNetwork.executeEdgeDeletion(0, r * propensities.at("edge_del")/*, b*/);
-                            //lemon::ListGraph::Edge e = binarySearch(propDel, 0, propDel.size() - 1, 0, r * propensities.at("edge_del"));
-                            size_t index = binarySearch(propDel, 0, propDel.size() - 1, 0, r * propensities.at("edge_del"));
-
-                            if (propDel.at(index).second == lemon::INVALID)
-                            {
-                                std::string msg = "ERROR: INVALID SSA del!";
-                                throw std::domain_error(msg);
-                            }
-                            propensities.at("edge_del") = propensities.at("edge_del") - contNetwork.getEdgeDeletionRate(propDel.at(index).second);
-
-                            std::pair<int, int> b = contNetwork.removeEdge(propDel.at(index).second);
-                            propDel.erase(propDel.begin() + index);
-                            benToFile.push_back(BenStructure(t, b.first, b.second, false));
-                            //std::cout <<  b.first << ", " << b.second << std::endl;
-                            //benToFile.push_back(b);
-                            maxEdgesDelete--;
-                        }
-                    }
+                    updateNetwork2(benToFile, k, nDel, generator, propAdd, propDel, t, contNetwork, propensities, nnn);
                     flag = false;
                 }
             }
         }
-
-        if (updateDegreeDistr)
-        {
-            timeSteps.push_back(t);
-            degreeDistr.push_back(contNetwork.getDegreeDistribution());
-        }
+        updateDegreeDistribution(updateDegreeDistr, t, timeSteps, degreeDistr, contNetwork);
     }
 }
 
@@ -273,7 +199,7 @@ double proposeTau1(size_t lDel, size_t lAdd, size_t nAdd, double epsilon, std::v
 
 }
 
-double proposeTau2(double aCrit, std::mt19937_64 generator)
+double proposeTau2(double aCrit, std::mt19937_64 &generator)
 {
     double tau2 = std::numeric_limits<double>::infinity();
     if (aCrit > 0)
@@ -285,7 +211,7 @@ double proposeTau2(double aCrit, std::mt19937_64 generator)
 }
 
 void selectTimeStepAndK(double &tau, const std::unordered_map<std::string, double> &propensities, const std::vector<int> &k,
-                             size_t &kDel, size_t &kAdd,double tau1, double tau2, double aCrit, std::mt19937_64 generator)
+                             size_t &kDel, size_t &kAdd,double tau1, double tau2, double aCrit, std::mt19937_64 &generator)
 {
     tau = 0;
 
@@ -328,12 +254,15 @@ void selectTimeStepAndK(double &tau, const std::unordered_map<std::string, doubl
     {
         std::poisson_distribution<size_t> poiss(propensities.at("edge_del") * tau);
         kDel = poiss(generator);
+        std::cout << "samplek1" << (propensities.at("edge_del") * tau) << std::endl;
+
     }
 
     if (k.at(1) == -1)
     {
         std::poisson_distribution<size_t> poiss(propensities.at("edge_add") * tau);
         kAdd = poiss(generator);
+        std::cout << "samplek2" << (propensities.at("edge_add") * tau) << std::endl;
     }
 
     if (propensities.at("edge_del") == 0)
@@ -349,7 +278,7 @@ void selectTimeStepAndK(double &tau, const std::unordered_map<std::string, doubl
 
 void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
                      double &tLastNetworkUpdate, std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr,
-                     bool updateDegreeDistr,  std::mt19937_64 generator)
+                     bool updateDegreeDistr,  std::mt19937_64 &generator)
 {
     std::unordered_map<std::string, double> propensities {
             {"edge_del", 0},
@@ -382,11 +311,7 @@ void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
         {
             tLastNetworkUpdate = tEnd; //used to update netw.Upd.Time
             t = tEnd;
-            if (updateDegreeDistr)
-            {
-                timeSteps.push_back(t);
-                degreeDistr.push_back(contNetwork.getDegreeDistribution());
-            }
+            updateDegreeDistribution(updateDegreeDistr, t, timeSteps, degreeDistr, contNetwork);
             break;
         }
 
@@ -398,16 +323,12 @@ void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
         {
             tLastNetworkUpdate = t;
             t = tEnd;
-            if (updateDegreeDistr)
-            {
-                timeSteps.push_back(t);
-                degreeDistr.push_back(contNetwork.getDegreeDistribution());
-            }
+            updateDegreeDistribution(updateDegreeDistr, t, timeSteps, degreeDistr, contNetwork);
             break;
         }
 
         t += proposedTime;
-        tLastNetworkUpdate = t; //used to update netw.Upd.Time
+        tLastNetworkUpdate = t; //used to update netw. Upd.Time
 
         r = sampleRandUni(generator);
         //deletion
@@ -442,10 +363,222 @@ void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
             propAdd.erase(propAdd.begin() + index);
             //benToFile.push_back(BenStructure(t, b.first, b.second, true));
         }
-        if (updateDegreeDistr)
+        updateDegreeDistribution(updateDegreeDistr, t, timeSteps, degreeDistr, contNetwork);
+
+    }
+}
+
+//TODO change contNetwork refernce to const
+void updateDegreeDistribution(bool updateDegreeDistr, double t, std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr, /*const*/ ContactNetwork  &contNetwork)
+{
+    if (updateDegreeDistr)
+    {
+        timeSteps.push_back(t);
+        degreeDistr.push_back(contNetwork.getDegreeDistribution());
+    }
+}
+
+bool isCapturedCorrectly( size_t var1, size_t var2, size_t limit1, size_t limit2)
+{
+    bool result = ((var1 <=limit1) && (var2 <=limit2));
+    return result;
+}
+
+int splitRandomNumber(int kDel, int kAdd, int &N, std::mt19937_64 &generator)
+{
+    if (kDel > N + kAdd)
+    {
+        std::uniform_int_distribution<> distrib(0, kAdd);
+        int nAddNew = distrib(generator);
+        int nAddNew2 = kAdd - nAddNew;
+
+        std::uniform_int_distribution<> distrib2(0, kDel);
+        int nDelNew = distrib2(generator);
+        int nDelNew2 = kDel - nDelNew;
+        int b1 = splitRandomNumber(nDelNew, nAddNew, N, generator);
+        N = N +  b1;
+        int b2 = splitRandomNumber(nDelNew2, nAddNew2, N, generator);
+        N = N +  b2;
+        return b1 + b2;
+
+    }
+
+    else
+    {
+        //N = N + kAdd - kDel;
+        return kAdd - kDel;
+
+    }
+}
+
+void updateNetwork(std::vector<BenStructure> &benToFile, std::vector<int> k, int nDel, std::mt19937_64 &generator,
+                   std::vector<std::pair<double, lemon::ListGraph::Edge>> &propAdd,
+                   std::vector<std::pair<double, lemon::ListGraph::Edge>> &propDel,
+                   double t,
+                   ContactNetwork & contNetwork,
+                   std::unordered_map<std::string, double> &propensities)
+
+{
+    std::vector<int> order;
+    for (size_t ind = 0; ind < k.size(); ind++)
+    {
+        order.insert(order.end(), k.at(ind), ind);
+    }
+    std::shuffle(order.begin(), order.end(), generator);
+
+    //int maxEdgesDelete = nDel;
+    for (auto i : order)
+    {
+        if (i == 1)
         {
-            timeSteps.push_back(t);
-            degreeDistr.push_back(contNetwork.getDegreeDistribution());
+            double r = sampleRandUni(generator);
+            //BenStructure b(t, -1, -1, true);
+            //contNetwork.executeEdgeAddition(0, r * propensities.at("edge_add")/*, b*/);
+            propAdd = contNetwork.getEdgeAdditionRateSum();
+            propensities.at("edge_add") = propAdd.at(propAdd.size() - 1).first;
+            size_t index = binarySearch(propAdd, 0, propAdd.size() - 1, 0, r * propensities.at("edge_add"));
+
+            if (propAdd.at(index).second == lemon::INVALID)
+            {
+                std::string msg = "ERROR: INVALID SSA del!";
+                throw std::domain_error(msg);
+            }
+
+            std::pair<int, int> b = contNetwork.addEdge(propAdd.at(index).second);
+            //propAdd.erase(propAdd.begin() + index);
+            //benToFile.push_back(BenStructure(t, b.first, b.second, true));
+            benToFile.emplace_back(t, b.first, b.second, true);
+            //maxEdgesDelete++;
         }
+        else if (i == 0)
+        {
+            //std::uniform_int_distribution<size_t> dist(0, maxEdgesDelete - 1);
+            /*NOTE: we can delete uniformely when all edge del. rates are the same. When we have adaptivity case
+             * - we can not do this anymore!!!*/
+            //size_t ind = dist(generator);
+            //contNetwork.executeEdgeDeletion(ind);
+            propDel = contNetwork.getEdgeDeletionRateSum();
+            propensities.at("edge_del") = propDel.at(propDel.size() - 1).first;
+            double r = sampleRandUni(generator);
+            size_t index = binarySearch(propDel, 0, propDel.size() - 1, 0, r * propensities.at("edge_del"));
+
+            if (propDel.at(index).second == lemon::INVALID)
+            {
+                std::string msg = "ERROR: INVALID SSA del!";
+                throw std::domain_error(msg);
+            }
+            propensities.at("edge_del") =
+                    propensities.at("edge_del") - contNetwork.getEdgeDeletionRate(propDel.at(index).second);
+
+            std::pair<int, int> b = contNetwork.removeEdge(propDel.at(index).second);
+            propDel.erase(propDel.begin() + index);
+            //benToFile.push_back(BenStructure(t, b.first, b.second, false));
+            benToFile.emplace_back(t, b.first, b.second, false);
+            //std::cout <<  b.first << ", " << b.second << std::endl;
+            //benToFile.push_back(b);
+            //maxEdgesDelete--;
+        }
+    }
+}
+
+void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, int nDel, std::mt19937_64 &generator,
+                    std::vector<std::pair<double, lemon::ListGraph::Edge>> &propAdd,
+                    std::vector<std::pair<double, lemon::ListGraph::Edge>> &propDel, double t,
+                    ContactNetwork & contNetwork,
+                    std::unordered_map<std::string, double> &propensities,
+                    size_t nnn)
+{
+    int maxEdgesDelete = nDel;
+    if (maxEdgesDelete < k.at(0))
+    {
+        std::cout << "EXceed NDEL!!!" << std::endl;
+        for (auto i : propDel)
+        {
+            contNetwork.removeEdge(i.second);
+        }
+
+        /*propAdd = contNetwork.getEdgeAdditionRateSum();
+        propensities.at("edge_add") = propAdd.at(propAdd.size() - 1).first;*/
+        for (size_t i = 0; i < k.at(1) - k.at(0) + maxEdgesDelete; i ++)
+        {
+            double r = sampleRandUni(generator);
+            propAdd = contNetwork.getEdgeAdditionRateSum();
+            propensities.at("edge_add") = propAdd.at(propAdd.size() - 1).first;
+            size_t index = binarySearch(propAdd, 0, propAdd.size() - 1, 0, r * propensities.at("edge_add"));
+
+            if (propAdd.at(index).second == lemon::INVALID)
+            {
+                std::string msg = "ERROR: INVALID SSA del!";
+                throw std::domain_error(msg);
+            }
+
+            propensities.at("edge_add") =
+                    propensities.at("edge_add") - contNetwork.getEdgeAdditionRate(propAdd.at(index).second);
+            std::pair<int, int> b = contNetwork.addEdge(propAdd.at(index).second);
+            propAdd.erase(propAdd.begin() + index);
+        }
+    }
+
+    else
+    {
+        std::cout << "NORMAL!!!" << std::endl;
+        //propDel = contNetwork.getEdgeDeletionRateSum();
+        //propensities.at("edge_del") = propDel.at(propDel.size() - 1).first;
+        for (size_t i = 0; i < k.at(0) ; i ++)
+        {
+            //std::cout << "DEL!!!" << std::endl;
+            propDel = contNetwork.getEdgeDeletionRateSum();
+            propensities.at("edge_del") = propDel.at(propDel.size() - 1).first;
+            double r = sampleRandUni(generator);
+            size_t index = binarySearch(propDel, 0, propDel.size() - 1, 0, r * propensities.at("edge_del"));
+
+            //std::cout << "test1!!!" << std::endl;
+            if (propDel.at(index).second == lemon::INVALID)
+            {
+                std::string msg = "ERROR: INVALID SSA del!";
+                throw std::domain_error(msg);
+            }
+
+            //std::cout << "index = " << index << ",  size = " << propDel.size() - 1 << std::endl;
+            //std::cout << propensities.at("edge_del") << " , ";
+            propensities.at("edge_del") =
+                    propensities.at("edge_del") - contNetwork.getEdgeDeletionRate(propDel.at(index).second);
+            //std::cout << propensities.at("edge_del") << std::endl;
+            //std::cout << "test2!!!  " << std::endl;
+            std::pair<int, int> b = contNetwork.removeEdge(propDel.at(index).second);
+            //std::cout << "b1 = " << b.first << ", b2 = " << b.second<< std::endl;
+            //std::cout << "test3!!!" << std::endl;
+            propDel.erase(propDel.begin() + index);
+            //std::cout << "test4!!!" << std::endl;
+            benToFile.emplace_back(t, b.first, b.second, false);
+            maxEdgesDelete--;
+        }
+
+
+        //propAdd = contNetwork.getEdgeAdditionRateSum();
+        //propensities.at("edge_add") = propAdd.at(propAdd.size() - 1).first;
+        for (size_t i = 0; i < k.at(1); i ++)
+        {
+            //std::cout << "ADD!!!" << std::endl;
+            double r = sampleRandUni(generator);
+            propAdd = contNetwork.getEdgeAdditionRateSum();
+            propensities.at("edge_add") = propAdd.at(propAdd.size() - 1).first;
+            size_t index = binarySearch(propAdd, 0, propAdd.size() - 1, 0, r * propensities.at("edge_add"));
+
+            if (propAdd.at(index).second == lemon::INVALID)
+            {
+                std::string msg = "ERROR: INVALID SSA add!";
+                throw std::domain_error(msg);
+            }
+            propensities.at("edge_add") =
+                    propensities.at("edge_add") - contNetwork.getEdgeAdditionRate(propAdd.at(index).second);
+
+            std::pair<int, int> b = contNetwork.addEdge(propAdd.at(index).second);
+            //propDel.erase(propAdd.begin() + index);
+            //benToFile.push_back(BenStructure(t, b.first, b.second, true));
+            benToFile.emplace_back(t, b.first, b.second, true);
+            maxEdgesDelete++;
+        }
+
     }
 }
