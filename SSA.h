@@ -24,7 +24,7 @@ public:
 private:
 
     double sampleRandUni();
-    void   executeReaction(ContactNetwork & contNetwork, std::string reactId, double rStart,
+    void   executeReaction(ContactNetwork & contNetwork, const std::string &reactId, double rStart,
                            double rBound, double time, uint32_t &nInf/*, std::vector<BenStructure> &benToFile*/);
     double recycleRandUni();
 

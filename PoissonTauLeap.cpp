@@ -378,12 +378,6 @@ void updateDegreeDistribution(bool updateDegreeDistr, double t, std::vector<doub
     }
 }
 
-bool isCapturedCorrectly( size_t var1, size_t var2, size_t limit1, size_t limit2)
-{
-    bool result = ((var1 <=limit1) && (var2 <=limit2));
-    return result;
-}
-
 int splitRandomNumber(int kDel, int kAdd, int &N, std::mt19937_64 &generator)
 {
     if (kDel > N + kAdd)

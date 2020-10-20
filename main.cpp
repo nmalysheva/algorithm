@@ -1,8 +1,5 @@
 #include <iostream>
-#include <lemon/list_graph.h>
-#include <lemon/adaptors.h>
 #include "UniqueID.h"
-#include <lemon/maps.h>
 #include "ContactNetwork.h"
 #include "SSA.h"
 #include "NSA.h"
@@ -11,7 +8,6 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include <iomanip>
 #include "PoissonTauLeap.h"
 #include "AndersonTauLeap.h"
 #include "RKF45.h"
@@ -92,24 +88,24 @@ void executeSSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
     newFile << "birth rate: " << bRate << std::endl;
     newFile << "transmission rate: " << transmRate << std::endl;
 
-    for (size_t i = 0; i < timeSteps.size(); i++)
+    for (const auto &tStep : timeSteps)
     {
-        newFile << timeSteps.at(i) << ' ';
+        newFile << tStep << ' ';
     }
     newFile << std::endl;
 
-    for (size_t i = 0; i < infectedSteps.size(); i++)
+    for (const auto &infectedStep : infectedSteps)
     {
-        newFile << infectedSteps.at(i) << ' ';
+        newFile << infectedStep << ' ';
     }
-    //newFile << std::endl;
+    newFile << std::endl;
     newFile << "degree distribution:" << std::endl;
     for (size_t i = 0; i < degreeDistr.size(); i++)
     {
-        std::vector<size_t> degrreDatTime = degreeDistr.at(i);
-        for (size_t j = 0;  j< degrreDatTime.size(); j++)
+        std::vector<size_t> degreeDatTime = degreeDistr.at(i);
+        for (size_t j = 0;  j< degreeDatTime.size(); j++)
         {
-            newFile << degrreDatTime.at(j) << ' ';
+            newFile << degreeDatTime.at(j) << ' ';
         }
         newFile << std::endl;
     }
@@ -197,9 +193,9 @@ void executeNSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
     newFile << "transmission rate: " << transmRate << std::endl;
     newFile << "epsilon: " << epsilon << std::endl;
 
-    for (size_t i = 0; i < timeSteps.size(); i++)
+    for (const auto &tStep: timeSteps)
     {
-        newFile << timeSteps.at(i) << ' ';
+        newFile << tStep << ' ';
     }
     newFile << std::endl;
 
@@ -353,9 +349,11 @@ void executeSSAOnlyContactUpdate(double tStart, double tEnd, size_t nPopulation,
     std::cout <<"Edges: "  << startEdges <<std::endl;
 
     std::vector<double> timeSteps;
+    timeSteps.reserve(1e4 + 1);
     std::vector<uint32_t> infectedSteps;
+    infectedSteps.reserve(1e4 + 1);
     std::vector<std::vector<size_t>> degreeDistr; // vector stores degree dist. per time step
-
+    degreeDistr.reserve(1e4 + 1);
     SSA ssa;
     auto start_time = std::chrono::high_resolution_clock::now();
     ssa.execute(tStart, tEnd, contNetwork, timeSteps, infectedSteps, degreeDistr/*, benToFile*/);
@@ -457,15 +455,15 @@ void executeNSAOnlyContactUpdate(double tStart, double tEnd, size_t nPopulation,
     std::cout <<"Edges: "  << startEdges <<std::endl;
 
     std::vector<double> timeSteps;
+    timeSteps.reserve(1e4 + 1);
     std::vector<std::vector<size_t>> degreeDistr; // vector stores degree dist. per time step
+    degreeDistr.reserve(1e4 + 1);
     NSA nsa;
-    //ContactNetwork cNw2(20, amount.at(i) - 20, nEdges, 1, 20, 0.03, 1.2, 1.25, 0.0004, 2);
     auto start_time = std::chrono::high_resolution_clock::now();
-    //nsa.BDtauleap(tStart, tEnd, contNetwork, epsilon, timeSteps, degreeDistr);
 
     std::random_device rDev;
     std::mt19937_64 generator = std::mt19937_64(rDev());
-    generator.seed(::time(NULL) * getpid()); //to change the seed for every run
+    generator.seed(::time(nullptr) * getpid()); //to change the seed for every run
 
     //PoissonTauleap(tStart, tEnd, contNetwork, epsilon, timeSteps, degreeDistr, true/*, benToFile*/, generator);
     AndersonTauLeap(tStart, tEnd, contNetwork, epsilon, timeSteps, degreeDistr, true/*, benToFile*/, generator);
@@ -496,15 +494,15 @@ void executeNSAOnlyContactUpdate(double tStart, double tEnd, size_t nPopulation,
     newFile << "edges: " << startEdges << std::endl;
     newFile << "population: " << nPopulation << std::endl;
 
-    newFile << "max contact range: " << maxContactsA << " "  << maxContactsB << std::endl;
+    newFile << "max contact range: " << "[" << maxContactsA << ", "  << maxContactsB << "]" << std::endl;
     newFile << "rate of make a new contact: " << newContRate << std::endl;
     newFile << "rate of loose a contact: " << looseContRate << std::endl;
     newFile << "epsilon: " << epsilon << std::endl;
 
     std::cout << " timeSteps.size: " <<  timeSteps.size() <<std::endl;
-    for (size_t i = 0; i < timeSteps.size(); i++)
+    for (const auto &tStep: timeSteps)
     {
-        newFile << timeSteps.at(i) << ' ';
+        newFile << tStep << ' ';
     }
     newFile << std::endl;
 
@@ -578,7 +576,7 @@ void executeRKF45OnlyContactUpdate(double tStart, double tEnd, size_t nPopulatio
     double dtMax = (tEnd - tStart) / 2;
     double dtMin = (tEnd - tStart) * 1e-4;
     double errorMax = 1e-1;
-    double errorMin = 1e-3; //1e-3;
+    double errorMin = 1e-3;
     auto start_time = std::chrono::high_resolution_clock::now();
     RKF45Approximation(tStart, tEnd, contNetwork, dtMax, dtMin, errorMax, errorMin, timeSteps,
             degreeDistr, true/*, benToFile*/, generator);
@@ -664,6 +662,42 @@ void executeRKF45OnlyContactUpdate(double tStart, double tEnd, size_t nPopulatio
 */
 }
 
+std::pair<double, double> getAndPrintSimulationParameters(char* timeBoundaries[], size_t &simulationNumber)
+{
+    simulationNumber = std::stoi(timeBoundaries[2]);
+    std::cout << "Simulation number: " << simulationNumber << std::endl;
+
+    double tStart = std::strtod(timeBoundaries[0], 0);
+    double tEnd   = std::strtod(timeBoundaries[1], 0);
+    std::cout << "Simulation time t=[" << tStart << ", " << tEnd << "]" << std::endl;
+    return std::make_pair(tStart, tEnd);
+
+
+}
+
+void getAndPrintNetworkParameters(size_t &nPopulation, size_t &nEdges, int &maxContactsA, int &maxContactsB,
+                                  double &newContRate, double &looseContRate,
+                                  char* arr[])
+{
+    nPopulation = std::stoi(arr[0]);
+    std::cout << "Population size: " << nPopulation << std::endl;
+
+    nEdges = std::stoi(arr[1]);
+    std::cout << "Initial edges: " << nEdges << std::endl;
+
+    maxContactsA = std::stoi(arr[2]);
+    maxContactsB = std::stoi(arr[3]);
+    std::cout << "Max. contact boundaries =[" << maxContactsA << ", " << maxContactsB << "]" << std::endl;
+
+    newContRate = std::strtod(arr[4], 0);
+    std::cout << "New Contact Rate: " << newContRate << std::endl;
+
+    looseContRate = std::strtod(arr[5], 0);
+    std::cout << "Loose Contact Rate: " << looseContRate << std::endl;
+
+
+}
+
 void contactDynamics(int argc, char* argv[])
 {
     if (argc != 10)
@@ -672,35 +706,25 @@ void contactDynamics(int argc, char* argv[])
     }
     else
     {
+        size_t simulationNumber = 0;
+        char* arr[] = {argv[1], argv[2], argv[9]};
+        std::pair<double, double> simulationTime = getAndPrintSimulationParameters(arr, simulationNumber);
 
-        double tStart = std::strtod(argv[1], 0);
-        double tEnd   = std::strtod(argv[2], 0);
-        std::cout << "Simulation time t=[" << tStart << ", " << tEnd << "]" << std::endl;
+        size_t nPopulation = 0;
+        size_t nEdges = 0;
+        int maxContactsA = 0;
+        int maxContactsB = 0;
+        double newContRate = 0;
+        double looseContRate = 0;
 
-        size_t nPopulation = std::stoi(argv[3]);
-        std::cout << "Population size: " << nPopulation << std::endl;
-
-        size_t nEdges = std::stoi(argv[4]);
-        std::cout << "Max edges: " << nEdges << std::endl;
-
-        int maxContactsA = std::stoi(argv[5]);
-        int MaxContactsB = std::stoi(argv[6]);
-        std::cout << "Max. contact boundaries =[" << maxContactsA << ", " << MaxContactsB << "]" << std::endl;
-
-        double newContRate = std::strtod(argv[7], 0);
-        std::cout << "New Contact Rate: " << newContRate << std::endl;
-
-        double looseContRate = std::strtod(argv[8], 0);
-        std::cout << "Loose Contact Rate: " << looseContRate << std::endl;
-
-        size_t simulationNumber = std::stoi(argv[9]);
-        std::cout<<simulationNumber << std::endl;
-
+        char* arr1[]  = {argv[3], argv[4], argv[5], argv[6], argv[7], argv[8]};
+        getAndPrintNetworkParameters(nPopulation, nEdges, maxContactsA, maxContactsB,
+                                      newContRate, looseContRate, arr1);
         double epsilon = 0.03;
 
-        executeNSAOnlyContactUpdate(tStart, tEnd, nPopulation, nEdges, maxContactsA, MaxContactsB,
+        executeNSAOnlyContactUpdate(simulationTime.first, simulationTime.second, nPopulation, nEdges, maxContactsA, maxContactsB,
                          newContRate, looseContRate, epsilon, simulationNumber);
-        executeSSAOnlyContactUpdate(tStart, tEnd, nPopulation, nEdges, maxContactsA, MaxContactsB,
+        executeSSAOnlyContactUpdate(simulationTime.first, simulationTime.second, nPopulation, nEdges, maxContactsA, maxContactsB,
                                     newContRate, looseContRate, simulationNumber);
         //executeRKF45OnlyContactUpdate(tStart, tEnd, nPopulation, nEdges, maxContactsA, MaxContactsB,
         //                              newContRate, looseContRate, epsilon, simulationNumber);
@@ -709,6 +733,7 @@ void contactDynamics(int argc, char* argv[])
     }
 
 }
+
 
 void viralDynamics(int argc, char* argv[])
 {
@@ -719,28 +744,25 @@ void viralDynamics(int argc, char* argv[])
     else
     {
 
-        double tStart = std::strtod(argv[1], 0);
-        double tEnd   = std::strtod(argv[2], 0);
-        std::cout << "Simulation time t=[" << tStart << ", " << tEnd << "]" << std::endl;
+        char* arr[] = {argv[1], argv[2], argv[13]};
+        size_t simulationNumber = 0;
+        std::pair<double, double> simulationTime = getAndPrintSimulationParameters(arr, simulationNumber);
 
-        size_t nPopulation = std::stoi(argv[3]);
-        std::cout << "Population size: " << nPopulation << std::endl;
+        size_t nPopulation = 0;
+        size_t nEdges = 0;
+        int maxContactsA = 0;
+        int maxContactsB = 0;
+        double newContRate = 0;
+        double looseContRate = 0;
+
+        char* arr1[]  = {argv[3], argv[5], argv[6], argv[7], argv[8], argv[9], argv[9]};
+        getAndPrintNetworkParameters(nPopulation, nEdges, maxContactsA, maxContactsB,
+                                     newContRate, looseContRate, arr1);
+
 
         size_t nInfected = std::stoi(argv[4]);
         std::cout << "Number of infected: " << nInfected << std::endl;
 
-        size_t nEdges = std::stoi(argv[5]);
-        std::cout << "Max edges: " << nEdges << std::endl;
-
-        int maxContactsA = std::stoi(argv[6]);
-        int MaxContactsB = std::stoi(argv[7]);
-        std::cout << "Max. contact boundaries =[" << maxContactsA << ", " << MaxContactsB << "]" << std::endl;
-
-        double newContRate = std::strtod(argv[8], 0);
-        std::cout << "New Contact Rate: " << newContRate << std::endl;
-
-        double looseContRate = std::strtod(argv[9], 0);
-        std::cout << "Loose Contact Rate: " << looseContRate << std::endl;
 
         double birthRate = std::strtod(argv[10], 0);
         std::cout << "Birth rate: " << birthRate << std::endl;
@@ -751,14 +773,12 @@ void viralDynamics(int argc, char* argv[])
         double transmitRate = std::strtod(argv[12], 0);
         std::cout << "Transmission rate: " << transmitRate << std::endl;
 
-        size_t simulationNumber = std::stoi(argv[13]);
-        std::cout<<simulationNumber << std::endl;
 
         double epsilon = 0.03;
 
-        executeNSA(tStart, tEnd, nInfected, nPopulation - nInfected, nEdges, maxContactsA, MaxContactsB,
+        executeNSA(simulationTime.first, simulationTime.second, nInfected, nPopulation - nInfected, nEdges, maxContactsA, maxContactsB,
                    transmitRate, newContRate, looseContRate, deathRate, birthRate, epsilon, simulationNumber);
-        executeSSA(tStart, tEnd, nInfected, nPopulation - nInfected, nEdges, maxContactsA, MaxContactsB,
+        executeSSA(simulationTime.first, simulationTime.second, nInfected, nPopulation - nInfected, nEdges, maxContactsA, maxContactsB,
                    transmitRate, newContRate, looseContRate, deathRate, birthRate, simulationNumber);
 
     }

@@ -3,7 +3,7 @@
 //
 
 #include "NSA.h"
-#include "math.h"
+#include <cmath>
 #include <algorithm>
 #include <vector>
 #include <fstream>
@@ -14,7 +14,7 @@
 NSA::NSA()
 {
     generator = std::mt19937_64(rDev());
-    generator.seed(::time(NULL) * getpid()); //to change the seed for every run
+    generator.seed(::time(nullptr) * getpid()); //to change the seed for every run
     randuni  = std::uniform_real_distribution<>(0.0, 1.0);
 
 }
@@ -40,7 +40,7 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
 
     double proposedTime = -1;
 
-    std::unordered_map<std::string, double >propensities {
+    std::unordered_map<std::string, double >propensities{
             {"transmission", contNetwork.getTransmissionRateSum()},
             {"death", contNetwork.getDeathRateSum()},
             {"birth", contNetwork.getBirthRateSum()},
@@ -195,7 +195,7 @@ double NSA::sampleRandUni()
 }
 
 
-void NSA::executeReaction(ContactNetwork & contNetwork, std::string reactId,
+void NSA::executeReaction(ContactNetwork & contNetwork, const std::string &reactId,
                           double rStart, double rBound, double time, uint32_t &nInf/*, std::vector<BenStructure> &benToFile*/)
 {
     //std::cout << reactId <<std::endl;

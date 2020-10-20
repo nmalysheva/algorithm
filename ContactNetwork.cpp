@@ -28,9 +28,6 @@ void ContactNetwork::init(size_t nInfected, size_t nSusceptible, size_t nEdges, 
 
     size_t nInf = 0;
 
-    std::cout << "maxContacts: " ;
-    //std::uniform_real_distribution<double >ncrDistribution(0.5, newContactRate);
-
     isContactsLimited = false;
     for (size_t i = 0; i < nPopulation; i ++)
     {
@@ -63,16 +60,10 @@ void ContactNetwork::init(size_t nInfected, size_t nSusceptible, size_t nEdges, 
         population.emplace(nodeIdMap[newNode], sp);
 
     }
-    std::cout <<std::endl;
-
-    std::cout << "complementAdjacentEdges: ";
     for(lemon::ListGraph::NodeIt nIt(complement); nIt!=lemon::INVALID; ++nIt)
     {
         complementAdjacentEdges[nIt] = countAdjacentEdges(nIt);
-        //std::cout << complementAdjacentEdges[nIt] << "-";
-        //std::cout << population.at(nodeIdMap[nIt]).getMaxNumberOfContacts() << ", ";
     }
-    //std::cout <<std::endl;
 
     int maxNumberOfEdges = complement.maxEdgeId();
 
@@ -88,16 +79,7 @@ void ContactNetwork::init(size_t nInfected, size_t nSusceptible, size_t nEdges, 
         }
     }
 
-    /*std::cout << "test - shmest: ";
-    for(lemon::ListGraph::NodeIt nIt(complement); nIt!=lemon::INVALID; ++nIt)
-    {
-        lemon::ListGraph::Node nn = network.nodeFromId(complement.id(nIt));
-        std::cout << (nIt == nn) << " ";
-    }
-
-    std::cout <<std::endl;*/
-
-    generator.seed(::time(NULL) * getpid());
+    generator.seed(::time(nullptr) * getpid());
 }
 
 size_t ContactNetwork::countAdjacentEdges(const lemon::ListGraph::Node &complementNode) const
@@ -106,27 +88,14 @@ size_t ContactNetwork::countAdjacentEdges(const lemon::ListGraph::Node &compleme
 
     int sourceUID = nodeIdMap[network.nodeFromId(complement.id(complementNode))];
     double sourceRate = population.at(sourceUID).getNewContactRate();
-    //std::cout << "sourceRateCnt = " << sourceRate <<std::endl;
     if (sourceRate > 0)
-    //if (true)
     {
-        //std::cout << "cae 1 " <<std::endl;
         for(lemon::ListGraph::IncEdgeIt eIt(complement, complementNode); eIt!=lemon::INVALID; ++eIt)
         {
-            //std::cout << "cae 2 " <<std::endl;
             lemon::ListGraph::Node oppositeNode = complement.oppositeNode(complementNode, eIt);
             int oppositeUID = nodeIdMap[network.nodeFromId(complement.id(oppositeNode))];
 
             double oppositeRate = population.at(oppositeUID).getNewContactRate();
-
-            //std::cout << "edges = " << lemon::countEdges(complement)<< ", " << lemon::countEdges(network) << ";  sourceUID = " << sourceUID << ", oppositeUID = " << oppositeUID  <<std::endl;
-
-            /*if (lemon::countEdges(complement) + lemon::countEdges(network) != 4950)
-            {
-                std::cout << "edges = " << lemon::countEdges(complement)<< ", " << lemon::countEdges(network) << ";  sourceUID = " << sourceUID << ", oppositeUID = " << oppositeUID  <<std::endl;
-                std::string msg = "ERROR: INVALID COUNTADJ add!";
-                throw std::domain_error(msg);
-            }*/
             if (oppositeRate > 0)
             {
                 result++;
@@ -228,19 +197,16 @@ std::vector<std::pair<double, lemon::ListGraph::Edge>> ContactNetwork::getEdgeAd
     propCumSum.push_back(elem2);
 
     size_t index = 1;
-    //std::cout << "rates:";
     for (lemon::ListGraph::EdgeIt eIt(complement); eIt != lemon::INVALID; ++eIt)
     {
         double rate = getEdgeAdditionRate(eIt);
         if (rate > 0)
         {
-            //std::cout << " " << rate;
             std::pair<double, lemon::ListGraph::Edge> elem {propCumSum.at(index - 1).first + rate, eIt};
             propCumSum.push_back(elem);
             index ++;
         }
     }
-    //std::cout << std::endl;
     propCumSum.shrink_to_fit();
     return propCumSum;
 }
@@ -714,11 +680,9 @@ double  ContactNetwork::getEdgeAdditionRate(lemon::ListGraph::Edge complementEdg
         double sourceAddEdges = complementAdjacentEdges[complU];
         double targetAddEdges = complementAdjacentEdges[complV];
 
-        //std::cout << "sourceRate = " << sourceRate << "; targetRate = " << targetRate << std::endl;
-       // std::cout << "sourceAddEdges = " << sourceAddEdges << "; targetAddEdges = " << targetAddEdges << std::endl;
-
         if ( (sourceAddEdges == 0) || (targetAddEdges == 0) )
         {
+            //TODO throw exception
             std::cout << "LOLLL" <<std::endl;
             //std::cout << "sourceRate = " << sourceRate << "; targetRate = " << targetRate << std::endl;
             std::cout << "sourceAddEdges = " << sourceAddEdges << "; targetAddEdges = " << targetAddEdges << std::endl;
@@ -933,9 +897,6 @@ size_t ContactNetwork::getAmountOfEdgesToAdd() const
     }
 
     result = result / 2;
-    //std::cout << "res. with map: " << result <<"; ";
-    //std::cout << "res. with map: " << result <<"; ";
-
     return result;
 }
 
@@ -1119,7 +1080,6 @@ size_t ContactNetwork::getAmountOfEdgesToAddSafe()
             }
             s.erase(it);
         }
-
     }
 
     else
@@ -1195,8 +1155,6 @@ double  ContactNetwork::getExpectedEdgeDeletionRate()const
         sum += eRate;
         sumSquare += eRate * eRate;
     }
-    //std::cout << "sum: " << sum << std::endl;
-    //std::cout << "sumSquare: " << sumSquare << std::endl;
     double result = 0;
     if (sumSquare > 0)
     {

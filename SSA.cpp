@@ -5,14 +5,13 @@
 #include "SSA.h"
 #include <string>
 #include <iostream>
-#include <fstream>
 #include <unistd.h>
 #include "Utility.h"
 
 SSA::SSA()
 {
     generator = std::mt19937_64(rDev());
-    generator.seed(::time(NULL) * getpid()); //to change the seed for every run
+    generator.seed(::time(nullptr) * getpid()); //to change the seed for every run
     randuni  = std::uniform_real_distribution<>(0.0, 1.0);
 
 }
@@ -115,16 +114,15 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
                     {
                         size_t index = binarySearch(propDel, 0, propDel.size() - 1, pSum, propensitieSum * r);
                         std::pair<int, int> b = contNetwork.removeEdge(propDel.at(index).second);
-                        propDel.erase(propDel.begin() + index);
-                        benToFile.push_back(BenStructure(time, b.first, b.second, false));
-
+                        //propDel.erase(propDel.begin() + index);
+                        benToFile.emplace_back(time, b.first, b.second, false);
                     }
                     else if (it.first == "edge_add")
                     {
                         size_t index = binarySearch(propAdd, 0, propAdd.size() - 1, pSum, propensitieSum * r);
                         std::pair<int, int> b = contNetwork.addEdge(propAdd.at(index).second);
-                        propAdd.erase(propAdd.begin() + index);
-                        benToFile.push_back(BenStructure(time, b.first, b.second, true));
+                        //propAdd.erase(propAdd.begin() + index);
+                        benToFile.emplace_back(time, b.first, b.second, true);
                     }
 
                     /// TEMPORAL SOLUTION
@@ -142,7 +140,7 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
     }
 }
 
-void SSA::executeReaction(ContactNetwork & contNetwork, std::string reactId,
+void SSA::executeReaction(ContactNetwork & contNetwork, const std::string &reactId,
                           double rStart, double rBound, double time, uint32_t &nInf/*,
                           std::vector<BenStructure> &benToFile*/)
 {

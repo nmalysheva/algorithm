@@ -25,7 +25,7 @@ private:
     double  recycleRandUni(double r); //recycle random number so we dont need to sample it again
     double sampleRandUni();
 private:
-    void executeReaction(ContactNetwork & contNetwork, std::string reactId,
+    void executeReaction(ContactNetwork & contNetwork, const std::string & reactId,
                               double rStart, double rBound, double time, uint32_t &nInf/*, std::vector<BenStructure> &benToFile*/);
 
     std::random_device rDev;

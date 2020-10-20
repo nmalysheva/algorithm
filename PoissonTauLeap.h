@@ -22,7 +22,6 @@ void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
                 bool updateDegreeDistr, std::mt19937_64 &generator);
 void updateDegreeDistribution(bool updateDegreeDistr, double t, std::vector<double> &timeSteps,
                               std::vector<std::vector<size_t>> &degreeDistr, /*const*/ ContactNetwork  &contNetwork);
-bool isCapturedCorrectly(size_t var1, size_t var2, size_t limit1, size_t limit2);
 
 int splitRandomNumber(int kDel, int kAdd, int &N, std::mt19937_64 &generator);
 
