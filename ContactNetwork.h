@@ -36,10 +36,12 @@ public:
                    double transmRate,
                    double newContRate,
                    double looseContRate,
+                   double diagnRate,
                    double dRate,
                    double bRate) : network(lemon::ListGraph()),
                                    complement(lemon::ListGraph()),
                                    transmissionRates(network),
+                                   diagnosisRates(network),
                                    nodeIdMap(network),
                                    edgesIdMap (network),
                                    edgesIdMapInv(edgesIdMap.inverse()),
@@ -47,7 +49,7 @@ public:
 
                                    {
                                        init(nInfected, nSusceptible, nEdges, maxContactsL, MaxContactsU,
-                                               transmRate, newContRate, looseContRate, dRate, bRate);
+                                               transmRate, newContRate, looseContRate, diagnRate, dRate, bRate);
                                    };
 
     ContactNetwork& operator=(const ContactNetwork& other);
@@ -58,7 +60,8 @@ public:
 
 
     //sum of rates of particular reactions
-    double  getTransmissionRateSum()const; //return sum of all transmition rates
+    //double  getTransmissionRateSum()const; //return sum of all transmition rates
+    std::vector<std::pair<double, lemon::ListGraph::Edge>> getTransmissionRateSum();
     //std::vector<double> getTransmissionRateSum()const;
     double  getEdgeDeletionRateSum(size_t &nDel)const;
     std::vector<std::pair<double, lemon::ListGraph::Edge>> getEdgeDeletionRateSum()const;
@@ -68,8 +71,11 @@ public:
     std::vector<std::pair<double, lemon::ListGraph::Edge>> getEdgeAdditionRateSum()const;
     double  getExpectedEdgeAdditionRate(size_t &nAdd)const;
 
-    double  getDeathRateSum()const;
+    //double  getDeathRateSum()const;
+    std::vector<std::pair<double, lemon::ListGraph::Node>> getDeathRateSum()const;
     double  getBirthRateSum()const;
+
+    std::vector<std::pair<double, lemon::ListGraph::Node>> getDiagnosisRateSum()const;
 
     double  getTransmissionRateLimit() const;
 
@@ -91,8 +97,11 @@ public:
     void executeEdgeAddition(double rStart, double rBound/*, BenStructure &b*/);
     void executeEdgeAddition(size_t edgeNumber);
 
-    void executeTransmission(double rStart, double rBound, double time);
+    //void executeTransmission(double rStart, double rBound, double time);
+    void executeTransmission(lemon::ListGraph::Edge & edge, double time);
+    void executeDiagnosis(lemon::ListGraph::Node & node, double time);
     void executeDeath(double rStart, double rBound);
+    void executeDeath(lemon::ListGraph::Node & node);
     void executeBirth(double rStart, double rBound);
 
     size_t updateSurvivalProbability(size_t nDeletions, size_t nAdditions, std::vector<BenStructure> &benToFile, double time);
@@ -110,12 +119,13 @@ private:
 
     void initRandomGenerator();
     void initRates(int maxContactsL, int MaxContactsU, double transmRate, double newContRate, double looseContRate,
-                   double dRate, double bRate);
+                   double diagnRate, double dRate, double bRate);
     void initComplementNetwork(size_t nPopulation);
 
 
     void init(size_t nInfected, size_t nSusceptible, size_t nEdges, int maxContactsL, int MaxContactsU,
-            double transmRate, double newContRate, double looseContRate, double dRate, double bRate);
+            double transmRate, double newContRate, double looseContRate, double diagnRate,
+            double dRate, double bRate);
 
     size_t countAdjacentEdges(const lemon::ListGraph::Node &complementNode) const;
 
@@ -124,6 +134,7 @@ private:
     lemon::ListGraph complement;
 
     lemon::ListGraph::EdgeMap<double> transmissionRates; //TODO: calculate automatically instead of storing?
+    lemon::ListGraph::NodeMap<double> diagnosisRates; //TODO: calculate automatically instead of storing?
 
     lemon::IdMap<lemon::ListGraph, lemon::ListGraph::Node> nodeIdMap;
 
@@ -145,6 +156,7 @@ private:
     double newContactRate;
     double looseContactRate;
     double deathRate;
+    double diagnosisRate;
 
     double birthRate;
 

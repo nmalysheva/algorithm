@@ -25,7 +25,13 @@ private:
 
     double sampleRandUni();
     void   executeReaction(ContactNetwork & contNetwork, const std::string &reactId, double rStart,
-                           double rBound, double time, uint32_t &nInf/*, std::vector<BenStructure> &benToFile*/);
+                           double rBound, double time, uint32_t &nInf,
+                            std::vector<std::pair<double, lemon::ListGraph::Edge>> &propDel,
+                            std::vector<std::pair<double, lemon::ListGraph::Edge>> &propAdd,
+                            std::vector<std::pair<double, lemon::ListGraph::Edge>> &propTransmit,
+                            std::vector<std::pair<double, lemon::ListGraph::Node>> &propDiagnos,
+                            std::vector<std::pair<double, lemon::ListGraph::Node>> &propDeath
+                           /*, std::vector<BenStructure> &benToFile*/);
     double recycleRandUni();
 
 private:

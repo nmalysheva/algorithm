@@ -21,7 +21,8 @@ public:
 
 private:
 
-    double  getPropUpperLimit (double lookAheadTime, ContactNetwork & contNetwork) const;
+    double  getPropUpperLimit (double lookAheadTime, ContactNetwork & contNetwork,
+                               double dignosisUpperLimit, double deathUpperLimit) const;
     double  recycleRandUni(double r); //recycle random number so we dont need to sample it again
     double sampleRandUni();
 private:

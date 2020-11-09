@@ -19,6 +19,7 @@ void executeSSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
         double transmRate, double newContRate, double looseContRate, double dRate, double bRate, size_t simulationNumber)
 {
     UniqueID().reset();
+    double diagnRate = 0;
     ContactNetwork contNetwork(nInfected,
                                nSusceptible,
                                nEdges,
@@ -27,6 +28,7 @@ void executeSSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
                                transmRate,
                                newContRate,
                                looseContRate,
+                               diagnRate,
                                dRate,
                                bRate);
 
@@ -118,6 +120,7 @@ void executeNSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
                 double transmRate, double newContRate, double looseContRate, double dRate, double bRate, double epsilon, size_t simulationNumber)
 {
     UniqueID().reset();
+    double diagnRate = 0;
     ContactNetwork contNetwork(nInfected,
                                nSusceptible,
                                nEdges,
@@ -126,6 +129,7 @@ void executeNSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
                                transmRate,
                                newContRate,
                                looseContRate,
+                               diagnRate,
                                dRate,
                                bRate);
 
@@ -339,6 +343,7 @@ void executeSSAOnlyContactUpdate(double tStart, double tEnd, size_t nPopulation,
                                newContRate,
                                looseContRate,
                                0,
+                               0,
                                0);
 
     //std::vector<BenStructure> benToFile = contNetwork.getBenStructure(tStart);
@@ -375,6 +380,7 @@ void executeSSAOnlyContactUpdate(double tStart, double tEnd, size_t nPopulation,
                       std::to_string(simulationNumber) + ".txt";
 
 
+    std::cout << "start save SSA" << std::endl;
     ofstream newFile;
     newFile.open(fileName);
 
@@ -408,6 +414,7 @@ void executeSSAOnlyContactUpdate(double tStart, double tEnd, size_t nPopulation,
     }
 
     newFile.close();
+    std::cout << "end save SSA" << std::endl;
     //-----------ben format
     /*string fileNameBen = "Ben_ContDyn_SSA_" + std::to_string(nPopulation) + "_MaxCont_" +
                          std::to_string(maxContactsA) + "-" + std::to_string(maxContactsB) + "_addR_" +
@@ -445,6 +452,7 @@ void executeNSAOnlyContactUpdate(double tStart, double tEnd, size_t nPopulation,
                                0,
                                newContRate,
                                looseContRate,
+                               0,
                                0,
                                0);
     //size_t nPopulation = contNetwork.size();
@@ -485,7 +493,7 @@ void executeNSAOnlyContactUpdate(double tStart, double tEnd, size_t nPopulation,
                       newContRateStr +"_delR_" + looseContRateStr + "_" +
                       std::to_string(simulationNumber) + ".txt";
 
-
+    std::cout << "start save NSA" << std::endl;
     ofstream newFile;
     newFile.open(fileName);
 
@@ -555,6 +563,7 @@ void executeRKF45OnlyContactUpdate(double tStart, double tEnd, size_t nPopulatio
                                0,
                                newContRate,
                                looseContRate,
+                               0,
                                0,
                                0);
 
@@ -722,10 +731,14 @@ void contactDynamics(int argc, char* argv[])
                                       newContRate, looseContRate, arr1);
         double epsilon = 0.03;
 
+        std::cout << "NSA Cont. update" << std::endl;
         executeNSAOnlyContactUpdate(simulationTime.first, simulationTime.second, nPopulation, nEdges, maxContactsA, maxContactsB,
                          newContRate, looseContRate, epsilon, simulationNumber);
-        executeSSAOnlyContactUpdate(simulationTime.first, simulationTime.second, nPopulation, nEdges, maxContactsA, maxContactsB,
-                                    newContRate, looseContRate, simulationNumber);
+        std::cout << "--------------------------------" << std::endl;
+        //std::cout << "SSA Cont. update" << std::endl;
+        //executeSSAOnlyContactUpdate(simulationTime.first, simulationTime.second, nPopulation, nEdges, maxContactsA, maxContactsB,
+         //                           newContRate, looseContRate, simulationNumber);
+        std::cout << "*********************************" << std::endl;
         //executeRKF45OnlyContactUpdate(tStart, tEnd, nPopulation, nEdges, maxContactsA, MaxContactsB,
         //                              newContRate, looseContRate, epsilon, simulationNumber);
 
@@ -776,6 +789,7 @@ void viralDynamics(int argc, char* argv[])
 
         double epsilon = 0.03;
 
+
         executeNSA(simulationTime.first, simulationTime.second, nInfected, nPopulation - nInfected, nEdges, maxContactsA, maxContactsB,
                    transmitRate, newContRate, looseContRate, deathRate, birthRate, epsilon, simulationNumber);
         executeSSA(simulationTime.first, simulationTime.second, nInfected, nPopulation - nInfected, nEdges, maxContactsA, maxContactsB,
@@ -787,23 +801,7 @@ void viralDynamics(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-    contactDynamics(argc, argv);
-    //viralDynamics(argc, argv);
-
-    /*std::random_device rDev;
-    std::mt19937_64 generator = std::mt19937_64(rDev());
-    std::uniform_int_distribution<> distrib(0, 200);
-    std::uniform_int_distribution<> distrib2(0, 250);
-    int N = 50;
-    for (int i = 0; i < 1; i++)
-    {
-        int nAdd = 10;//distrib(generator);
-        int nDel = 50;//distrib2(generator);
-
-        std::cout << "nAdd = " << nAdd << ", nDel = " << nDel<<  ",  " <<nAdd - nDel << ", ";
-        int a = splitRandomNumber( nDel,  nAdd,  N,  generator);
-        std::cout << a << std::endl;
-
-    }*/
+    //contactDynamics(argc, argv);
+    viralDynamics(argc, argv);
     return 0;
 }

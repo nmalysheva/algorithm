@@ -6,11 +6,11 @@
 #define ALGO_SPECIE_H
 
 
-#include <stddef.h>
+#include <cstddef>
 
 class Specie {
 public:
-    enum State {S, I, R};
+    enum State {S, I, R, D}; //Susceptible, Infected, Recovered, Diagnosed
 
 public:
 
@@ -34,8 +34,7 @@ public:
 
     double  getDeathRate() const;  //return specie's death rate
 
-    double  getInfectionTime() const; //return last infection time if specie is infected,  -infinity if not
-    double  getRecoveryTime() const;  //return last recovery time if specie was recovered, -infinity if not
+    double  getLastStateChangeTime() const; //return last infection time if specie is infected,  -infinity if not
 
     State  getState() const; // return epidemic state of the specie
 
@@ -57,7 +56,7 @@ public:
 
     //status changes
 
-    bool infect (double infectTime);  //change status of the specie to INFECTED
+    void changeState (State st, double time);  //change status of the specie to INFECTED
     bool recover(double recTime);     //change status of the specie to RECOVERED
 
 
@@ -85,8 +84,7 @@ private:
     double newContactRate;  //rate to establish a new contact
     double looseContactRate;//rate to loose a contact
 
-    double infectionTime;  //last infection time
-    double recoveryTime;   //last recovery time
+    double stateChangeTime;  //last time of state change (i.e. S->I, I->R, etc.)
 
 
     State state;

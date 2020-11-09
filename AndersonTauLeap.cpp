@@ -43,8 +43,8 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
     updateDegreeDistributio(updateDegreeDistr, t, timeSteps, degreeDistr, contNetwork);
 
     std::vector<std::vector<int>> nu = {{-1, 1}, {1, -1}};
-    std::vector<size_t> X = {propDel.size(), propAdd.size()};
-    double tau = getTau(2, nu, propensities, epsilon, X);
+    std::vector<size_t> X = {propDel.size() - 1, propAdd.size() - 1};
+    double tau = getTau(N, nu, propensities, epsilon, X);
 
     while (t < tEnd)
     {
@@ -66,105 +66,138 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
             propensities.at(0) = propDel.at(propDel.size() - 1).first;
             propensities.at(1) = propAdd.at(propAdd.size() - 1).first;
             updateDegreeDistributio(updateDegreeDistr, t, timeSteps, degreeDistr, contNetwork);
-            X = {propDel.size(), propAdd.size()};
+            X = {propDel.size() - 1, propAdd.size() - 1};
             tau = getTau(2, nu, propensities, epsilon, X);
-
-            continue;
         }
 
-        for (int i = 0; i < M; i ++)
-        {
-            std::vector<std::pair<double, int>> Sk = S.at(i);
-            int B = Sk.size() - 1;
-            if (propensities.at(i) * tau + T.at(i) >= Sk.at(B).first)
-            {
-                std::poisson_distribution<int> poiss(propensities.at(i) * tau + T.at(i) - Sk.at(B).first);
-
-
-                NN.at(i) = poiss(generator);
-                NN.at(i) = NN.at(i) + Sk.at(B).second - C.at(i);
-                row.at(i) = B;
-            }
-            else
-            {
-                int index = 0;
-                for (int k = 1; k < Sk.size(); k++)
-                {
-                    if (Sk.at(k - 1).first <= propensities.at(i) * tau + T.at(i) &&
-                        propensities.at(i) * tau + T.at(i) < Sk.at(k).first)
-                    {
-                        index = k;
-                        break;
-                    }
-                }
-
-                double r = static_cast<double>((T.at(i) + propensities.at(i) * tau - Sk.at(index - 1).first) /
-                                               (Sk.at(index).first - Sk.at(index - 1).first));
-
-                std::binomial_distribution<> binom(Sk.at(index).second - Sk.at(index - 1).second, r);
-                NN.at(i) = binom(generator) + Sk.at(index - 1).second -C.at(i);
-                row.at(i) = index - 1;
-            }
-        }
-
-        int change = NN.at(1) - NN.at(0);
-        bool pass = std::abs(change) <= std::max(epsilon * contNetwork.countEdges(), 1.0) &&
-                std::abs(change) <= std::max(epsilon * propAdd.size(), 1.0);
-
-        if (pass)
-        {
-            t = t + tau;
-            tLastNetworkUpdate = t;
-            for (int i = 0; i < M; i ++)
-            {
-                S.at(i).erase(S.at(i).begin() + row.at(i), S.at(i).end());
-                S.at(i).emplace(S.at(i).begin(), std::make_pair(propensities.at(i) * tau + T.at(i), C.at(i) + NN.at(i)));
-
-                T.at(i) = propensities.at(i) * tau + T.at(i);
-                C.at(i) = C.at(i) + NN.at(i);
-
-            }
-
-            bool pass2 = std::abs(change) <= std::max(0.75 * epsilon * contNetwork.countEdges(), 1.0) &&
-                         std::abs(change) <= std::max(0.75 * epsilon * propAdd.size(), 1.0);
-            if (pass2)
-            {
-                tau = std::pow(tau, q);
-            }
-            else
-            {
-                tau = tau * p1;
-            }
-
-            updateNetwork2(benToFile, NN, contNetwork.countEdges(), generator, propAdd, propDel, t, contNetwork, propensities);
-
-            propDel = contNetwork.getEdgeDeletionRateSum();
-            propAdd = contNetwork.getEdgeAdditionRateSum();
-
-            propensities.at(0) = propDel.at(propDel.size() - 1).first;
-            propensities.at(1) = propAdd.at(propAdd.size() - 1).first;
-            updateDegreeDistributio(updateDegreeDistr, t, timeSteps, degreeDistr, contNetwork);
-
-        }
         else
         {
             for (int i = 0; i < M; i ++)
             {
-                if (row.at(i) == S.at(i).size() - 1)
+                std::vector<std::pair<double, int>> Sk = S.at(i);
+                int B = Sk.size() - 1;
+                if (propensities.at(i) * tau + T.at(i) >= Sk.at(B).first)
                 {
-                    S.at(i).emplace_back(std::make_pair(propensities.at(i) * tau + T.at(i), C.at(i) + NN.at(i)));
+                    std::poisson_distribution<int> poiss(propensities.at(i) * tau + T.at(i) - Sk.at(B).first);
+
+                    int aaa = poiss(generator);
+                    NN.at(i) = aaa + Sk.at(B).second - C.at(i);
+
+                    if (NN.at(i) < 0)
+                    {
+                        std::cout << "less 0; aaa =" << aaa << ", NN =" << NN.at(i) << "; lam = " << propensities.at(i) * tau + T.at(i) - Sk.at(B).first <<
+                                  "; Sk.at(B, 2) = " << Sk.at(B).second << "; Ci = " << C.at(i)<<std::endl;
+                    }
+
+                    row.at(i) = B;
                 }
                 else
                 {
-                    S.at(i).emplace(S.at(i).begin() + row.at(i) + 1, std::make_pair(propensities.at(i) * tau + T.at(i), C.at(i) + NN.at(i)));
-                }
+                    int index = 0;
+                    for (int k = 1; k < Sk.size(); k++)
+                    {
+                        if (Sk.at(k - 1).first <= propensities.at(i) * tau + T.at(i) &&
+                            propensities.at(i) * tau + T.at(i) < Sk.at(k).first)
+                        {
+                            index = k;
+                            break;
+                        }
+                    }
+                    //std::cout << "index = " << index << "; tauk = " << propensities.at(i) * tau + T.at(i) << std::endl;
+                    if (index ==0)
+                    {
+                        std::cout << "index 0" << std::endl;
+                    }
+                    //std::cout << "check 7 " << std::endl;
+                    double r = static_cast<double>((T.at(i) + propensities.at(i) * tau - Sk.at(index - 1).first) /
+                                                   (Sk.at(index).first - Sk.at(index - 1).first));
 
+                    std::binomial_distribution<> binom(Sk.at(index).second - Sk.at(index - 1).second, r);
+
+                    int aaa = binom(generator);
+                    NN.at(i) = aaa + Sk.at(index - 1).second - C.at(i);
+                    row.at(i) = index - 1;
+
+                    if (NN.at(i) < 0)
+                    {
+                        std::cout << "less 0; aaa =" << aaa << " SK2 minus " << Sk.at(index).second - Sk.at(index - 1).second << ", NN =" << NN.at(i) << "; Ci = " << C.at(i)<<std::endl;
+                    }
+
+                }
             }
 
-            tau = tau * p;
-        }
+            int change = NN.at(1) - NN.at(0);
+            bool pass = std::abs(change) <= std::max(epsilon * (propDel.size() - 1), 1.0) &&
+                        std::abs(change) <= std::max(epsilon * (propAdd.size() - 1), 1.0);
 
+            if (pass)
+            {
+                if (t + tau > tEnd)
+                {
+                    //tLastNetworkUpdate = t;
+                    t = tEnd;
+                    break;
+                }
+                t = t + tau;
+                tLastNetworkUpdate = t;
+                for (int i = 0; i < M; i ++)
+                {
+                    S.at(i).erase(S.at(i).begin(),  S.at(i).begin() + row.at(i) + 1);
+                    S.at(i).emplace(S.at(i).begin(), std::make_pair(propensities.at(i) * tau + T.at(i), C.at(i) + NN.at(i)));
+
+                    T.at(i) = propensities.at(i) * tau + T.at(i);
+                    C.at(i) = C.at(i) + NN.at(i);
+
+                }
+
+                bool pass2 = std::abs(change) <= std::max(0.75 * epsilon * contNetwork.countEdges(), 1.0) &&
+                             std::abs(change) <= std::max(0.75 * epsilon * (propAdd.size() - 1), 1.0);
+                if (pass2)
+                {
+                    tau = std::pow(tau, q);
+                }
+                else
+                {
+                    tau = tau * p1;
+                }
+
+                if (contNetwork.countEdges() < NN.at(0))
+                {
+                    std::string msg = "ERROR: INVALID del amnt!";
+                    // throw std::domain_error(msg);
+                }
+                updateNetwork2(benToFile, NN, contNetwork.countEdges(), generator, propAdd, propDel, t, contNetwork, propensities);
+                propDel = contNetwork.getEdgeDeletionRateSum();
+                propAdd = contNetwork.getEdgeAdditionRateSum();
+
+                propensities.at(0) = propDel.at(propDel.size() - 1).first;
+                propensities.at(1) = propAdd.at(propAdd.size() - 1).first;
+                updateDegreeDistributio(updateDegreeDistr, t, timeSteps, degreeDistr, contNetwork);
+
+
+            }
+            else
+            {
+                for (int i = 0; i < M; i ++)
+                {
+                    if (row.at(i) == S.at(i).size() - 1)
+                    {
+                        S.at(i).emplace_back(std::make_pair(propensities.at(i) * tau + T.at(i), C.at(i) + NN.at(i)));
+                    }
+                    else
+                    {
+                        S.at(i).emplace(S.at(i).begin() + row.at(i) + 1, std::make_pair(propensities.at(i) * tau + T.at(i), C.at(i) + NN.at(i)));
+                    }
+
+                }
+
+                tau = tau * p;
+            }
+
+        }
     }
+
+
 }
 
 
@@ -186,26 +219,26 @@ void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, in
     if (maxEdgesDelete < k.at(0))
     {
         std::cout << "EXceed NDEL!!!" << std::endl;
-        for (auto i : propDel)
+        for (size_t i = 1; i < propDel.size(); i ++)
         {
-            contNetwork.removeEdge(i.second);
+            contNetwork.removeEdge(propDel.at(i).second);
         }
 
         propAdd = contNetwork.getEdgeAdditionRateSum();
         propensities.at("edge_add") = propAdd.at(propAdd.size() - 1).first;
         for (size_t i = 0; i < k.at(1) - k.at(0) + maxEdgesDelete; i ++)
         {
+            //propAdd = contNetwork.getEdgeAdditionRateSum();
+            propensities.at("edge_add") = propAdd.at(propAdd.size() - 1).first;
             double r = sampleRandUni(generator);
             size_t index = binarySearch(propAdd, 0, propAdd.size() - 1, 0, r * propensities.at("edge_add"));
 
             if (propAdd.at(index).second == lemon::INVALID)
             {
-                std::string msg = "ERROR: INVALID SSA del!";
+                std::string msg = "ERROR: INVALID update add 1!";
                 throw std::domain_error(msg);
             }
 
-            propensities.at("edge_add") =
-                    propensities.at("edge_add") - contNetwork.getEdgeAdditionRate(propAdd.at(index).second);
             std::pair<int, int> b = contNetwork.addEdge(propAdd.at(index).second);
             propAdd.erase(propAdd.begin() + index);
         }
@@ -214,48 +247,69 @@ void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, in
     else
     {
         propDel = contNetwork.getEdgeDeletionRateSum();
+        //std::cout << "check 100500 " << propDel.size() <<", " << k.at(0) <<", " << propDel.at(propDel.size() - 1).first << std::endl;
+
+        //size_t a  = 0;
+        //std::cout << "check 100500 " <<contNetwork.getEdgeDeletionRateSum(a)<< std::endl;
         propensities.at("edge_del") = propDel.at(propDel.size() - 1).first;
         for (size_t i = 0; i < k.at(0) ; i ++)
         {
+            //propDel = contNetwork.getEdgeDeletionRateSum();
+            propensities.at("edge_del") = propDel.at(propDel.size() - 1).first;
             double r = sampleRandUni(generator);
             size_t index = binarySearch(propDel, 0, propDel.size() - 1, 0, r * propensities.at("edge_del"));
 
             if (propDel.at(index).second == lemon::INVALID)
             {
-                std::string msg = "ERROR: INVALID SSA del!";
+                std::cout << "inv index = " << index << std::endl;
+                std::cout << "prop inv = " << propensities.at("edge_del") << std::endl;
+                std::string msg = "ERROR: INVALID update del!";
                 throw std::domain_error(msg);
             }
 
-            propensities.at("edge_del") =
-                    propensities.at("edge_del") - contNetwork.getEdgeDeletionRate(propDel.at(index).second);
+            //propensities.at("edge_del") =
+            //        propensities.at("edge_del") - contNetwork.getEdgeDeletionRate(propDel.at(index).second);
+           /* for (size_t i = 0; i < propDel.size() ; i ++)
+            {
+                std::cout << propDel.at(i).first << ", ";
+            }
+            std::cout << std::endl;*/
+            //propensities.at("edge_del") =   propensities.at("edge_del") - (propDel.at(index).first - propDel.at(index - 1).first);
+            //size_t a  = 0;
+            //std::cout << "lll " <<contNetwork.getEdgeDeletionRateSum(a)<< std::endl;
+            //std::cout << "prop after del = " << propensities.at("edge_del") << ", " << propDel.at(index).first << ", "<< propDel.at(index - 1).first <<std::endl;
+            //std::cout << "diff1 = " << propDel.at(index).first - propDel.at(index - 1).first <<std::endl;;
+            //std::cout << "diff2 = " <<contNetwork.getEdgeDeletionRate(propDel.at(index).second) <<std::endl;;
+
+
             std::pair<int, int> b = contNetwork.removeEdge(propDel.at(index).second);
             propDel.erase(propDel.begin() + index);
             benToFile.emplace_back(t, b.first, b.second, false);
         }
 
-
         propAdd = contNetwork.getEdgeAdditionRateSum();
         propensities.at("edge_add") = propAdd.at(propAdd.size() - 1).first;
         for (size_t i = 0; i < k.at(1); i ++)
         {
+           // propAdd = contNetwork.getEdgeAdditionRateSum();
+            propensities.at("edge_add") = propAdd.at(propAdd.size() - 1).first;
             double r = sampleRandUni(generator);
 
             size_t index = binarySearch(propAdd, 0, propAdd.size() - 1, 0, r * propensities.at("edge_add"));
 
             if (propAdd.at(index).second == lemon::INVALID)
             {
-                std::string msg = "ERROR: INVALID SSA add!";
+                std::string msg = "ERROR: INVALID update add 2!";
                 throw std::domain_error(msg);
             }
-            propensities.at("edge_add") =
-                    propensities.at("edge_add") - contNetwork.getEdgeAdditionRate(propAdd.at(index).second);
-
+            //propensities.at("edge_add") =
+             //       propensities.at("edge_add") - contNetwork.getEdgeAdditionRate(propAdd.at(index).second);
+            //propensities.at("edge_add") -= (propAdd.at(index).first - propAdd.at(index - 1).first);
             std::pair<int, int> b = contNetwork.addEdge(propAdd.at(index).second);
             propAdd.erase(propAdd.begin() + index);
             //benToFile.push_back(BenStructure(t, b.first, b.second, true));
             benToFile.emplace_back(t, b.first, b.second, true);
         }
-
     }
 }
 
@@ -270,81 +324,6 @@ void updateDegreeDistributio(bool updateDegreeDistr, double t, std::vector<doubl
     }
 }
 
-/*void exactAlgorithm(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
-                    double &tLastNetworkUpdate, std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr,
-                    bool updateDegreeDistr,  std::mt19937_64 &generator,
-                    std::vector<double> &T, std::vector<double> &C,
-                    std::vector<std::vector<std::pair<double, int>>> &S)
-{
-    std::vector<double> propensities(2, 0);
-    std::vector<std::pair<double, lemon::ListGraph::Edge>> propDel;
-    propDel.reserve(1e6 + 1);
-    std::vector<std::pair<double, lemon::ListGraph::Edge>> propAdd;
-    propAdd.reserve(1e6 + 1);
-    propDel = contNetwork.getEdgeDeletionRateSum();
-    propAdd = contNetwork.getEdgeAdditionRateSum();
-
-
-    std::vector<double> P(2, 0);
-    for (size_t i = 0; i < P.size(); i++)
-    {
-        if (S.at(i).empty())
-        {
-            double r = sampleRandUni(generator);
-            P.at(i) = T.at(i) +  std::log(1 / r);
-        }
-
-        else
-        {
-            std::vector<std::pair<double, int>> Sk = S.at(i);
-            int B = Sk.size() - 1;
-            int index = -1;
-            for (int l = 0; l < Sk.size() - 1; l++)
-            {
-                if (C.at(i) == Sk.at(l).second)
-                {
-                    if (C.at(i) < Sk.at(l + 1).second)
-                    {
-                        index = l;
-                    }
-                }
-            }
-
-            if (index == -1)
-            {
-                double r = sampleRandUni(generator);
-                P.at(i) = Sk.at(B).first +  std::log(1 / r);
-            }
-            else
-            {
-                double r = sampleRandUni(generator);
-                double tk = Sk.at(index + 1).first - Sk.at(index).first;
-                int Nk = Sk.at(index + 1).second - Sk.at(index).second;
-                P.at(i) = Sk.at(index).first +  tk * (1 - std::pow(r, 1/static_cast<double>(Nk)));
-            }
-
-        }
-
-
-    }
-
-
-    std::priority_queue<std::pair<double, int>>delta;
-    for (size_t i = 0; i < 100; i++)
-    {
-        for (int i = 0; i < 2; i++)
-        {
-            auto pr = std::make_pair(((P.at(i) - T.at(i)) / propensities.at(i)), i);
-            delta.push(pr);
-        }
-        auto pr = delta.top();
-
-
-    }
-
-
-
-}*/
 
 void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
                 double &tLastNetworkUpdate, std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr,
@@ -353,6 +332,7 @@ void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
                 std::vector<std::vector<std::pair<double, int>>> &S)
 
 {
+    std::cout << "SSA 100" << std::endl;
     std::vector<double> propensities(2, 0);
     std::vector<std::pair<double, lemon::ListGraph::Edge>> propDel;
     propDel.reserve(1e6 + 1);
@@ -379,11 +359,11 @@ void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
 
         double r = sampleRandUni(generator);
 
-        double proposedTime = 1 / propensitiesSum * std::log(1 / r);
+        double proposedTime = std::log(1 / r) * 1 / propensitiesSum ;
 
         if (t + proposedTime > tEnd)
         {
-            tLastNetworkUpdate = t;
+            //tLastNetworkUpdate = t;
             t = tEnd;
             updateDegreeDistributio(updateDegreeDistr, t, timeSteps, degreeDistr, contNetwork);
             break;
@@ -406,7 +386,7 @@ void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
                 throw std::domain_error(msg);
             }
             std::pair<int, int> b = contNetwork.removeEdge(propDel.at(index).second);
-            propDel.erase(propDel.begin() + index);
+            //propDel.erase(propDel.begin() + index);
             //benToFile.push_back(BenStructure(t, b.first, b.second, false));
             C.at(0)++;
         }
@@ -420,7 +400,7 @@ void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
                 throw std::domain_error(msg);
             }
             std::pair<int, int> b = contNetwork.addEdge(propAdd.at(index).second);
-            propAdd.erase(propAdd.begin() + index);
+            //propAdd.erase(propAdd.begin() + index);
             //benToFile.push_back(BenStructure(t, b.first, b.second, true));
             C.at(1)++;
         }
@@ -428,20 +408,22 @@ void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
         T.at(0) = T.at(0) + propensities.at(0) * proposedTime;
         T.at(1) = T.at(1) + propensities.at(1) * proposedTime;
 
+
         for (int i = 0; i < 2; i ++)
         {
             for (int l = 0; l < S.at(i).size(); l ++)
             {
-                if (S.at(i).at(l).first <= T.at(i))
+                if (S.at(i).at(l).first <= T.at(i) ||  S.at(i).at(l).second <= C.at(i))
                 {
 
                     S.at(i).erase(S.at(i).begin() + l);
                     l--;
                 }
+
+
             }
             S.at(i).emplace(S.at(i).begin(), std::make_pair(T.at(i), C.at(i)));
         }
-
         updateDegreeDistributio(updateDegreeDistr, t, timeSteps, degreeDistr, contNetwork);
 
     }

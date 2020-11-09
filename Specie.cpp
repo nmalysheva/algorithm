@@ -23,8 +23,7 @@ Specie::Specie()
     looseContactRate = std::numeric_limits<double>::min();
 
     state = S;
-    infectionTime =   std::numeric_limits<double>::infinity(); // -infinity
-    recoveryTime  = - std::numeric_limits<double>::infinity();
+    stateChangeTime =   0; // -infinity
 }
 
 
@@ -40,8 +39,7 @@ Specie::Specie(/*unsigned char age, */size_t maxNumberOfContacts,
     setLooseContactRate(looseContactRate);
 
     state = st;
-    infectionTime = std::numeric_limits<double>::min();
-    recoveryTime  = std::numeric_limits<double>::min();
+    stateChangeTime = 0;
 
 }
 
@@ -121,50 +119,15 @@ void Specie::setDeathRate(double dRate)
 }
 
 
-bool Specie::infect (double infectTime)
+void Specie::changeState (State st, double time)
 {
-    bool result = false;
-    if (state == S)
-    {
-        state = I;
-        infectionTime = infectTime;
-        setNewContactRate(getNewContactRate() * 0.03);
-        setLooseContactRate(getLooseContactRate() * 2.3);
-        result = true;
-
-    }
-    else
-    {
-        std::string msg = "EXCEPTION. ONLY SUSCEPTIBLE CAN BE INFECTED";
-        throw std::domain_error(msg);
-    }
-    return result;
+    state = st;
+    stateChangeTime = time;
 }
 
-bool Specie::recover(double recTime)
+double Specie::getLastStateChangeTime() const
 {
-    bool result = false;
-    if (state == I)
-    {
-        state = R;
-        recoveryTime = recTime;
-        result = true;
-
-    }
-    else
-    {
-        throw std::domain_error("Current status is .ONLY Infected CAN RECOVER");
-    }
-    return result;
-}
-
-double Specie::getInfectionTime() const
-{
-    return infectionTime;
-}
-double Specie::getRecoveryTime() const
-{
-    return recoveryTime;
+    return stateChangeTime;
 }
 
 
@@ -176,8 +139,7 @@ bool Specie::operator== (const Specie &sp) const
                    deathRate == sp.getDeathRate() &&
                    newContactRate == sp.getNewContactRate() &&
                    looseContactRate == sp.getLooseContactRate() &&
-                   infectionTime == sp.getInfectionTime() &&
-                   recoveryTime == sp.getRecoveryTime() &&
+                   stateChangeTime == sp.getLastStateChangeTime() &&
                    state == sp.getState());
     return result;
 

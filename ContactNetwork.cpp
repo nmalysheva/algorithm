@@ -15,13 +15,13 @@
 #include <iostream>
 
 void ContactNetwork::init(size_t nInfected, size_t nSusceptible, size_t nEdges, int maxContactsL, int MaxContactsU,
-                          double transmRate, double newContRate, double looseContRate, double dRate, double bRate)
+                          double transmRate, double newContRate, double looseContRate, double diagnRate, double dRate, double bRate)
 {
     initRandomGenerator();
     //generator.seed(::time(NULL)); //to change the seed for every run
     generator.seed(3);
 
-    initRates(maxContactsL, MaxContactsU, transmRate, newContRate, looseContRate, dRate, bRate);
+    initRates(maxContactsL, MaxContactsU, transmRate, newContRate, looseContRate,  diagnRate, dRate, bRate);
 
     size_t  nPopulation = nInfected + nSusceptible;
     initComplementNetwork(nPopulation);
@@ -47,17 +47,22 @@ void ContactNetwork::init(size_t nInfected, size_t nSusceptible, size_t nEdges, 
 
 
         Specie::State st = Specie::S;
-        Specie sp = Specie(maxContacts, 0, dRate, newContRate, looseContRate, st);
+        //Specie sp = Specie(maxContacts, 0, dRate, newContRate, looseContRate, st);
+        Specie sp = Specie(maxContacts, 0, 0, newContRate, looseContRate, st);
+        lemon::ListGraph::Node newNode = network.addNode();
+        diagnosisRates[newNode] = 0;
 
         if (nInf < nInfected)
         {
-            sp.infect(0);
+            sp.changeState(Specie::I, 0);
+            diagnosisRates[newNode] = diagnosisRate;
+            sp.setDeathRate(dRate);
             nInf ++;
 
         }
 
-        lemon::ListGraph::Node newNode = network.addNode();
         population.emplace(nodeIdMap[newNode], sp);
+
 
     }
     for(lemon::ListGraph::NodeIt nIt(complement); nIt!=lemon::INVALID; ++nIt)
@@ -126,7 +131,7 @@ size_t  ContactNetwork::countByState(Specie::State st) const
 }
 
 
-double  ContactNetwork::getTransmissionRateSum()const
+/*double  ContactNetwork::getTransmissionRateSum()const
 {
     double result = 0;
     for (lemon::ListGraph::EdgeIt eIt(network); eIt != lemon::INVALID; ++eIt)
@@ -134,6 +139,52 @@ double  ContactNetwork::getTransmissionRateSum()const
         result += transmissionRates[eIt];
     }
     return result;
+}*/
+std::vector<std::pair<double, lemon::ListGraph::Edge>> ContactNetwork::getTransmissionRateSum()
+{
+    std::vector<std::pair<double, lemon::ListGraph::Edge>> propCumSum;
+    propCumSum.reserve(1e6 + 1); //TODO ADJUST TO POPULATION SIZE
+
+    std::pair<double, lemon::ListGraph::Edge> elem2 {0, lemon::ListGraph::Edge (lemon::INVALID)};
+    propCumSum.push_back(elem2);
+
+    size_t index = 1;
+    for (lemon::ListGraph::EdgeIt eIt(network); eIt != lemon::INVALID; ++eIt)
+    {
+        double rate = transmissionRates[eIt];
+        if (rate > 0)
+        {
+            std::pair<double, lemon::ListGraph::Edge> elem {propCumSum.at(index - 1).first + rate, eIt};
+            propCumSum.push_back(elem);
+            index ++;
+        }
+    }
+    propCumSum.shrink_to_fit();
+    return propCumSum;
+
+}
+
+std::vector<std::pair<double, lemon::ListGraph::Node>> ContactNetwork:: getDiagnosisRateSum()const
+{
+    std::vector<std::pair<double, lemon::ListGraph::Node>> propCumSum;
+    propCumSum.reserve(1e6 + 1); //TODO ADJUST TO POPULATION SIZE
+
+    std::pair<double, lemon::ListGraph::Node> elem2 {0, lemon::ListGraph::Node (lemon::INVALID)};
+    propCumSum.push_back(elem2);
+
+    size_t index = 1;
+    for (lemon::ListGraph::NodeIt nIt(network); nIt != lemon::INVALID; ++nIt)
+    {
+        double rate = diagnosisRates[nIt];
+        if (rate > 0)
+        {
+            std::pair<double, lemon::ListGraph::Node> elem {propCumSum.at(index - 1).first + rate, nIt};
+            propCumSum.push_back(elem);
+            index ++;
+        }
+    }
+    propCumSum.shrink_to_fit();
+    return propCumSum;
 }
 
 double  ContactNetwork::getEdgeDeletionRateSum(size_t &nDel)const
@@ -204,14 +255,14 @@ std::vector<std::pair<double, lemon::ListGraph::Edge>> ContactNetwork::getEdgeAd
         {
             std::pair<double, lemon::ListGraph::Edge> elem {propCumSum.at(index - 1).first + rate, eIt};
             propCumSum.push_back(elem);
-            index ++;
+            index++;
         }
     }
     propCumSum.shrink_to_fit();
     return propCumSum;
 }
 
-double  ContactNetwork::getDeathRateSum()const
+/*double  ContactNetwork::getDeathRateSum()const
 {
     double result = 0;
     for (auto& it: population)
@@ -221,6 +272,30 @@ double  ContactNetwork::getDeathRateSum()const
     }
 
     return result;
+}*/
+
+std::vector<std::pair<double, lemon::ListGraph::Node>> ContactNetwork::getDeathRateSum()const
+{
+    std::vector<std::pair<double, lemon::ListGraph::Node>> propCumSum;
+    propCumSum.reserve(1e6 + 1); //TODO ADJUST TO POPULATION SIZE
+
+    std::pair<double, lemon::ListGraph::Node> elem2 {0, lemon::ListGraph::Node (lemon::INVALID)};
+    propCumSum.push_back(elem2);
+
+    size_t index = 1;
+    for(lemon::ListGraph::NodeIt nIt(network); nIt!=lemon::INVALID; ++nIt)
+    {
+        uint32_t nodeUID = nodeIdMap[nIt];
+        double rate = population.at(nodeUID).getDeathRate();
+
+        std::pair<double, lemon::ListGraph::Node> elem {propCumSum.at(index - 1).first + rate, nIt};
+        propCumSum.push_back(elem);
+        index++;
+    }
+
+    propCumSum.shrink_to_fit();
+    return propCumSum;
+
 }
 
 double ContactNetwork::getTransmissionRateLimit() const
@@ -288,6 +363,12 @@ std::pair<int, int> ContactNetwork::addEdge(lemon::ListGraph::Edge &complementEd
         trRate = transmissionRate;
     }
 
+    if ((population.at(sourceUID).getState()  == Specie::S  && population.at(targetUID).getState() == Specie::D) ||
+        (population.at(sourceUID).getState()  == Specie::D  && population.at(targetUID).getState() == Specie::S))
+    {
+        trRate = transmissionRate * 0.5;
+    }
+
     transmissionRates[newEdge] = trRate;
 
     if (population.at(sourceUID).getNewContactRate() == 0)
@@ -348,14 +429,12 @@ std::pair<int, int> ContactNetwork::removeEdge(lemon::ListGraph::Edge &edge)
     lemon::ListGraph::Node complV = complement.nodeFromId(targetUID);
     complement.addEdge(complU, complV);   // add to complement graph
 
-    //decrease number of contacts of the disconnected nodes
     population.at(sourceUID).decNumberOfContacts();
     population.at(targetUID).decNumberOfContacts();
 
 
     if (oldSourceRate == 0)
     {
-        //std::cout << " start d" << std::endl;
         for (lemon::ListGraph::IncEdgeIt eIt(complement, complU); eIt != lemon::INVALID; ++eIt)
         {
             lemon::ListGraph::Node oppositeNode = complement.oppositeNode(complU, eIt);
@@ -368,7 +447,6 @@ std::pair<int, int> ContactNetwork::removeEdge(lemon::ListGraph::Edge &edge)
 
     if (oldTargetRate == 0)
     {
-        //std::cout << " start d2" << std::endl;
         for (lemon::ListGraph::IncEdgeIt eIt(complement, complV); eIt != lemon::INVALID; ++eIt)
         {
             lemon::ListGraph::Node oppositeNode = complement.oppositeNode(complV, eIt);
@@ -378,11 +456,8 @@ std::pair<int, int> ContactNetwork::removeEdge(lemon::ListGraph::Edge &edge)
             }
         }
     }
-    //std::cout << " end d" << std::endl;
     complementAdjacentEdges[complU] = countAdjacentEdges(complU);
-   // std::cout << " end d1" << std::endl;
     complementAdjacentEdges[complV] = countAdjacentEdges(complV);
-    //std::cout << " end d2" << std::endl;
     return result;
 
 }
@@ -458,13 +533,6 @@ void ContactNetwork::executeEdgeDeletion(size_t edgeNumber)
     {
         removeEdge(eIt);
     }
-
-    /*eIt = edgesIdMapInv[0];
-    if (! network.valid(eIt))
-    {
-        std::string msg = "ERROR!!!: Edge deletion gone wrong. Trying to delete non-existent edge!";
-        throw std::domain_error(msg);
-    }*/
 }
 
 
@@ -538,51 +606,84 @@ void ContactNetwork::executeEdgeAddition(size_t edgeNumber)
 }
 
 
-void ContactNetwork::executeTransmission(double rStart, double rBound, double time)
+/*void ContactNetwork::executeTransmission(double rStart, double rBound, double time)
 {
     double result = rStart;
 
     for (lemon::ListGraph::EdgeIt eIt(network); eIt != lemon::INVALID; ++eIt)
     {
         result += transmissionRates[eIt];
-        //std::cout << transmissionRates[eIt] << std::endl;
         if (result >= rBound)
         {
-            lemon::ListGraph::Node networkU = network.u(eIt);
-            lemon::ListGraph::Node networkV = network.v(eIt);
+            executeTransmission(eIt, time);
 
-            int sourceUID = nodeIdMap[networkU];
-            int targetUID = nodeIdMap[networkV];
-
-            lemon::ListGraph::Node infectedNode;
-            if (population.at(sourceUID).getState()  == Specie::S)
-            {
-                population.at(sourceUID).infect(time);
-                infectedNode = networkU;
-
-            }
-            else if (population.at(targetUID).getState()  == Specie::S)
-            {
-                population.at(targetUID).infect(time);
-                infectedNode = networkV;
-            }
-
-            for(lemon::ListGraph::IncEdgeIt ieIt(network, infectedNode); ieIt!=lemon::INVALID; ++ieIt)
-            {
-                transmissionRates[ieIt] = 0;
-                lemon::ListGraph::Node neighbourNode = network.v(ieIt);
-                uint32_t nodeUID = nodeIdMap[neighbourNode];
-                if(population.at(nodeUID).getState() == Specie::S)
-                {
-                    transmissionRates[ieIt] = transmissionRate;//transmitDistribution(generator);
-
-                }
-            }
             break;
 
         }
 
     }
+}*/
+
+void ContactNetwork::executeTransmission(lemon::ListGraph::Edge & edge, double time)
+{
+    lemon::ListGraph::Node networkU = network.u(edge);
+    lemon::ListGraph::Node networkV = network.v(edge);
+
+    int sourceUID = nodeIdMap[networkU];
+    int targetUID = nodeIdMap[networkV];
+    lemon::ListGraph::Node infectedNode;
+
+    //TODO Fool check: only susceptible (S) can be infected (I), etc. Prevent all impossible transactions aka
+    // D->I, etc.
+    if (population.at(sourceUID).getState()  == Specie::S)
+    {
+        population.at(sourceUID).changeState(Specie::I, time);
+        population.at(sourceUID).setDeathRate(deathRate);
+        infectedNode = networkU;
+    }
+
+    else if (population.at(targetUID).getState()  == Specie::S)
+    {
+        population.at(targetUID).changeState(Specie::I, time);
+        population.at(targetUID).setDeathRate(deathRate);
+        infectedNode = networkV;
+    }
+
+    diagnosisRates[infectedNode] = diagnosisRate;
+    // no adaptivity
+    for(lemon::ListGraph::IncEdgeIt ieIt(network, infectedNode); ieIt!=lemon::INVALID; ++ieIt)
+    {
+        transmissionRates[ieIt] = 0;
+        lemon::ListGraph::Node neighbourNode = network.v(ieIt);
+        uint32_t nodeUID = nodeIdMap[neighbourNode];
+        if(population.at(nodeUID).getState() == Specie::S)
+        {
+            transmissionRates[ieIt] = transmissionRate;//transmitDistribution(generator);
+
+        }
+    }
+
+}
+
+void ContactNetwork::executeDiagnosis(lemon::ListGraph::Node & node, double time)
+{
+    int nodeUID = nodeIdMap[node];
+    population.at(nodeUID).changeState(Specie::D, time);
+
+    diagnosisRates[node] = 0;
+
+    //adaptivity: as soon as diagnosed, cut all contacts and decrease
+    //new contact rate to 30%
+    lemon::ListGraph::IncEdgeIt ieIt(network, node);
+    while (ieIt != lemon::INVALID)
+    {
+        lemon::ListGraph::Edge tmpIt(ieIt);
+        ++ieIt;
+        removeEdge(tmpIt);
+    }
+    population.at(nodeIdMap[node]).setNewContactRate(
+            population.at(nodeIdMap[node]).getNewContactRate() * 0.3);
+
 }
 
 void ContactNetwork::executeDeath(double rStart, double rBound)
@@ -613,6 +714,26 @@ void ContactNetwork::executeDeath(double rStart, double rBound)
 
         }
     }
+}
+
+void ContactNetwork::executeDeath(lemon::ListGraph::Node & node)
+{
+    removeNode(node);
+
+    if (isContactsLimited)
+    {
+        isContactsLimited = false;
+        for (auto& it: population)
+        {
+            if (it.second.getMaxNumberOfContacts() < population.size() - 1)
+            {
+                isContactsLimited = true;
+                break;
+            }
+
+        }
+    }
+
 }
 
 void ContactNetwork::executeBirth(double rStart, double rBound)
@@ -1099,7 +1220,7 @@ void ContactNetwork::initRandomGenerator()
 }
 
 void ContactNetwork::initRates(int maxContactsL, int MaxContactsU, double transmRate, double newContRate, double looseContRate,
-               double dRate, double bRate)
+                               double diagnRate, double dRate, double bRate)
 {
     maxContactsLimitL = maxContactsL;
     maxContactsLimitU = MaxContactsU;
@@ -1111,6 +1232,7 @@ void ContactNetwork::initRates(int maxContactsL, int MaxContactsU, double transm
     looseContactRate = looseContRate;
     deathRate = dRate;
     birthRate = bRate;
+    diagnosisRate = diagnRate;
 }
 
 void ContactNetwork::initComplementNetwork(size_t nPopulation)
@@ -1285,3 +1407,4 @@ bool BenStructure::isValid()
 {
     return (u > -1) && (v > -1);
 }
+

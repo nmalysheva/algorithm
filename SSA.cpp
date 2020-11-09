@@ -47,11 +47,18 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
     propDel.reserve(1e6 + 1);
     std::vector<std::pair<double, lemon::ListGraph::Edge>> propAdd;
     propAdd.reserve(1e6 + 1);
+    std::vector<std::pair<double, lemon::ListGraph::Edge>> propTransmit;
+    propTransmit.reserve(1e6 + 1);
+    std::vector<std::pair<double, lemon::ListGraph::Node>> propDiagnos;
+    propDiagnos.reserve(1e6 + 1);
+    std::vector<std::pair<double, lemon::ListGraph::Node>> propDeath;
+    propDeath.reserve(1e6 + 1);
 
     std::unordered_map<std::string, double >propensities {
             {"edge_del", 0},
             {"edge_add", 0},
             {"transmission", 0},
+            {"diagnosis", 0},
             {"death", 0},
             {"birth", 0},
     };
@@ -59,12 +66,17 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
     {
         propDel = contNetwork.getEdgeDeletionRateSum();
         propAdd = contNetwork.getEdgeAdditionRateSum();
+        propTransmit = contNetwork.getTransmissionRateSum();
+        propDiagnos = contNetwork.getDiagnosisRateSum();
+        propDeath = contNetwork.getDeathRateSum();
 
         propensities.at("edge_del") = propDel.at(propDel.size() - 1).first;
         propensities.at("edge_add") = propAdd.at(propAdd.size() - 1).first;
 
-        propensities.at("transmission") = contNetwork.getTransmissionRateSum();
-        propensities.at("death") = contNetwork.getDeathRateSum();
+        propensities.at("transmission") = propTransmit.at(propTransmit.size() - 1).first;
+        propensities.at("diagnosis") = propDiagnos.at(propDiagnos.size() - 1).first;
+        propensities.at("death") = propDeath.at(propDeath.size() - 1).first;
+
         propensities.at("birth") = contNetwork.getBirthRateSum();
 
         double propensitieSum = 0;
@@ -106,30 +118,12 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
 
                 if (pSum + it.second >= propensitieSum * r)
                 {
-                   // executeReaction(contNetwork, it.first, pSum, propensitieSum * r, time, nInf/*, benToFile*/);
+                    executeReaction(contNetwork, it.first, pSum, propensitieSum * r, time, nInf,
+                                    propDel, propAdd, propTransmit, propDiagnos, propDeath);
 
-                    /// TEMPORAL SOLUTION
-
-                    if (it.first == "edge_del")
-                    {
-                        size_t index = binarySearch(propDel, 0, propDel.size() - 1, pSum, propensitieSum * r);
-                        std::pair<int, int> b = contNetwork.removeEdge(propDel.at(index).second);
-                        //propDel.erase(propDel.begin() + index);
-                        benToFile.emplace_back(time, b.first, b.second, false);
-                    }
-                    else if (it.first == "edge_add")
-                    {
-                        size_t index = binarySearch(propAdd, 0, propAdd.size() - 1, pSum, propensitieSum * r);
-                        std::pair<int, int> b = contNetwork.addEdge(propAdd.at(index).second);
-                        //propAdd.erase(propAdd.begin() + index);
-                        benToFile.emplace_back(time, b.first, b.second, true);
-                    }
-
-                    /// TEMPORAL SOLUTION
                     tSteps.push_back(time);
                     nInfected.push_back(nInf);
                     degreeDistr.push_back(contNetwork.getDegreeDistribution());
-
                     break;
                 }
                 pSum += it.second;
@@ -140,40 +134,51 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
     }
 }
 
-void SSA::executeReaction(ContactNetwork & contNetwork, const std::string &reactId,
-                          double rStart, double rBound, double time, uint32_t &nInf/*,
-                          std::vector<BenStructure> &benToFile*/)
+void SSA::executeReaction(ContactNetwork & contNetwork, const std::string &reactId, double rStart,
+                          double rBound, double time, uint32_t &nInf,
+                           std::vector<std::pair<double, lemon::ListGraph::Edge>> &propDel,
+                           std::vector<std::pair<double, lemon::ListGraph::Edge>> &propAdd,
+                           std::vector<std::pair<double, lemon::ListGraph::Edge>> &propTransmit,
+                           std::vector<std::pair<double, lemon::ListGraph::Node>> &propDiagnos,
+                           std::vector<std::pair<double, lemon::ListGraph::Node>> &propDeath
+                          /*,std::vector<BenStructure> &benToFile*/)
 {
     if (reactId == "edge_del")
     {
-        /*BenStructure b (time, -1, -1, false);
-        contNetwork.executeEdgeDeletion(rStart, rBound, b);
-        benToFile.push_back(b);*/
+        size_t index = binarySearch(propDel, 0, propDel.size() - 1, rStart, rBound);
+        std::pair<int, int> b = contNetwork.removeEdge(propDel.at(index).second);
 
-        //contNetwork.executeEdgeDeletion(rStart, rBound);
+        //benToFile.emplace_back(time, b.first, b.second, false);
 
     }
 
     else if (reactId == "edge_add")
     {
-        /*BenStructure b (time, -1, -1, true);
-        contNetwork.executeEdgeAddition(rStart, rBound, b);
-        benToFile.push_back(b);*/
-
-        //contNetwork.executeEdgeAddition(rStart, rBound);
-        //std::cout  << "edge_add "<<std::endl;
+        size_t index = binarySearch(propAdd, 0, propAdd.size() - 1, rStart, rBound);
+        std::pair<int, int> b = contNetwork.addEdge(propAdd.at(index).second);
+        //propAdd.erase(propAdd.begin() + index);
+        //benToFile.emplace_back(time, b.first, b.second, true);
     }
     else if (reactId == "transmission")
     {
-        contNetwork.executeTransmission(rStart, rBound, time);
+        size_t index = binarySearch(propTransmit, 0, propTransmit.size() - 1, rStart, rBound);
+        //std::pair<int, int> b = contNetwork.
+        contNetwork.executeTransmission(propTransmit.at(index).second, time);
         nInf++;
-        //std::cout << "transmission " << time << " " << contNetwork.countByState(Specie::I) << " " << contNetwork.size()<<std::endl;
+    }
+
+    else if (reactId == "diagnosis")
+    {
+        size_t index = binarySearch(propDiagnos, 0, propDiagnos.size() - 1, rStart, rBound);
+        //std::pair<int, int> b = contNetwork.
+        contNetwork.executeDiagnosis(propDiagnos.at(index).second, time);
     }
 
     else if (reactId == "death")
     {
-        contNetwork.executeDeath(rStart, rBound);
-        nInf = contNetwork.countByState(Specie::State::I);
+        size_t index = binarySearch(propDeath, 0, propDeath.size() - 1, rStart, rBound);
+        contNetwork.executeDeath(propDeath.at(index).second);
+        nInf = contNetwork.countByState(Specie::State::I) + contNetwork.countByState(Specie::State::D);
         //std::cout  << "death " << time << " " << contNetwork.countByState(Specie::I) << " " << contNetwork.size()  <<std::endl;
     }
 
