@@ -27,7 +27,7 @@ public:
 
     //unsigned char const getAge() const; //return age of the specie
     size_t  getMaxNumberOfContacts() const; //return max. number of contacts per any time instance
-    size_t  getNumberOfContacts() const; //return max. number of contacts per any time instance
+    size_t  getNumberOfContacts() const; //return current number of contacts per any time instance
 
     double getNewContactRate() const;   //return rate for establishing a new contact
     double getLooseContactRate() const; //return rate for loosing of the one of already existing contacts
@@ -57,7 +57,6 @@ public:
     //status changes
 
     void changeState (State st, double time);  //change status of the specie to INFECTED
-    bool recover(double recTime);     //change status of the specie to RECOVERED
 
 
 
@@ -74,11 +73,10 @@ private:
 
     double ExpectationOfContacts(double a, double b, double t)const;
     double VarianceOfContacts(double a, double b, double t)const;
-    //unsigned char age;
-    //unsigned char  maxNumberOfContacts; // per year
-    //unsigned int  cumNumberOfContacts; //cumulative number of contacts. Reset every year.
 
-    size_t  maxNumberOfContacts; //at any timepoint
+private:
+
+    size_t  maxNumberOfContacts; //max. number of contacts at any timepoint
     size_t  numberOfContacts; //current number of contacts
     double deathRate;
     double newContactRate;  //rate to establish a new contact

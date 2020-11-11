@@ -19,7 +19,7 @@ void executeSSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
         double transmRate, double newContRate, double looseContRate, double dRate, double bRate, size_t simulationNumber)
 {
     UniqueID().reset();
-    double diagnRate = 0;
+    double diagnRate = 2.3;
     ContactNetwork contNetwork(nInfected,
                                nSusceptible,
                                nEdges,
@@ -39,8 +39,11 @@ void executeSSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
     std::cout <<"Edges: "  << startEdges <<std::endl;
 
     std::vector<double> timeSteps;
+    timeSteps.reserve(1e4 + 1);
     std::vector<uint32_t> infectedSteps;
+    infectedSteps.reserve(1e4 + 1);
     std::vector<std::vector<size_t>> degreeDistr; // vector stores degree dist. per time step
+    degreeDistr.reserve(1e4 + 1);
 
     SSA ssa;
     auto start_time = std::chrono::high_resolution_clock::now();
@@ -102,15 +105,17 @@ void executeSSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
     }
     newFile << std::endl;
     newFile << "degree distribution:" << std::endl;
-    for (size_t i = 0; i < degreeDistr.size(); i++)
+    for (const auto &deegreDist: degreeDistr)
     {
-        std::vector<size_t> degreeDatTime = degreeDistr.at(i);
-        for (size_t j = 0;  j< degreeDatTime.size(); j++)
+        std::vector<size_t> degreeDatTime = deegreDist;
+        for (size_t j = 0;  j < degreeDatTime.size(); j++)
         {
             newFile << degreeDatTime.at(j) << ' ';
         }
         newFile << std::endl;
+
     }
+
 
     newFile.close();
 
@@ -120,7 +125,7 @@ void executeNSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
                 double transmRate, double newContRate, double looseContRate, double dRate, double bRate, double epsilon, size_t simulationNumber)
 {
     UniqueID().reset();
-    double diagnRate = 0;
+    double diagnRate = 2.3;
     ContactNetwork contNetwork(nInfected,
                                nSusceptible,
                                nEdges,
@@ -136,12 +141,13 @@ void executeNSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
     //std::vector<BenStructure> benToFile = contNetwork.getBenStructure(tStart);
     size_t nPopulation = contNetwork.size();
     size_t startEdges = contNetwork.countEdges();
-    //std::cout <<"Nodes: "  << nPopulation <<std::endl;
-    //std::cout <<"Edges: "  << startEdges <<std::endl;
 
     std::vector<double> timeSteps;
+    timeSteps.reserve(1e4 + 1);
     std::vector<uint32_t> infectedSteps;
+    infectedSteps.reserve(1e4 + 1);
     std::vector<std::vector<size_t>> degreeDistr; // vector stores degree dist. per time step
+    degreeDistr.reserve(1e4 + 1);
 
     size_t nRejections = 0;
     size_t nAcceptance = 0;
@@ -149,7 +155,6 @@ void executeNSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
 
 
     NSA nsa;
-    //ContactNetwork cNw2(20, amount.at(i) - 20, nEdges, 1, 20, 0.03, 1.2, 1.25, 0.0004, 2);
     auto start_time = std::chrono::high_resolution_clock::now();
     nsa.execute(tStart, tEnd, contNetwork, timeSteps, infectedSteps, degreeDistr, epsilon,nRejections, nAcceptance, nThin/*, benToFile*/);
     auto end_time = std::chrono::high_resolution_clock::now();
@@ -735,7 +740,6 @@ void contactDynamics(int argc, char* argv[])
         executeNSAOnlyContactUpdate(simulationTime.first, simulationTime.second, nPopulation, nEdges, maxContactsA, maxContactsB,
                          newContRate, looseContRate, epsilon, simulationNumber);
         std::cout << "--------------------------------" << std::endl;
-        //std::cout << "SSA Cont. update" << std::endl;
         //executeSSAOnlyContactUpdate(simulationTime.first, simulationTime.second, nPopulation, nEdges, maxContactsA, maxContactsB,
          //                           newContRate, looseContRate, simulationNumber);
         std::cout << "*********************************" << std::endl;

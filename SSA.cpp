@@ -16,15 +16,6 @@ SSA::SSA()
 
 }
 
-double SSA::sampleRandUni()
-{
-    double r = randuni(generator);
-    while (r == 0)
-    {
-        r = randuni(generator);
-    }
-    return r;
-}
 
 void SSA::exe()
 {
@@ -44,15 +35,10 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
     degreeDistr.push_back(contNetwork.getDegreeDistribution());
 
     std::vector<std::pair<double, lemon::ListGraph::Edge>> propDel;
-    propDel.reserve(1e6 + 1);
     std::vector<std::pair<double, lemon::ListGraph::Edge>> propAdd;
-    propAdd.reserve(1e6 + 1);
     std::vector<std::pair<double, lemon::ListGraph::Edge>> propTransmit;
-    propTransmit.reserve(1e6 + 1);
     std::vector<std::pair<double, lemon::ListGraph::Node>> propDiagnos;
-    propDiagnos.reserve(1e6 + 1);
     std::vector<std::pair<double, lemon::ListGraph::Node>> propDeath;
-    propDeath.reserve(1e6 + 1);
 
     std::unordered_map<std::string, double >propensities {
             {"edge_del", 0},
@@ -95,7 +81,7 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
 
             break;
         }
-        double r = sampleRandUni();
+        double r = sampleRandUni(generator);
         double proposedTime = 1 / propensitieSum * std::log(1/r);
         if (time + proposedTime > tEnd )
         {
@@ -110,7 +96,7 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
         else
         {
             time += proposedTime;
-            r = sampleRandUni();
+            r = sampleRandUni(generator);
 
             double pSum = 0;
             for (auto &it: propensities)
@@ -118,6 +104,8 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
 
                 if (pSum + it.second >= propensitieSum * r)
                 {
+                    std::cout << it.first << std::endl;
+
                     executeReaction(contNetwork, it.first, pSum, propensitieSum * r, time, nInf,
                                     propDel, propAdd, propTransmit, propDiagnos, propDeath);
 
@@ -156,13 +144,11 @@ void SSA::executeReaction(ContactNetwork & contNetwork, const std::string &react
     {
         size_t index = binarySearch(propAdd, 0, propAdd.size() - 1, rStart, rBound);
         std::pair<int, int> b = contNetwork.addEdge(propAdd.at(index).second);
-        //propAdd.erase(propAdd.begin() + index);
         //benToFile.emplace_back(time, b.first, b.second, true);
     }
     else if (reactId == "transmission")
     {
         size_t index = binarySearch(propTransmit, 0, propTransmit.size() - 1, rStart, rBound);
-        //std::pair<int, int> b = contNetwork.
         contNetwork.executeTransmission(propTransmit.at(index).second, time);
         nInf++;
     }
@@ -179,13 +165,10 @@ void SSA::executeReaction(ContactNetwork & contNetwork, const std::string &react
         size_t index = binarySearch(propDeath, 0, propDeath.size() - 1, rStart, rBound);
         contNetwork.executeDeath(propDeath.at(index).second);
         nInf = contNetwork.countByState(Specie::State::I) + contNetwork.countByState(Specie::State::D);
-        //std::cout  << "death " << time << " " << contNetwork.countByState(Specie::I) << " " << contNetwork.size()  <<std::endl;
     }
 
     else if (reactId == "birth")
     {
-        contNetwork.executeBirth(rStart, rBound);
-        //std::cout << "birth " << time << " " << contNetwork.countByState(Specie::I)  << " " << contNetwork.size() <<std::endl;
+        //contNetwork.executeBirth(rStart, rBound);
     }
-    //std::cout << "------------------" <<std::endl;
 }

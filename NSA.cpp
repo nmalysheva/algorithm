@@ -60,6 +60,7 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
 
     while (time < tEnd)
     {
+        std::cout << "_______________-________________" <<std::endl;
         //choose look-ahead time
         lookAheadTime = tEnd - time;
         std::cout << "t = " << time << std::endl;
@@ -97,19 +98,23 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
 
                 //tUpds.push_back(networkLastUpdate);
                 //PoissonTauleap(networkLastUpdate, time, contNetwork, epsilon, tSteps, degreeDistr, false/*, benToFile*/, generator);
+                double tmpUpd = networkLastUpdate;
                 AndersonTauLeap(networkLastUpdate, time, contNetwork, epsilon, tSteps, degreeDistr, false/*, benToFile*/, generator);
                 //tUpds.push_back(networkLastUpdate);
-                std::cout << "time = " << time <<", lastUpdate = " << networkLastUpdate<<std::endl;
-                std::cout << "_______________-________________" <<std::endl;
+                //std::cout << "time = " << time <<", lastUpdate = " << networkLastUpdate<<std::endl;
 
                 //propensities.at("transmission") = contNetwork.getTransmissionRateSum();
-                propTransmit = contNetwork.getTransmissionRateSum();
-                propensities.at("transmission") = propTransmit.at(propTransmit.size() - 1).first;
-                propDiagnos = contNetwork.getDiagnosisRateSum();
-                propensities.at("diagnosis") = propDiagnos.at(propDiagnos.size() - 1).first;
-                propDeath = contNetwork.getDeathRateSum();
-                propensities.at("death") = propDeath.at(propDeath.size() - 1).first;
-                propensities.at("birth") = contNetwork.getBirthRateSum();
+                if (tmpUpd < networkLastUpdate)
+                {
+                    std::cout << "time = " << time <<", lastUpdate = " << networkLastUpdate<<std::endl;
+                    propTransmit = contNetwork.getTransmissionRateSum();
+                    propensities.at("transmission") = propTransmit.at(propTransmit.size() - 1).first;
+                    propDiagnos = contNetwork.getDiagnosisRateSum();
+                    propensities.at("diagnosis") = propDiagnos.at(propDiagnos.size() - 1).first;
+                    propDeath = contNetwork.getDeathRateSum();
+                    propensities.at("death") = propDeath.at(propDeath.size() - 1).first;
+                    propensities.at("birth") = contNetwork.getBirthRateSum();
+                }
 
                 double propensitieSum = 0;
                 for (auto &it: propensities)
@@ -130,29 +135,11 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
 
                         if (pSum + it.second >= propUpperLimit * r)
                         {
-                            std::cout << "accepted " << std::endl;
-                            //executeReaction(contNetwork, it.first, pSum, propUpperLimit * r, time, nInf/*, benToFile*/);
+                            std::cout << "accepted: " << it.first << std::endl;
 
-                            if (it.first == "transmission")
-                            {
-                                size_t index = binarySearch(propTransmit, 0, propTransmit.size() - 1, pSum, propUpperLimit * r);
-                                //std::pair<int, int> b = contNetwork.
-                                contNetwork.executeTransmission(propTransmit.at(index).second, time);
-                                nInf++;
-                                //std::cout << "transmission " << time << " " << contNetwork.countByState(Specie::I) << " " << contNetwork.size()<<std::endl;
-                            }
-                            else if (it.first == "diagnosis")
-                            {
-                                size_t index = binarySearch(propDiagnos, 0, propDiagnos.size() - 1, pSum, propUpperLimit * r);
-                                contNetwork.executeDiagnosis(propDiagnos.at(index).second, time);
-                            }
+                            executeReaction(contNetwork, it.first, pSum,propUpperLimit * r, time, nInf,
+                                    propTransmit,propDiagnos,propDeath);
 
-                            else if (it.first  == "death" )
-                            {
-                                size_t index = binarySearch(propDeath, 0, propDeath.size() - 1, pSum, propUpperLimit * r);
-                                contNetwork.executeDeath(propDeath.at(index).second);
-                                nInf = contNetwork.countByState(Specie::State::I) + contNetwork.countByState(Specie::State::D);
-                            }
                             tSteps.push_back(time);
                             nInfected.push_back(nInf);
                             degreeDistr.push_back(contNetwork.getDegreeDistribution());
@@ -194,35 +181,26 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
 
 double  NSA::getPropUpperLimit (double lookAheadTime, ContactNetwork & contNetwork, double dignosisUpperLimit, double deathUpperLimit) const
 {
-    /*double result = contNetwork.getMaxContactsLimitOfInfected()  * contNetwork.getTransmissionRateLimit() +
-              contNetwork.getDeathRateSum() + contNetwork.getBirthRateSum();*/
-
-    /*size_t edgesLimit = contNetwork.countByState(Specie::I) * 3.5 * lookAheadTime + contNetwork.getNumberContactsOfInfected();
-    edgesLimit = std::min(edgesLimit, contNetwork.getMaxContactsLimitOfInfected());
-    double result = contNetwork.getDeathRateSum() + contNetwork.getBirthRateSum() + edgesLimit * contNetwork.getTransmissionRateLimit();
-     */
-    //std::cout << "-----------------------------" <<  std::endl;
-
     double maxContInf = contNetwork.getMaxContactsLimitOfInfected(lookAheadTime);
     std::cout << "max.cont.inf: " << maxContInf <<  std::endl;
     double maxContSusc = contNetwork.getMaxContactsLimitOfSusceptible(lookAheadTime);
     std::cout << "max.cont.susc: " << maxContSusc <<  std::endl;
-    std::cout << "n.inf : " << contNetwork.countByState(Specie::I) <<  std::endl;
+    std::cout << "n.inf : " << contNetwork.countByState(Specie::I) + contNetwork.countByState(Specie::D)  <<  std::endl;
 
     double rmc = std::min(maxContInf, maxContSusc);
-    //std::cout << "rmc : " << rmc <<  std::endl;
+
+    size_t tmp = contNetwork.countByState(Specie::I) + contNetwork.countByState(Specie::D);
+    size_t tmp2 = tmp * contNetwork.countByState(Specie::S);
+    std::cout << "tmp2 = " << tmp2 <<  std::endl;
+    rmc = std::min(rmc, static_cast<double>(tmp2));
+
+    std::cout << "rmc = " << rmc <<  std::endl;
     double result = rmc * contNetwork.getTransmissionRateLimit() + dignosisUpperLimit + deathUpperLimit;//+
+    std::cout << "prop.upper limit = " << result <<  std::endl;
                     ///contNetwork.getDeathRateSum() + contNetwork.getBirthRateSum();
     //std::cout << "-----------------------------" <<  std::endl;
     return result;
 }
-
-double  NSA::recycleRandUni(double r)
-{
-    //TODO proper recycling
-    return r;
-}
-
 
 double NSA::sampleRandUni()
 {
@@ -235,42 +213,33 @@ double NSA::sampleRandUni()
 }
 
 
-void NSA::executeReaction(ContactNetwork & contNetwork, const std::string &reactId,
-                          double rStart, double rBound, double time, uint32_t &nInf/*, std::vector<BenStructure> &benToFile*/)
+void NSA::executeReaction(ContactNetwork & contNetwork, const std::string &reactId, double rStart,
+                          double rBound, double time, uint32_t &nInf,
+                          std::vector<std::pair<double, lemon::ListGraph::Edge>> &propTransmit,
+                          std::vector<std::pair<double, lemon::ListGraph::Node>> &propDiagnos,
+                          std::vector<std::pair<double, lemon::ListGraph::Node>> &propDeath)
 {
-    //std::cout << reactId <<std::endl;
-    if (reactId == "edge_del")
+
+    if (reactId == "transmission")
     {
-        /*BenStructure b (time, -1, -1, false);
-        contNetwork.executeEdgeDeletion(rStart, rBound, b);
-        benToFile.push_back(b);*/
-
-        contNetwork.executeEdgeDeletion(rStart, rBound);
-    }
-
-    else if (reactId == "edge_add")
-    {
-        /*BenStructure b (time, -1, -1, true);
-        contNetwork.executeEdgeAddition(rStart, rBound, b);
-        benToFile.push_back(b);*/
-
-        contNetwork.executeEdgeAddition(rStart, rBound);
-    }
-
-    else if (reactId == "transmission")
-    {
-        //contNetwork.executeTransmission(rStart, rBound, time);
+        size_t index = binarySearch(propTransmit, 0, propTransmit.size() - 1, rStart, rBound);
+        //std::pair<int, int> b = contNetwork.
+        contNetwork.executeTransmission(propTransmit.at(index).second, time);
         nInf++;
+        //std::cout << "transmission " << time << " " << contNetwork.countByState(Specie::I) << " " << contNetwork.size()<<std::endl;
+    }
+    else if (reactId == "diagnosis")
+    {
+        size_t index = binarySearch(propDiagnos, 0, propDiagnos.size() - 1, rStart, rBound);
+        contNetwork.executeDiagnosis(propDiagnos.at(index).second, time);
     }
 
-    else if (reactId == "death")
+    else if (reactId  == "death" )
     {
-        contNetwork.executeDeath(rStart, rBound);
-    }
-
-    else if (reactId == "birth")
-    {
-        contNetwork.executeBirth(rStart, rBound);
+        size_t index = binarySearch(propDeath, 0, propDeath.size() - 1, rStart, rBound);
+        contNetwork.executeDeath(propDeath.at(index).second);
+        std::cout << contNetwork.size() << std::endl;
+        nInf = contNetwork.countByState(Specie::State::I) + contNetwork.countByState(Specie::State::D);
     }
 }
 

@@ -5,7 +5,7 @@
 #include "Specie.h"
 #include <limits>
 #include <iostream>
-#include <math.h>
+#include <cmath>
 #include <stdexcept>
 
 
@@ -14,20 +14,19 @@ Specie::Specie()
 {
     //age = static_cast<unsigned char> (-1);
 
-    maxNumberOfContacts = static_cast<size_t> (-1);
-    //cumNumberOfContacts = static_cast<unsigned char> (-1);
-    numberOfContacts = static_cast<size_t> (-1);
+    maxNumberOfContacts = 0;
+    numberOfContacts = 0;
 
-    deathRate        = std::numeric_limits<double>::min();
-    newContactRate   = std::numeric_limits<double>::min();
-    looseContactRate = std::numeric_limits<double>::min();
+    deathRate        = 0;
+    newContactRate   = 0;
+    looseContactRate = 0;
 
     state = S;
     stateChangeTime =   0; // -infinity
 }
 
 
-Specie::Specie(/*unsigned char age, */size_t maxNumberOfContacts,
+Specie::Specie(/*unsigned char age,*/ size_t maxNumberOfContacts,
                                       size_t numberOfContacts, double deathRate,
                double newContactRate, double looseContactRate, State st)
 {
@@ -57,10 +56,6 @@ double Specie::getNewContactRate() const
 {
     double result = newContactRate * (maxNumberOfContacts - numberOfContacts);
 
-    /*if (numberOfContacts == maxNumberOfContacts)
-    {
-        result = 0;
-    }*/
     return result;
 }
 
@@ -150,16 +145,9 @@ double Specie::getNumberOfContactsLimit(double t) const
 {
     double a = newContactRate * maxNumberOfContacts;
     double b = newContactRate + looseContactRate;
-    /*std::cout << "a: " << a << "; b: " << b << std::endl;
-
-    std::cout << "numberOfContacts: " << numberOfContacts << std::endl;
-    std::cout << "ExpectationOfContacts: " << ExpectationOfContacts(a, b, t) << std::endl;
-    std::cout << "t: " << t << std::endl;*/
     double numConStart = numberOfContacts;
     double numConEnd   = ExpectationOfContacts(a, b, t) + 2 * sqrt(VarianceOfContacts(a, b, t));
     numConEnd = std::min(numConEnd, static_cast<double>(maxNumberOfContacts));
-    /*std::cout << "numConStart:" << numConStart << std::endl;
-    std::cout << "numConEnd:" << numConEnd << std::endl;*/
     double result = std::max(numConStart, numConEnd);
 
     return result;

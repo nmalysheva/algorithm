@@ -13,7 +13,7 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
                     std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr,
                     bool updateDegreeDistr, std::mt19937_64 &generator/*, std::vector<BenStructure> &benToFile*/);
 
-void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, int nDel, std::mt19937_64 &generator,
+void updateNetwork(std::vector<BenStructure> &benToFile, std::vector<int> k, int nDel, std::mt19937_64 &generator,
                     std::vector<std::pair<double, lemon::ListGraph::Edge>> &propAdd,
                     std::vector<std::pair<double, lemon::ListGraph::Edge>> &propDel, double t,
                     ContactNetwork & contNetwork,

@@ -42,10 +42,8 @@ public:
                                    complement(lemon::ListGraph()),
                                    transmissionRates(network),
                                    diagnosisRates(network),
-                                   nodeIdMap(network),
-                                   edgesIdMap (network),
-                                   edgesIdMapInv(edgesIdMap.inverse()),
-                                   complementAdjacentEdges(complement)
+                                   nodeIdMap(network)
+                                   //complementAdjacentEdges(complement)
 
                                    {
                                        init(nInfected, nSusceptible, nEdges, maxContactsL, MaxContactsU,
@@ -60,18 +58,13 @@ public:
 
 
     //sum of rates of particular reactions
-    //double  getTransmissionRateSum()const; //return sum of all transmition rates
     std::vector<std::pair<double, lemon::ListGraph::Edge>> getTransmissionRateSum();
-    //std::vector<double> getTransmissionRateSum()const;
-    double  getEdgeDeletionRateSum(size_t &nDel)const;
     std::vector<std::pair<double, lemon::ListGraph::Edge>> getEdgeDeletionRateSum()const;
     double  getExpectedEdgeDeletionRate()const;
 
-    double  getEdgeAdditionRateSum(size_t &nAdd)const;
     std::vector<std::pair<double, lemon::ListGraph::Edge>> getEdgeAdditionRateSum()const;
     double  getExpectedEdgeAdditionRate(size_t &nAdd)const;
 
-    //double  getDeathRateSum()const;
     std::vector<std::pair<double, lemon::ListGraph::Node>> getDeathRateSum()const;
     double  getBirthRateSum()const;
 
@@ -85,22 +78,13 @@ public:
     size_t  getAmountOfEdgesToAddSafe();
     size_t  getAmountOfEdgesToAdd() const;
 
-    //void addEdge(lemon::ListGraph::Edge & complementEdge);
     std::pair<int, int> addEdge(lemon::ListGraph::Edge & complementEdge);
-    //void removeEdge(lemon::ListGraph::Edge & edge);
     std::pair<int, int> removeEdge(lemon::ListGraph::Edge & edge);
     void removeNode(lemon::ListGraph::Node & node);
 
-    void executeEdgeDeletion(double rStart, double rBound/*, BenStructure &b*/);
-    void executeEdgeDeletion(size_t edgeNumber);
 
-    void executeEdgeAddition(double rStart, double rBound/*, BenStructure &b*/);
-    void executeEdgeAddition(size_t edgeNumber);
-
-    //void executeTransmission(double rStart, double rBound, double time);
     void executeTransmission(lemon::ListGraph::Edge & edge, double time);
     void executeDiagnosis(lemon::ListGraph::Node & node, double time);
-    void executeDeath(double rStart, double rBound);
     void executeDeath(lemon::ListGraph::Node & node);
     void executeBirth(double rStart, double rBound);
 
@@ -111,8 +95,8 @@ public:
     std::vector<BenStructure> getBenStructure(double t);
 
 
-    double  getEdgeAdditionRate(lemon::ListGraph::Edge complementEdge) const;
-    double  getEdgeDeletionRate(lemon::ListGraph::Edge networkEdge) const;
+    double  getEdgeAdditionRate(const lemon::ListGraph::Edge &complementEdge) const;
+    double  getEdgeDeletionRate(const lemon::ListGraph::Edge &networkEdge) const;
 
 
 private:
@@ -138,12 +122,8 @@ private:
 
     lemon::IdMap<lemon::ListGraph, lemon::ListGraph::Node> nodeIdMap;
 
-    lemon::RangeIdMap<lemon::ListGraph, lemon::ListGraph::Edge> edgesIdMap;
-    lemon::RangeIdMap<lemon::ListGraph, lemon::ListGraph::Edge>::InverseMap edgesIdMapInv;
-
-
     // node map for complement graph; stores amount of adjucent edges with addition rate > 0
-    lemon::ListGraph::NodeMap<size_t> complementAdjacentEdges;
+    //lemon::ListGraph::NodeMap<size_t> complementAdjacentEdges;
 
     std::unordered_map<int, Specie> population;
 

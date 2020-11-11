@@ -461,8 +461,6 @@ void updateNetwork(std::vector<BenStructure> &benToFile, std::vector<int> k, int
                 std::string msg = "ERROR: INVALID SSA del!";
                 throw std::domain_error(msg);
             }
-            propensities.at("edge_del") =
-                    propensities.at("edge_del") - contNetwork.getEdgeDeletionRate(propDel.at(index).second);
 
             std::pair<int, int> b = contNetwork.removeEdge(propDel.at(index).second);
             propDel.erase(propDel.begin() + index);
@@ -506,8 +504,6 @@ void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, in
                 throw std::domain_error(msg);
             }
 
-            propensities.at("edge_add") =
-                    propensities.at("edge_add") - contNetwork.getEdgeAdditionRate(propAdd.at(index).second);
             std::pair<int, int> b = contNetwork.addEdge(propAdd.at(index).second);
             propAdd.erase(propAdd.begin() + index);
         }
@@ -564,8 +560,6 @@ void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, in
                 std::string msg = "ERROR: INVALID SSA add!";
                 throw std::domain_error(msg);
             }
-            propensities.at("edge_add") =
-                    propensities.at("edge_add") - contNetwork.getEdgeAdditionRate(propAdd.at(index).second);
 
             std::pair<int, int> b = contNetwork.addEdge(propAdd.at(index).second);
             //propDel.erase(propAdd.begin() + index);

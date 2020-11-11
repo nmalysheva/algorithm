@@ -85,7 +85,7 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
 
                     if (NN.at(i) < 0)
                     {
-                        std::cout << "less 0; aaa =" << aaa << ", NN =" << NN.at(i) << "; lam = " << propensities.at(i) * tau + T.at(i) - Sk.at(B).first <<
+                        std::cout << "less 0; i = " << i<< ", prop = " << propensities.at(i) << "; aaa =" << aaa << ", NN =" << NN.at(i) << "; lam = " << propensities.at(i) * tau + T.at(i) - Sk.at(B).first <<
                                   "; Sk.at(B, 2) = " << Sk.at(B).second << "; Ci = " << C.at(i)<<std::endl;
                     }
 
@@ -166,7 +166,7 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
                     std::string msg = "ERROR: INVALID del amnt!";
                     // throw std::domain_error(msg);
                 }
-                updateNetwork2(benToFile, NN, contNetwork.countEdges(), generator, propAdd, propDel, t, contNetwork, propensities);
+                updateNetwork(benToFile, NN, contNetwork.countEdges(), generator, propAdd, propDel, t, contNetwork, propensities);
                 propDel = contNetwork.getEdgeDeletionRateSum();
                 propAdd = contNetwork.getEdgeAdditionRateSum();
 
@@ -201,7 +201,7 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
 }
 
 
-void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, int nDel, std::mt19937_64 &generator,
+void updateNetwork(std::vector<BenStructure> &benToFile, std::vector<int> k, int nDel, std::mt19937_64 &generator,
                     std::vector<std::pair<double, lemon::ListGraph::Edge>> &propAdd,
                     std::vector<std::pair<double, lemon::ListGraph::Edge>> &propDel, double t,
                     ContactNetwork & contNetwork,
@@ -247,14 +247,10 @@ void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, in
     else
     {
         propDel = contNetwork.getEdgeDeletionRateSum();
-        //std::cout << "check 100500 " << propDel.size() <<", " << k.at(0) <<", " << propDel.at(propDel.size() - 1).first << std::endl;
 
-        //size_t a  = 0;
-        //std::cout << "check 100500 " <<contNetwork.getEdgeDeletionRateSum(a)<< std::endl;
         propensities.at("edge_del") = propDel.at(propDel.size() - 1).first;
         for (size_t i = 0; i < k.at(0) ; i ++)
         {
-            //propDel = contNetwork.getEdgeDeletionRateSum();
             propensities.at("edge_del") = propDel.at(propDel.size() - 1).first;
             double r = sampleRandUni(generator);
             size_t index = binarySearch(propDel, 0, propDel.size() - 1, 0, r * propensities.at("edge_del"));
@@ -267,21 +263,6 @@ void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, in
                 throw std::domain_error(msg);
             }
 
-            //propensities.at("edge_del") =
-            //        propensities.at("edge_del") - contNetwork.getEdgeDeletionRate(propDel.at(index).second);
-           /* for (size_t i = 0; i < propDel.size() ; i ++)
-            {
-                std::cout << propDel.at(i).first << ", ";
-            }
-            std::cout << std::endl;*/
-            //propensities.at("edge_del") =   propensities.at("edge_del") - (propDel.at(index).first - propDel.at(index - 1).first);
-            //size_t a  = 0;
-            //std::cout << "lll " <<contNetwork.getEdgeDeletionRateSum(a)<< std::endl;
-            //std::cout << "prop after del = " << propensities.at("edge_del") << ", " << propDel.at(index).first << ", "<< propDel.at(index - 1).first <<std::endl;
-            //std::cout << "diff1 = " << propDel.at(index).first - propDel.at(index - 1).first <<std::endl;;
-            //std::cout << "diff2 = " <<contNetwork.getEdgeDeletionRate(propDel.at(index).second) <<std::endl;;
-
-
             std::pair<int, int> b = contNetwork.removeEdge(propDel.at(index).second);
             propDel.erase(propDel.begin() + index);
             benToFile.emplace_back(t, b.first, b.second, false);
@@ -291,7 +272,6 @@ void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, in
         propensities.at("edge_add") = propAdd.at(propAdd.size() - 1).first;
         for (size_t i = 0; i < k.at(1); i ++)
         {
-           // propAdd = contNetwork.getEdgeAdditionRateSum();
             propensities.at("edge_add") = propAdd.at(propAdd.size() - 1).first;
             double r = sampleRandUni(generator);
 
@@ -302,9 +282,7 @@ void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, in
                 std::string msg = "ERROR: INVALID update add 2!";
                 throw std::domain_error(msg);
             }
-            //propensities.at("edge_add") =
-             //       propensities.at("edge_add") - contNetwork.getEdgeAdditionRate(propAdd.at(index).second);
-            //propensities.at("edge_add") -= (propAdd.at(index).first - propAdd.at(index - 1).first);
+
             std::pair<int, int> b = contNetwork.addEdge(propAdd.at(index).second);
             propAdd.erase(propAdd.begin() + index);
             //benToFile.push_back(BenStructure(t, b.first, b.second, true));

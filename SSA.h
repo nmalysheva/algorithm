@@ -23,7 +23,6 @@ public:
 
 private:
 
-    double sampleRandUni();
     void   executeReaction(ContactNetwork & contNetwork, const std::string &reactId, double rStart,
                            double rBound, double time, uint32_t &nInf,
                             std::vector<std::pair<double, lemon::ListGraph::Edge>> &propDel,

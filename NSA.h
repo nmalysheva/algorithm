@@ -23,11 +23,14 @@ private:
 
     double  getPropUpperLimit (double lookAheadTime, ContactNetwork & contNetwork,
                                double dignosisUpperLimit, double deathUpperLimit) const;
-    double  recycleRandUni(double r); //recycle random number so we dont need to sample it again
+
     double sampleRandUni();
 private:
-    void executeReaction(ContactNetwork & contNetwork, const std::string & reactId,
-                              double rStart, double rBound, double time, uint32_t &nInf/*, std::vector<BenStructure> &benToFile*/);
+    void executeReaction(ContactNetwork & contNetwork, const std::string &reactId, double rStart,
+                         double rBound, double time, uint32_t &nInf,
+                         std::vector<std::pair<double, lemon::ListGraph::Edge>> &propTransmit,
+                         std::vector<std::pair<double, lemon::ListGraph::Node>> &propDiagnos,
+                         std::vector<std::pair<double, lemon::ListGraph::Node>> &propDeath);
 
     std::random_device rDev;
     std::mt19937_64 generator;
