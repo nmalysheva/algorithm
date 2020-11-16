@@ -92,7 +92,7 @@ public:
 
     std::vector<size_t> getDegreeDistribution();
 
-    std::vector<BenStructure> getBenStructure(double t);
+    std::vector<BenStructure> getBenStructure(double t); //
 
 
     double  getEdgeAdditionRate(const lemon::ListGraph::Edge &complementEdge) const;
