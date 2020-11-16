@@ -16,10 +16,9 @@ using namespace lemon;
 using namespace std;
 
 void executeSSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptible, size_t nEdges,int maxContactsA, int maxContactsB,
-        double transmRate, double newContRate, double looseContRate, double dRate, double bRate, size_t simulationNumber)
+        double transmRate, double newContRate, double looseContRate, double diagnRate, double dRate, double bRate, size_t simulationNumber)
 {
     UniqueID().reset();
-    double diagnRate = 2.3;
     ContactNetwork contNetwork(nInfected,
                                nSusceptible,
                                nEdges,
@@ -60,8 +59,8 @@ void executeSSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
     sprintf( buffer, "%.1e", looseContRate);
     std::string looseContRateStr(buffer);
 
-    sprintf( buffer, "%.1e", bRate);
-    std::string bRateStr(buffer);
+    sprintf( buffer, "%.1e", diagnRate);
+    std::string diagnRateStr(buffer);
 
     sprintf( buffer, "%.1e", dRate);
     std::string dRateStr(buffer);
@@ -72,7 +71,7 @@ void executeSSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
     string fileName = "SSA_"  + std::to_string(nPopulation) + "_nInf_" + std::to_string(nInfected) +
                       "_MaxCont_" + std::to_string(maxContactsA) + "-" + std::to_string(maxContactsB) +
                       "_addR_" + newContRateStr + "_delR_" + looseContRateStr +
-                      "_birthR_" + bRateStr + "_deathR_" + dRateStr +
+                      "_diagnR_" + diagnRateStr  + "_deathR_" + dRateStr +
                       "_trR_" + transmRateStr + "_" +
                       std::to_string(simulationNumber) + ".txt";
 
@@ -91,6 +90,7 @@ void executeSSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
     newFile << "rate of loose a contact: " << looseContRate << std::endl;
     newFile << "death rate: " << dRate << std::endl;
     newFile << "birth rate: " << bRate << std::endl;
+    newFile << "diagnosis rate: " << diagnRate << std::endl;
     newFile << "transmission rate: " << transmRate << std::endl;
 
     for (const auto &tStep : timeSteps)
@@ -122,10 +122,10 @@ void executeSSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
 }
 
 void executeNSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptible, size_t nEdges,int maxContactsA, int maxContactsB,
-                double transmRate, double newContRate, double looseContRate, double dRate, double bRate, double epsilon, size_t simulationNumber)
+                double transmRate, double newContRate, double looseContRate, double diagnRate, double dRate, double bRate, double epsilon, size_t simulationNumber)
 {
     UniqueID().reset();
-    double diagnRate = 2.3;
+
     ContactNetwork contNetwork(nInfected,
                                nSusceptible,
                                nEdges,
@@ -169,8 +169,8 @@ void executeNSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
     sprintf( buffer, "%.1e", looseContRate);
     std::string looseContRateStr(buffer);
 
-    sprintf( buffer, "%.1e", bRate);
-    std::string bRateStr(buffer);
+    sprintf( buffer, "%.1e", diagnRate);
+    std::string diagnRateStr(buffer);
 
     sprintf( buffer, "%.1e", dRate);
     std::string dRateStr(buffer);
@@ -181,7 +181,7 @@ void executeNSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
     string fileName = "NSA_"  + std::to_string(nPopulation) + "_nInf_" + std::to_string(nInfected) +
                       "_MaxCont_" + std::to_string(maxContactsA) + "-" + std::to_string(maxContactsB) +
                       "_addR_" + newContRateStr + "_delR_" + looseContRateStr +
-                      "_birthR_" + bRateStr + "_deathR_" + dRateStr +
+                      "_diagnR_" + diagnRateStr + "_deathR_" + dRateStr +
                       "_trR_" + transmRateStr + "_" +
                       std::to_string(simulationNumber) + ".txt";
 
@@ -199,6 +199,7 @@ void executeNSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
     newFile << "rate of loose a contact: " << looseContRate << std::endl;
     newFile << "death rate: " << dRate << std::endl;
     newFile << "birth rate: " << bRate << std::endl;
+    newFile << "diagnosis rate: " << diagnRate << std::endl;
     newFile << "transmission rate: " << transmRate << std::endl;
     newFile << "epsilon: " << epsilon << std::endl;
 
@@ -699,14 +700,14 @@ void getAndPrintNetworkParameters(size_t &nPopulation, size_t &nEdges, int &maxC
     nEdges = std::stoi(arr[1]);
     std::cout << "Initial edges: " << nEdges << std::endl;
 
-    maxContactsA = std::stoi(arr[2]);
-    maxContactsB = std::stoi(arr[3]);
+    maxContactsA = nPopulation - 1;
+    maxContactsB = nPopulation - 1;
     std::cout << "Max. contact boundaries =[" << maxContactsA << ", " << maxContactsB << "]" << std::endl;
 
-    newContRate = std::strtod(arr[4], 0);
+    newContRate = std::strtod(arr[2], 0);
     std::cout << "New Contact Rate: " << newContRate << std::endl;
 
-    looseContRate = std::strtod(arr[5], 0);
+    looseContRate = std::strtod(arr[3], 0);
     std::cout << "Loose Contact Rate: " << looseContRate << std::endl;
 
 
@@ -714,14 +715,15 @@ void getAndPrintNetworkParameters(size_t &nPopulation, size_t &nEdges, int &maxC
 
 void contactDynamics(int argc, char* argv[])
 {
-    if (argc != 10)
+    if (argc != 9)
     {
-        std::cout << "wrong parameters" <<std::endl;
+        std::string msg = "Invalid parameters";
+        throw std::domain_error(msg);
     }
     else
     {
         size_t simulationNumber = 0;
-        char* arr[] = {argv[1], argv[2], argv[9]};
+        char* arr[] = {argv[2], argv[3], argv[8]};
         std::pair<double, double> simulationTime = getAndPrintSimulationParameters(arr, simulationNumber);
 
         size_t nPopulation = 0;
@@ -731,17 +733,15 @@ void contactDynamics(int argc, char* argv[])
         double newContRate = 0;
         double looseContRate = 0;
 
-        char* arr1[]  = {argv[3], argv[4], argv[5], argv[6], argv[7], argv[8]};
+        char* arr1[]  = {argv[4], argv[5], argv[6], argv[7]};
         getAndPrintNetworkParameters(nPopulation, nEdges, maxContactsA, maxContactsB,
                                       newContRate, looseContRate, arr1);
         double epsilon = 0.03;
 
-        std::cout << "NSA Cont. update" << std::endl;
         executeNSAOnlyContactUpdate(simulationTime.first, simulationTime.second, nPopulation, nEdges, maxContactsA, maxContactsB,
                          newContRate, looseContRate, epsilon, simulationNumber);
-        std::cout << "--------------------------------" << std::endl;
         //executeSSAOnlyContactUpdate(simulationTime.first, simulationTime.second, nPopulation, nEdges, maxContactsA, maxContactsB,
-         //                           newContRate, looseContRate, simulationNumber);
+           //                         newContRate, looseContRate, simulationNumber);
         std::cout << "*********************************" << std::endl;
         //executeRKF45OnlyContactUpdate(tStart, tEnd, nPopulation, nEdges, maxContactsA, MaxContactsB,
         //                              newContRate, looseContRate, epsilon, simulationNumber);
@@ -754,14 +754,15 @@ void contactDynamics(int argc, char* argv[])
 
 void viralDynamics(int argc, char* argv[])
 {
-    if (argc != 14)
+    if (argc != 13)
     {
-        std::cout << "wrong parameters" <<std::endl;
+        std::string msg = "Invalid parameters 2";
+        throw std::domain_error(msg);
     }
     else
     {
 
-        char* arr[] = {argv[1], argv[2], argv[13]};
+        char* arr[] = {argv[2], argv[3], argv[12]};
         size_t simulationNumber = 0;
         std::pair<double, double> simulationTime = getAndPrintSimulationParameters(arr, simulationNumber);
 
@@ -772,32 +773,34 @@ void viralDynamics(int argc, char* argv[])
         double newContRate = 0;
         double looseContRate = 0;
 
-        char* arr1[]  = {argv[3], argv[5], argv[6], argv[7], argv[8], argv[9], argv[9]};
+        char* arr1[]  = {argv[4], argv[6], argv[7], argv[8],};
         getAndPrintNetworkParameters(nPopulation, nEdges, maxContactsA, maxContactsB,
                                      newContRate, looseContRate, arr1);
 
 
-        size_t nInfected = std::stoi(argv[4]);
+        size_t nInfected = std::stoi(argv[5]);
         std::cout << "Number of infected: " << nInfected << std::endl;
 
 
-        double birthRate = std::strtod(argv[10], 0);
-        std::cout << "Birth rate: " << birthRate << std::endl;
+        double diagnosisRate = std::strtod(argv[9], 0);
+        std::cout << "Diagnosis rate: " << diagnosisRate << std::endl;
 
-        double deathRate = std::strtod(argv[11], 0);
+        double deathRate = std::strtod(argv[10], 0);
         std::cout << "Death rate: " << deathRate << std::endl;
 
-        double transmitRate = std::strtod(argv[12], 0);
+        double transmitRate = std::strtod(argv[11], 0);
         std::cout << "Transmission rate: " << transmitRate << std::endl;
+
+        double birthRate = 0;
 
 
         double epsilon = 0.03;
 
 
         executeNSA(simulationTime.first, simulationTime.second, nInfected, nPopulation - nInfected, nEdges, maxContactsA, maxContactsB,
-                   transmitRate, newContRate, looseContRate, deathRate, birthRate, epsilon, simulationNumber);
-        executeSSA(simulationTime.first, simulationTime.second, nInfected, nPopulation - nInfected, nEdges, maxContactsA, maxContactsB,
-                   transmitRate, newContRate, looseContRate, deathRate, birthRate, simulationNumber);
+                   transmitRate, newContRate, looseContRate, diagnosisRate, deathRate, birthRate, epsilon, simulationNumber);
+        //executeSSA(simulationTime.first, simulationTime.second, nInfected, nPopulation - nInfected, nEdges, maxContactsA, maxContactsB,
+        //           transmitRate, newContRate, looseContRate, diagnosisRate, deathRate, birthRate, simulationNumber);
 
     }
 
@@ -805,7 +808,18 @@ void viralDynamics(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-    //contactDynamics(argc, argv);
-    viralDynamics(argc, argv);
+    if (std::string(argv[1]) == "-c")
+    {
+        contactDynamics(argc, argv);
+    }
+    else if (std::string(argv[1])  == "-v")
+    {
+        viralDynamics(argc, argv);
+    }
+    else
+    {
+        std::string msg = "Invalid parameters 1";
+        throw std::domain_error(msg);
+    }
     return 0;
 }

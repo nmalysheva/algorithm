@@ -27,7 +27,7 @@ template <typename T> size_t binarySearch(std::vector<std::pair<double, T>> prop
     }
     else if (indR > indL)
     {
-        int mid = indL + (indR - indL) / 2;
+        size_t mid = indL + (indR - indL) / 2;
 
         // If the element is present at the middle
         // itself
@@ -46,6 +46,12 @@ template <typename T> size_t binarySearch(std::vector<std::pair<double, T>> prop
         // Else the element can only be present
         // in right subarray
         //return binarySearch(propCumSum, mid + 1, indR, rBound);
+    }
+
+    else
+    {
+        std::string msg = "BINARY SEARCH ERROR. Right index exceed left index";
+        throw std::domain_error(msg);
     }
 
     // We reach here when element is not
