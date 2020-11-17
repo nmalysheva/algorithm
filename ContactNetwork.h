@@ -98,6 +98,9 @@ public:
     double  getEdgeAdditionRate(const lemon::ListGraph::Edge &complementEdge) const;
     double  getEdgeDeletionRate(const lemon::ListGraph::Edge &networkEdge) const;
 
+    lemon::ListGraph::Edge getComplementEdge(int a, int b);
+    lemon::ListGraph::Edge getEdge(int a, int b);
+
 
 private:
 

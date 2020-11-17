@@ -165,9 +165,9 @@ void PoissonTauleap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & co
 
                     std::cout << "k_Del = " << k.at(0) << "; k_Add = " << k.at(1) << std::endl;
 
-                    //updateNetwork(benToFile, k, nDel, generator, propAdd, propDel, t, contNetwork, propensities);
+                    updateNetwork(benToFile, k, nDel, generator, propAdd, propDel, t, contNetwork, propensities);
 
-                    updateNetwork2(benToFile, k, nDel, generator, propAdd, propDel, t, contNetwork, propensities, nnn);
+                    //updateNetwork2(benToFile, k, nDel, generator, propAdd, propDel, t, contNetwork, propensities, nnn);
                     flag = false;
                 }
             }
@@ -484,17 +484,17 @@ void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, in
     if (maxEdgesDelete < k.at(0))
     {
         std::cout << "EXceed NDEL!!!" << std::endl;
-        for (auto i : propDel)
+        for (size_t i = 1; i < propDel.size(); i ++)
         {
-            contNetwork.removeEdge(i.second);
+            contNetwork.removeEdge(propDel.at(i).second);
         }
 
-        /*propAdd = contNetwork.getEdgeAdditionRateSum();
-        propensities.at("edge_add") = propAdd.at(propAdd.size() - 1).first;*/
+        propAdd = contNetwork.getEdgeAdditionRateSum();
+        //propensities.at("edge_add") = propAdd.at(propAdd.size() - 1).first;*/
         for (size_t i = 0; i < k.at(1) - k.at(0) + maxEdgesDelete; i ++)
         {
             double r = sampleRandUni(generator);
-            propAdd = contNetwork.getEdgeAdditionRateSum();
+            //propAdd = contNetwork.getEdgeAdditionRateSum();
             propensities.at("edge_add") = propAdd.at(propAdd.size() - 1).first;
             size_t index = binarySearch(propAdd, 0, propAdd.size() - 1, 0, r * propensities.at("edge_add"));
 
@@ -512,12 +512,12 @@ void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, in
     else
     {
         std::cout << "NORMAL!!!" << std::endl;
-        //propDel = contNetwork.getEdgeDeletionRateSum();
+        propDel = contNetwork.getEdgeDeletionRateSum();
         //propensities.at("edge_del") = propDel.at(propDel.size() - 1).first;
         for (size_t i = 0; i < k.at(0) ; i ++)
         {
             //std::cout << "DEL!!!" << std::endl;
-            propDel = contNetwork.getEdgeDeletionRateSum();
+            //propDel = contNetwork.getEdgeDeletionRateSum();
             propensities.at("edge_del") = propDel.at(propDel.size() - 1).first;
             double r = sampleRandUni(generator);
             size_t index = binarySearch(propDel, 0, propDel.size() - 1, 0, r * propensities.at("edge_del"));
@@ -531,9 +531,6 @@ void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, in
 
             //std::cout << "index = " << index << ",  size = " << propDel.size() - 1 << std::endl;
             //std::cout << propensities.at("edge_del") << " , ";
-            propensities.at("edge_del") =
-                    propensities.at("edge_del") - contNetwork.getEdgeDeletionRate(propDel.at(index).second);
-            //std::cout << propensities.at("edge_del") << std::endl;
             //std::cout << "test2!!!  " << std::endl;
             std::pair<int, int> b = contNetwork.removeEdge(propDel.at(index).second);
             //std::cout << "b1 = " << b.first << ", b2 = " << b.second<< std::endl;
@@ -541,17 +538,16 @@ void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, in
             propDel.erase(propDel.begin() + index);
             //std::cout << "test4!!!" << std::endl;
             benToFile.emplace_back(t, b.first, b.second, false);
-            maxEdgesDelete--;
         }
 
 
-        //propAdd = contNetwork.getEdgeAdditionRateSum();
+        propAdd = contNetwork.getEdgeAdditionRateSum();
         //propensities.at("edge_add") = propAdd.at(propAdd.size() - 1).first;
         for (size_t i = 0; i < k.at(1); i ++)
         {
             //std::cout << "ADD!!!" << std::endl;
             double r = sampleRandUni(generator);
-            propAdd = contNetwork.getEdgeAdditionRateSum();
+            //propAdd = contNetwork.getEdgeAdditionRateSum();
             propensities.at("edge_add") = propAdd.at(propAdd.size() - 1).first;
             size_t index = binarySearch(propAdd, 0, propAdd.size() - 1, 0, r * propensities.at("edge_add"));
 
@@ -562,10 +558,9 @@ void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, in
             }
 
             std::pair<int, int> b = contNetwork.addEdge(propAdd.at(index).second);
-            //propDel.erase(propAdd.begin() + index);
+            propAdd.erase(propAdd.begin() + index);
             //benToFile.push_back(BenStructure(t, b.first, b.second, true));
             benToFile.emplace_back(t, b.first, b.second, true);
-            maxEdgesDelete++;
         }
 
     }

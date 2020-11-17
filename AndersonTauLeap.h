@@ -19,6 +19,12 @@ void updateNetwork(std::vector<BenStructure> &benToFile, std::vector<int> k, int
                     ContactNetwork & contNetwork,
                     std::vector<double> &props);
 
+void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, int nDel, std::mt19937_64 &generator,
+                   std::vector<std::pair<double, lemon::ListGraph::Edge>> &propAdd,
+                   std::vector<std::pair<double, lemon::ListGraph::Edge>> &propDel, double t,
+                   ContactNetwork & contNetwork,
+                   std::vector<double> &props);
+
 void updateDegreeDistributio(bool updateDegreeDistr, double t, std::vector<double> &timeSteps,
                               std::vector<std::vector<size_t>> &degreeDistr, const ContactNetwork  &contNetwork);
 

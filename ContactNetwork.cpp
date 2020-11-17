@@ -1199,3 +1199,22 @@ bool BenStructure::isValid()
 {
     return (u > -1) && (v > -1);
 }
+
+lemon::ListGraph::Edge ContactNetwork::getComplementEdge(int a, int b)
+{
+    lemon::ListGraph::Node complU = complement.nodeFromId(a);
+    lemon::ListGraph::Node complV = complement.nodeFromId(b);
+
+    lemon::ListGraph::Edge e = lemon::findEdge(complement, complU, complV);
+    return e;
+}
+lemon::ListGraph::Edge ContactNetwork::getEdge(int a, int b)
+{
+
+    // find respective nodes in network
+    lemon::ListGraph::Node networkU = network.nodeFromId(a);
+    lemon::ListGraph::Node networkV = network.nodeFromId(b);
+    lemon::ListGraph::Edge e = lemon::findEdge(network, networkU, networkV);
+    return e;
+
+}
