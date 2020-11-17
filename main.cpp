@@ -741,7 +741,7 @@ void contactDynamics(int argc, char* argv[])
         executeNSAOnlyContactUpdate(simulationTime.first, simulationTime.second, nPopulation, nEdges, maxContactsA, maxContactsB,
                          newContRate, looseContRate, epsilon, simulationNumber);
         //executeSSAOnlyContactUpdate(simulationTime.first, simulationTime.second, nPopulation, nEdges, maxContactsA, maxContactsB,
-           //                         newContRate, looseContRate, simulationNumber);
+        //                           newContRate, looseContRate, simulationNumber);
         std::cout << "*********************************" << std::endl;
         //executeRKF45OnlyContactUpdate(tStart, tEnd, nPopulation, nEdges, maxContactsA, MaxContactsB,
         //                              newContRate, looseContRate, epsilon, simulationNumber);

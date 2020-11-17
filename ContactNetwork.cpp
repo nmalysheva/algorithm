@@ -673,7 +673,7 @@ ContactNetwork& ContactNetwork::operator=(const ContactNetwork& other)
     return *this;
 }
 
-std::vector<size_t> ContactNetwork::getDegreeDistribution()
+std::vector<size_t> ContactNetwork::getDegreeDistribution() const
 {
     std::vector<size_t> result;
     result.reserve(maxContactsLimitU); //reserving space for vector.

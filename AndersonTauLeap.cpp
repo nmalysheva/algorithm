@@ -10,6 +10,10 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
                      std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr,
                      bool updateDegreeDistr, std::mt19937_64 &generator/*, std::vector<BenStructure> &benToFile*/)
 {
+    size_t cntDel = 0;
+    size_t cntAdd = 0;
+
+
     std::vector<BenStructure> benToFile = contNetwork.getBenStructure(0);
 
     int N = 2; // number of reactants -
@@ -75,9 +79,10 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
             for (int i = 0; i < M; i ++)
             {
                 std::vector<std::pair<double, int>> Sk = S.at(i);
-                int B = Sk.size() - 1;
+                size_t B = Sk.size() - 1;
                 if (propensities.at(i) * tau + T.at(i) >= Sk.at(B).first)
                 {
+                    //std::cout << "poisson" << std::endl;
                     std::poisson_distribution<int> poiss(propensities.at(i) * tau + T.at(i) - Sk.at(B).first);
 
                     int aaa = poiss(generator);
@@ -109,8 +114,9 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
                         std::cout << "index 0" << std::endl;
                     }
                     //std::cout << "check 7 " << std::endl;
-                    double r = static_cast<double>((T.at(i) + propensities.at(i) * tau - Sk.at(index - 1).first) /
-                                                   (Sk.at(index).first - Sk.at(index - 1).first));
+                    //std::cout << "binom, ";
+                    double r = (T.at(i) + propensities.at(i) * tau - Sk.at(index - 1).first) / (Sk.at(index).first - Sk.at(index - 1).first);
+                    //std::cout << "r =" << r << std::endl;
 
                     std::binomial_distribution<> binom(Sk.at(index).second - Sk.at(index - 1).second, r);
 
@@ -132,12 +138,16 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
 
             if (pass)
             {
+                //std::cout << "accept" << std::endl;
                 if (t + tau > tEnd)
                 {
                     //tLastNetworkUpdate = t;
                     t = tEnd;
+                    updateDegreeDistributio(updateDegreeDistr, t, timeSteps, degreeDistr, contNetwork);
                     break;
                 }
+                cntDel += NN.at(0);
+                cntAdd += NN.at(1);
                 t = t + tau;
                 tLastNetworkUpdate = t;
                 for (int i = 0; i < M; i ++)
@@ -161,11 +171,12 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
                     tau = tau * p1;
                 }
 
-                if (contNetwork.countEdges() < NN.at(0))
+                if (contNetwork.countEdges() + NN.at(1) < NN.at(0))
                 {
                     std::string msg = "ERROR: INVALID del amnt!";
-                    // throw std::domain_error(msg);
+                     throw std::domain_error(msg);
                 }
+
                 updateNetwork(benToFile, NN, contNetwork.countEdges(), generator, propAdd, propDel, t, contNetwork, propensities);
                 propDel = contNetwork.getEdgeDeletionRateSum();
                 propAdd = contNetwork.getEdgeAdditionRateSum();
@@ -178,6 +189,7 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
             }
             else
             {
+                //std::cout << "reject" << std::endl;
                 for (int i = 0; i < M; i ++)
                 {
                     if (row.at(i) == S.at(i).size() - 1)
@@ -197,7 +209,7 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
         }
     }
 
-
+    std::cout << "del = " << cntDel << ", add = "<< cntAdd <<", edges = " << contNetwork.countEdges()<<std::endl;
 }
 
 
@@ -207,6 +219,7 @@ void updateNetwork(std::vector<BenStructure> &benToFile, std::vector<int> k, int
                     ContactNetwork & contNetwork,
                     std::vector<double> &props)
 {
+    //std::cout << "start = " << nDel << ", add: "<< k.at(1) << ", del = " << k.at(0) << ", ";
     std::unordered_map<std::string, double> propensities {
             {"edge_del", 0},
             {"edge_add", 0} };
@@ -225,7 +238,7 @@ void updateNetwork(std::vector<BenStructure> &benToFile, std::vector<int> k, int
         }
 
         propAdd = contNetwork.getEdgeAdditionRateSum();
-        propensities.at("edge_add") = propAdd.at(propAdd.size() - 1).first;
+
         for (size_t i = 0; i < k.at(1) - k.at(0) + maxEdgesDelete; i ++)
         {
             //propAdd = contNetwork.getEdgeAdditionRateSum();
@@ -248,7 +261,6 @@ void updateNetwork(std::vector<BenStructure> &benToFile, std::vector<int> k, int
     {
         propDel = contNetwork.getEdgeDeletionRateSum();
 
-        propensities.at("edge_del") = propDel.at(propDel.size() - 1).first;
         for (size_t i = 0; i < k.at(0) ; i ++)
         {
             propensities.at("edge_del") = propDel.at(propDel.size() - 1).first;
@@ -264,12 +276,12 @@ void updateNetwork(std::vector<BenStructure> &benToFile, std::vector<int> k, int
             }
 
             std::pair<int, int> b = contNetwork.removeEdge(propDel.at(index).second);
+            //std::cout << "del: "<< b.first << ", " << b.second << std::endl;
             propDel.erase(propDel.begin() + index);
             benToFile.emplace_back(t, b.first, b.second, false);
         }
 
         propAdd = contNetwork.getEdgeAdditionRateSum();
-        propensities.at("edge_add") = propAdd.at(propAdd.size() - 1).first;
         for (size_t i = 0; i < k.at(1); i ++)
         {
             propensities.at("edge_add") = propAdd.at(propAdd.size() - 1).first;
@@ -284,16 +296,21 @@ void updateNetwork(std::vector<BenStructure> &benToFile, std::vector<int> k, int
             }
 
             std::pair<int, int> b = contNetwork.addEdge(propAdd.at(index).second);
+           // std::cout << "add: "<< b.first << ", " << b.second << std::endl;
             propAdd.erase(propAdd.begin() + index);
             //benToFile.push_back(BenStructure(t, b.first, b.second, true));
             benToFile.emplace_back(t, b.first, b.second, true);
         }
     }
+
+    //std::cout << contNetwork.countEdges() << std::endl;
+    std::cout << "res = " <<  k.at(1) - k.at(0) << std::endl;
+
 }
 
 
 //TODO change contNetwork reference to const
-void updateDegreeDistributio(bool updateDegreeDistr, double t, std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr, /*const*/ ContactNetwork  &contNetwork)
+void updateDegreeDistributio(bool updateDegreeDistr, double t, std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr, const ContactNetwork  &contNetwork)
 {
     if (updateDegreeDistr)
     {
@@ -313,9 +330,7 @@ void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
     std::cout << "SSA 100" << std::endl;
     std::vector<double> propensities(2, 0);
     std::vector<std::pair<double, lemon::ListGraph::Edge>> propDel;
-    propDel.reserve(1e6 + 1);
     std::vector<std::pair<double, lemon::ListGraph::Edge>> propAdd;
-    propAdd.reserve(1e6 + 1);
 
     for (size_t ind = 0; ind < n; ind++)
     {
@@ -329,7 +344,7 @@ void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
 
         if (propensitiesSum == 0)
         {
-            tLastNetworkUpdate = tEnd; //used to update netw.Upd.Time
+            //tLastNetworkUpdate = tEnd; //used to update netw.Upd.Time
             t = tEnd;
             updateDegreeDistributio(updateDegreeDistr, t, timeSteps, degreeDistr, contNetwork);
             break;
@@ -389,7 +404,7 @@ void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
 
         for (int i = 0; i < 2; i ++)
         {
-            for (int l = 0; l < S.at(i).size(); l ++)
+            for (size_t l = 0; l < S.at(i).size(); l ++)
             {
                 if (S.at(i).at(l).first <= T.at(i) ||  S.at(i).at(l).second <= C.at(i))
                 {

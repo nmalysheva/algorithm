@@ -20,7 +20,7 @@ void updateNetwork(std::vector<BenStructure> &benToFile, std::vector<int> k, int
                     std::vector<double> &props);
 
 void updateDegreeDistributio(bool updateDegreeDistr, double t, std::vector<double> &timeSteps,
-                              std::vector<std::vector<size_t>> &degreeDistr, /*const*/ ContactNetwork  &contNetwork);
+                              std::vector<std::vector<size_t>> &degreeDistr, const ContactNetwork  &contNetwork);
 
 /*void exactAlgorithm(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
                     double &tLastNetworkUpdate, std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr,

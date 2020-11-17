@@ -26,6 +26,8 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
                   std::vector<double> &tSteps, std::vector<uint32_t> &nInfected,
                   std::vector<std::vector<size_t>> &degreeDistr/*, std::vector<BenStructure> &benToFile*/)
 {
+    size_t cntDel = 0;
+    size_t cntAdd = 0;
     std::vector<BenStructure> benToFile = contNetwork.getBenStructure(0);
 
     uint32_t  nInf = contNetwork.countByState(Specie::State::I);
@@ -104,11 +106,19 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
 
                 if (pSum + it.second >= propensitieSum * r)
                 {
-                    std::cout << it.first << std::endl;
+                    //std::cout << it.first << "; ";
 
+                    if (it.first == "edge_del")
+                    {
+                        cntDel++;
+                    }
+                    if (it.first == "edge_add")
+                    {
+                        cntAdd++;
+                    }
                     executeReaction(contNetwork, it.first, pSum, propensitieSum * r, time, nInf,
                                     propDel, propAdd, propTransmit, propDiagnos, propDeath);
-
+                    //std::cout << std::endl;
                     tSteps.push_back(time);
                     nInfected.push_back(nInf);
                     degreeDistr.push_back(contNetwork.getDegreeDistribution());
@@ -120,6 +130,7 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
 
         }
     }
+    std::cout << "del = " << cntDel << ", add = "<< cntAdd <<", edges = " << contNetwork.countEdges()<<std::endl;
 }
 
 void SSA::executeReaction(ContactNetwork & contNetwork, const std::string &reactId, double rStart,
@@ -136,6 +147,7 @@ void SSA::executeReaction(ContactNetwork & contNetwork, const std::string &react
         size_t index = binarySearch(propDel, 0, propDel.size() - 1, rStart, rBound);
         std::pair<int, int> b = contNetwork.removeEdge(propDel.at(index).second);
 
+        //std::cout << b.first << ", " << b.second;
         //benToFile.emplace_back(time, b.first, b.second, false);
 
     }
@@ -145,6 +157,8 @@ void SSA::executeReaction(ContactNetwork & contNetwork, const std::string &react
         size_t index = binarySearch(propAdd, 0, propAdd.size() - 1, rStart, rBound);
         std::pair<int, int> b = contNetwork.addEdge(propAdd.at(index).second);
         //benToFile.emplace_back(time, b.first, b.second, true);
+        //std::cout << b.first << ", " << b.second;
+
     }
     else if (reactId == "transmission")
     {

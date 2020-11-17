@@ -90,7 +90,7 @@ public:
 
     size_t updateSurvivalProbability(size_t nDeletions, size_t nAdditions, std::vector<BenStructure> &benToFile, double time);
 
-    std::vector<size_t> getDegreeDistribution();
+    std::vector<size_t> getDegreeDistribution() const;
 
     std::vector<BenStructure> getBenStructure(double t); //
 
