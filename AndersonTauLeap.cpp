@@ -511,11 +511,11 @@ void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, in
         }
         std::shuffle(order.begin(), order.end(), generator);
 
-        propDel = contNetwork.getEdgeDeletionRateSum();
+        /*propDel = contNetwork.getEdgeDeletionRateSum();
         propAdd = contNetwork.getEdgeAdditionRateSum();
         propensities.at("edge_del") = propDel.at(propDel.size() - 1).first;
         propensities.at("edge_add") = propAdd.at(propAdd.size() - 1).first;
-
+*/
 
         for (auto i : order)
         {
@@ -539,7 +539,7 @@ void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, in
                 propDel.erase(propDel.begin() + index);
 
                 lemon::ListGraph::Edge e = contNetwork.getComplementEdge(b.first, b.second);
-                propAdd.emplace_back(propAdd.at(propAdd.size() - 1).first + contNetwork.getEdgeAdditionRate(e), e);
+                //propAdd.emplace_back(propAdd.at(propAdd.size() - 1).first + contNetwork.getEdgeAdditionRate(e), e);
                 benToFile.emplace_back(t, b.first, b.second, false);
             }
             else if (i == 1)
@@ -561,7 +561,9 @@ void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, in
                 //benToFile.push_back(BenStructure(t, b.first, b.second, true));
 
                 lemon::ListGraph::Edge e = contNetwork.getEdge(b.first, b.second);
-                propDel.emplace_back(propDel.at(propDel.size() - 1).first + contNetwork.getEdgeDeletionRate(e), e);
+
+                // TODO: with every del /add new contact rate of the edge changes. Take this into account? How?
+                //propDel.emplace_back(propDel.at(propDel.size() - 1).first + contNetwork.getEdgeDeletionRate(e), e);
                 benToFile.emplace_back(t, b.first, b.second, true);
 
             }
