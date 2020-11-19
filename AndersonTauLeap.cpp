@@ -20,7 +20,7 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
     int M = 2; //number of reactions, size of propensity vector
 
     std::vector<double> T(M, 0);
-    std::vector<double> C(M, 0);
+    std::vector<int> C(M, 0);
 
     std::vector<std::vector<std::pair<double, int>>> S;
     S.reserve(1e3 + 1);
@@ -86,12 +86,23 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
                     std::poisson_distribution<int> poiss(propensities.at(i) * tau + T.at(i) - Sk.at(B).first);
 
                     int aaa = poiss(generator);
-                    NN.at(i) = aaa + Sk.at(B).second - C.at(i);
+                    NN.at(i) = aaa + (Sk.at(B).second - C.at(i));
+                    //std::cout << "NN_i = " << NN.at(i) << ", prop = " << propensities.at(i) << ", p.add size  = " << propAdd.size()<<std::endl;
+                    //std::cout << "p.add last = " << propAdd.at(propAdd.size() -1).first  << ", p.add prev last = " << propAdd.at(propAdd.size() - 2).first<<std::endl;
 
-                    if (NN.at(i) < 0)
+                    if (NN.at(i) < 0 || NN.at(i) >= 2147483647)
                     {
                         std::cout << "less 0; i = " << i<< ", prop = " << propensities.at(i) << "; aaa =" << aaa << ", NN =" << NN.at(i) << "; lam = " << propensities.at(i) * tau + T.at(i) - Sk.at(B).first <<
                                   "; Sk.at(B, 2) = " << Sk.at(B).second << "; Ci = " << C.at(i)<<std::endl;
+                        std::cout << "NN_i = " << NN.at(i)<<std::endl;
+                        std::cout << "p.add size  = " << propAdd.size()<<std::endl;
+                        for (auto pa : propAdd)
+                        {
+                            std::cout << pa.first << ", ";
+                        }
+                        std::cout <<std::endl;
+
+                        throw std::domain_error("NN less than zero1");
                     }
 
                     row.at(i) = B;
@@ -127,6 +138,7 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
                     if (NN.at(i) < 0)
                     {
                         std::cout << "less 0; aaa =" << aaa << " SK2 minus " << Sk.at(index).second - Sk.at(index - 1).second << ", NN =" << NN.at(i) << "; Ci = " << C.at(i)<<std::endl;
+                        throw std::domain_error("NN less than zero2");
                     }
 
                 }
@@ -323,7 +335,7 @@ void updateDegreeDistributio(bool updateDegreeDistr, double t, std::vector<doubl
 void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
                 double &tLastNetworkUpdate, std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr,
                 bool updateDegreeDistr, std::mt19937_64 &generator,
-                std::vector<double> &T, std::vector<double> &C,
+                std::vector<double> &T, std::vector<int> &C,
                 std::vector<std::vector<std::pair<double, int>>> &S)
 
 {

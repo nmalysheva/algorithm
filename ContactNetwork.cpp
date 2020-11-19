@@ -443,8 +443,11 @@ void ContactNetwork::removeNode(lemon::ListGraph::Node &node)
     while (ieIt != lemon::INVALID)
     {
         lemon::ListGraph::IncEdgeIt tmpIt = ieIt;
+        lemon::ListGraph::Node oppositeNode = network.oppositeNode(node, ieIt);
+        population.at(nodeIdMap[oppositeNode]).decNumberOfContacts();
         ++ieIt;
         network.erase(tmpIt);
+
     }
 
     //find respective node in complement graph
@@ -583,9 +586,11 @@ double  ContactNetwork::getEdgeAdditionRate(const lemon::ListGraph::Edge &comple
 
     int sourceUID = nodeIdMap[network.nodeFromId(complement.id(complU))];
     double sourceRate = population.at(sourceUID).getNewContactRate();
+    sourceRate = sourceRate * (population.at(sourceUID).getMaxNumberOfContacts() - population.at(sourceUID).getNumberOfContacts());
 
     int targetUID = nodeIdMap[network.nodeFromId(complement.id(complV))];
     double targetRate = population.at(targetUID).getNewContactRate();
+    targetRate = targetRate * (population.at(targetUID).getMaxNumberOfContacts() - population.at(targetUID).getNumberOfContacts());
     if ( (sourceRate > 0) && (targetRate > 0) )
     {
 
@@ -611,6 +616,13 @@ double  ContactNetwork::getEdgeAdditionRate(const lemon::ListGraph::Edge &comple
         }
 
         result = sourceRate * targetRate;
+        if (result > 1e+10)
+        {
+            std::cout << "sourceAddEdges = " << sourceAddEdges << "; targetAddEdges = " << targetAddEdges << std::endl;
+            std::cout << "sourcerate = " << sourceRate << "; trate = " << targetRate << std::endl;
+            std::cout << "s.max = " << population.at(sourceUID).getMaxNumberOfContacts() << "; t.max = " << population.at(targetUID).getMaxNumberOfContacts() << std::endl;
+            std::cout << "s.curr = " << population.at(sourceUID).getNumberOfContacts() << "; t.curr = " << population.at(targetUID).getNumberOfContacts() << std::endl;
+        }
     }
 
     return result;

@@ -37,7 +37,7 @@ void updateDegreeDistributio(bool updateDegreeDistr, double t, std::vector<doubl
 void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
                 double &tLastNetworkUpdate, std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr,
                 bool updateDegreeDistr, std::mt19937_64 &generator,
-                std::vector<double> &T, std::vector<double> &C,
+                std::vector<double> &T, std::vector<int> &C,
                 std::vector<std::vector<std::pair<double, int>>> &S);
 
 double getTau(size_t nParts, std::vector<std::vector<int>> nu, std::vector<double> props,  double epsilon,

@@ -54,7 +54,7 @@ size_t Specie::getNumberOfContacts() const
 
 double Specie::getNewContactRate() const
 {
-    double result = newContactRate * (maxNumberOfContacts - numberOfContacts);
+    double result = newContactRate;
 
     return result;
 }
