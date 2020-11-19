@@ -539,7 +539,7 @@ void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, in
                 propDel.erase(propDel.begin() + index);
 
                 lemon::ListGraph::Edge e = contNetwork.getComplementEdge(b.first, b.second);
-                //propAdd.emplace_back(propAdd.at(propAdd.size() - 1).first + contNetwork.getEdgeAdditionRate(e), e);
+                propAdd.emplace_back(propAdd.at(propAdd.size() - 1).first + contNetwork.getEdgeAdditionRate(e), e);
                 benToFile.emplace_back(t, b.first, b.second, false);
             }
             else if (i == 1)

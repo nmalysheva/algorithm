@@ -586,12 +586,12 @@ double  ContactNetwork::getEdgeAdditionRate(const lemon::ListGraph::Edge &comple
 
     int sourceUID = nodeIdMap[network.nodeFromId(complement.id(complU))];
     double sourceRate = population.at(sourceUID).getNewContactRate();
-    sourceRate = sourceRate * (population.at(sourceUID).getMaxNumberOfContacts() - population.at(sourceUID).getNumberOfContacts());
+    //sourceRate = sourceRate * (population.at(sourceUID).getMaxNumberOfContacts() - population.at(sourceUID).getNumberOfContacts());
 
     int targetUID = nodeIdMap[network.nodeFromId(complement.id(complV))];
     double targetRate = population.at(targetUID).getNewContactRate();
-    targetRate = targetRate * (population.at(targetUID).getMaxNumberOfContacts() - population.at(targetUID).getNumberOfContacts());
-    if ( (sourceRate > 0) && (targetRate > 0) )
+    //targetRate = targetRate * (population.at(targetUID).getMaxNumberOfContacts() - population.at(targetUID).getNumberOfContacts());
+    /*if ( (sourceRate > 0) && (targetRate > 0) )
     {
 
         double sourceAddEdges = population.at(sourceUID).getMaxNumberOfContacts() - population.at(sourceUID).getNumberOfContacts(); //complementAdjacentEdges[complU];
@@ -623,8 +623,9 @@ double  ContactNetwork::getEdgeAdditionRate(const lemon::ListGraph::Edge &comple
             std::cout << "s.max = " << population.at(sourceUID).getMaxNumberOfContacts() << "; t.max = " << population.at(targetUID).getMaxNumberOfContacts() << std::endl;
             std::cout << "s.curr = " << population.at(sourceUID).getNumberOfContacts() << "; t.curr = " << population.at(targetUID).getNumberOfContacts() << std::endl;
         }
-    }
+    }*/
 
+    result = sourceRate * targetRate;
     return result;
 }
 
@@ -1030,10 +1031,12 @@ void ContactNetwork::initRates(int maxContactsL, int MaxContactsU, double transm
     maxContactsLimitU = MaxContactsU;
     maxContactsDistribution = std::uniform_int_distribution<size_t>(maxContactsLimitL, maxContactsLimitU);
 
-    //std::uniform_real_distribution<> dis(newContRate, newContRate *100);
     transmissionRate = transmRate;
-    newContactRate = newContRate;//dis(generator);//newContRate;
-    looseContactRate = looseContRate;
+
+    std::uniform_real_distribution<> dis(0.5, newContRate);
+    newContactRate = dis(generator);//newContRate;//dis(generator);//newContRate;
+    std::uniform_real_distribution<> dis2(0.5, looseContRate);
+    looseContactRate = dis2(generator);//looseContRate;
     deathRate = dRate;
     birthRate = bRate;
     diagnosisRate = diagnRate;
