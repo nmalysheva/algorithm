@@ -27,28 +27,30 @@ void ContactNetwork::init(size_t nInfected, size_t nSusceptible, size_t nEdges, 
     initComplementNetwork(nPopulation);
 
     size_t nInf = 0;
-
+    std::uniform_real_distribution<double> lcd(looseContactRate*0.8, looseContactRate);
+    std::uniform_real_distribution<double> ncd(newContactRate*0.8, newContactRate);
     isContactsLimited = false;
     for (size_t i = 0; i < nPopulation; i ++)
     {
-        size_t maxContacts = maxContactsDistribution(generator);
+        size_t maxContacts = maxContactsL;
         if (maxContacts < nPopulation - 1)
         {
             isContactsLimited = true;
         }
 
         double dRate = deathRate;//deathRateRateDistribution(generator);
-        double newContRate = newContactRate;//ncrDistribution(generator);//newContactRateDistribution(generator);
-
         //double looseContRate = looseContactRate;//looseContactRate;//looseContactRateDistribution(generator);
 
-        std::uniform_real_distribution<double> lcd(looseContactRate*0.2, looseContactRate*3);
+        //std::uniform_real_distribution<double> lcd(looseContactRate*0.5, looseContactRate);
         double looseContRate = lcd(generator);
 
+        double newContRate = ncd(generator);
 
         Specie::State st = Specie::S;
         //Specie sp = Specie(maxContacts, 0, dRate, newContRate, looseContRate, st);
         Specie sp = Specie(maxContacts, 0, 0, newContRate, looseContRate, st);
+        //std::cout <<maxContacts << ", lcr = " << looseContRate << ", ncr =" << newContRate << std::endl;
+
         lemon::ListGraph::Node newNode = network.addNode();
         diagnosisRates[newNode] = 0;
 
@@ -1033,10 +1035,10 @@ void ContactNetwork::initRates(int maxContactsL, int MaxContactsU, double transm
 
     transmissionRate = transmRate;
 
-    std::uniform_real_distribution<> dis(0.5, newContRate);
-    newContactRate = dis(generator);//newContRate;//dis(generator);//newContRate;
-    std::uniform_real_distribution<> dis2(0.5, looseContRate);
-    looseContactRate = dis2(generator);//looseContRate;
+    //std::uniform_real_distribution<> dis(0.5, newContRate);
+    newContactRate = newContRate;//dis(generator);//newContRate;
+    //std::uniform_real_distribution<> dis2(0.5, looseContRate);
+    looseContactRate = looseContRate;
     deathRate = dRate;
     birthRate = bRate;
     diagnosisRate = diagnRate;
