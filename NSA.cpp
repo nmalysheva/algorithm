@@ -70,10 +70,10 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
 
     while (time < tEnd)
     {
-        std::cout << "_______________-________________" <<std::endl;
+        //std::cout << "_______________-________________" <<std::endl;
         //choose look-ahead time
         lookAheadTime = tEnd - time;
-        std::cout << "t = " << time << std::endl;
+        //std::cout << "t = " << time << std::endl;
         propUpperLimit = getPropUpperLimit(lookAheadTime, contNetwork,
                                            propDiagnos.at(propDiagnos.size() - 1).first,
                                            propDeath.at(propDeath.size() - 1).first);
@@ -81,7 +81,7 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
         // if there is no transmition possible anymore
         if (propUpperLimit == 0)
         {
-            std::cout << "B=0" << std::endl;
+            //std::cout << "B=0" << std::endl;
             time = tEnd;
             if (saveDegreeDistMode == "c" || saveDegreeDistMode == "v")
             {
@@ -102,7 +102,7 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
             double r = sampleRandUni();
 
             proposedTime = 1 / propUpperLimit * std::log(1/r);
-            std::cout << "proposedTime = " << proposedTime << std::endl;
+            //std::cout << "proposedTime = " << proposedTime << std::endl;
             if (proposedTime > lookAheadTime)
             {
                 nRejections ++;
@@ -130,7 +130,7 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
 
                 if (tmpUpd < networkLastUpdate)
                 {
-                    std::cout << "time = " << time <<", lastUpdate = " << networkLastUpdate<<std::endl;
+                    //std::cout << "time = " << time <<", lastUpdate = " << networkLastUpdate<<std::endl;
                     propTransmit = contNetwork.getTransmissionRateSum();
                     propensities.at("transmission") = propTransmit.at(propTransmit.size() - 1).first;
                     propDiagnos = contNetwork.getDiagnosisRateSum();
@@ -165,7 +165,7 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
 
                         if (pSum + it.second >= propUpperLimit * r)
                         {
-                            std::cout << "accepted: " << it.first << std::endl;
+                            //std::cout << "accepted: " << it.first << std::endl;
 
                             executeReaction(contNetwork, it.first, pSum,propUpperLimit * r, time, nInf,
                                     propTransmit,propDiagnos,propDeath, tSteps, tInfect,
@@ -191,34 +191,34 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
                 else
                 {
                    nThin++;
-                   std::cout << "thin" << std::endl;
+                   //std::cout << "thin" << std::endl;
                 }
 
             }
         }
     }
 
-    std::cout << std::endl;
+   // std::cout << std::endl;
 }
 
 double  NSA::getPropUpperLimit (double lookAheadTime, ContactNetwork & contNetwork, double dignosisUpperLimit, double deathUpperLimit) const
 {
     double maxContInf = contNetwork.getMaxContactsLimitOfInfected(lookAheadTime);
-    std::cout << "max.cont.inf: " << maxContInf <<  std::endl;
+    //std::cout << "max.cont.inf: " << maxContInf <<  std::endl;
     double maxContSusc = contNetwork.getMaxContactsLimitOfSusceptible(lookAheadTime);
-    std::cout << "max.cont.susc: " << maxContSusc <<  std::endl;
-    std::cout << "n.inf : " << contNetwork.countByState(Specie::I) + contNetwork.countByState(Specie::D)  <<  std::endl;
+    //std::cout << "max.cont.susc: " << maxContSusc <<  std::endl;
+   // std::cout << "n.inf : " << contNetwork.countByState(Specie::I) + contNetwork.countByState(Specie::D)  <<  std::endl;
 
     double rmc = std::min(maxContInf, maxContSusc);
 
     size_t tmp = contNetwork.countByState(Specie::I) + contNetwork.countByState(Specie::D);
     size_t tmp2 = tmp * contNetwork.countByState(Specie::S);
-    std::cout << "tmp2 = " << tmp2 <<  std::endl;
+    //std::cout << "tmp2 = " << tmp2 <<  std::endl;
     rmc = std::min(rmc, static_cast<double>(tmp2));
 
-    std::cout << "rmc = " << rmc <<  std::endl;
+    //std::cout << "rmc = " << rmc <<  std::endl;
     double result = rmc * contNetwork.getTransmissionRateLimit() + dignosisUpperLimit + deathUpperLimit;//+
-    std::cout << "prop.upper limit = " << result <<  std::endl;
+    //std::cout << "prop.upper limit = " << result <<  std::endl;
                     ///contNetwork.getDeathRateSum() + contNetwork.getBirthRateSum();
     //std::cout << "-----------------------------" <<  std::endl;
     return result;
@@ -281,7 +281,7 @@ void NSA::executeReaction(ContactNetwork & contNetwork, const std::string &react
     {
         size_t index = binarySearch(propDeath, 0, propDeath.size() - 1, rStart, rBound);
         contNetwork.executeDeath(propDeath.at(index).second);
-        std::cout << contNetwork.size() << std::endl;
+        //std::cout << contNetwork.size() << std::endl;
         nInf = contNetwork.countByState(Specie::State::I) + contNetwork.countByState(Specie::State::D);
 
         if (saveDegreeDistMode == "v")
