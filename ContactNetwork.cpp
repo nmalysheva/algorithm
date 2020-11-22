@@ -87,7 +87,7 @@ void ContactNetwork::init(size_t nInfected, size_t nSusceptible, size_t nEdges, 
     generator.seed(::time(nullptr) * getpid());
 }
 
-size_t ContactNetwork::countAdjacentEdges(const lemon::ListGraph::Node &complementNode) const
+/*size_t ContactNetwork::countAdjacentEdges(const lemon::ListGraph::Node &complementNode) const
 {
     size_t result = 0;
 
@@ -114,7 +114,7 @@ size_t ContactNetwork::countAdjacentEdges(const lemon::ListGraph::Node &compleme
 
 
     return result;
-}
+}*/
 
 size_t  ContactNetwork::countByState(Specie::State st) const
 {
@@ -697,7 +697,7 @@ std::vector<size_t> ContactNetwork::getDegreeDistribution() const
 
         for(lemon::ListGraph::IncEdgeIt e(network, nIt); e!=lemon::INVALID; ++e)
         {
-            ++ degree;
+            degree++;
         }
 
         result.push_back(degree);

@@ -14,7 +14,8 @@ class NSA
 public:
     NSA();
     void execute(double tStart, double tEnd, ContactNetwork &contNetwork, std::vector<double> &tSteps,
-            std::vector<uint32_t> &nInfected, std::vector<std::vector<size_t>> &degreeDistr,
+                 std::vector<double> &tInfect, std::unordered_map<Specie::State, std::vector<uint32_t>> &populationState,
+                 std::vector<std::vector<size_t>> &degreeDistr, const std::string &saveDegreeDistMode,
             double epsilon, size_t &nRejections, size_t &nAcceptance, size_t &nThin/*,
                  std::vector<BenStructure> &benToFile*/);
     ~NSA() {};
@@ -30,7 +31,10 @@ private:
                          double rBound, double time, uint32_t &nInf,
                          std::vector<std::pair<double, lemon::ListGraph::Edge>> &propTransmit,
                          std::vector<std::pair<double, lemon::ListGraph::Node>> &propDiagnos,
-                         std::vector<std::pair<double, lemon::ListGraph::Node>> &propDeath);
+                         std::vector<std::pair<double, lemon::ListGraph::Node>> &propDeath,
+                         std::vector<double> &tSteps, std::vector<double> &tInfect,
+                         std::unordered_map<Specie::State, std::vector<uint32_t>> &populationState,
+                         std::vector<std::vector<size_t>> &degreeDistr, const std::string &saveDegreeDistMode);
 
     std::random_device rDev;
     std::mt19937_64 generator;

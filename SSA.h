@@ -17,8 +17,11 @@ public:
     SSA();
     void exe();
     void execute(double tStart, double tEnd, ContactNetwork &contNetwork,
-                 std::vector<double> &tSteps, std::vector<uint32_t> &nInfected,
-                 std::vector<std::vector<size_t>> &degreeDistr/*, std::vector<BenStructure> &benToFile*/);
+                 std::vector<double> &tSteps, std::vector<double> &tInfect,
+                 //std::vector<uint32_t> &nInfected,
+                 std::unordered_map<Specie::State, std::vector<uint32_t>> &populationState,
+                 std::vector<std::vector<size_t>> &degreeDistr,
+                 const std::string &saveDegreeDist/*, std::vector<BenStructure> &benToFile*/);
     ~SSA() {};
 
 private:
@@ -29,7 +32,10 @@ private:
                             std::vector<std::pair<double, lemon::ListGraph::Edge>> &propAdd,
                             std::vector<std::pair<double, lemon::ListGraph::Edge>> &propTransmit,
                             std::vector<std::pair<double, lemon::ListGraph::Node>> &propDiagnos,
-                            std::vector<std::pair<double, lemon::ListGraph::Node>> &propDeath
+                            std::vector<std::pair<double, lemon::ListGraph::Node>> &propDeath,
+                            std::vector<double> &tSteps, std::vector<double> &tInfect,
+                           std::unordered_map<Specie::State, std::vector<uint32_t>> &populationState,
+                            std::vector<std::vector<size_t>> &degreeDistr, const std::string &saveDegreeDist
                            /*, std::vector<BenStructure> &benToFile*/);
     double recycleRandUni();
 

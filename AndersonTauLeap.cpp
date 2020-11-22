@@ -8,7 +8,7 @@
 
 void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & contNetwork, double epsilon,
                      std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr,
-                     bool updateDegreeDistr, std::mt19937_64 &generator/*, std::vector<BenStructure> &benToFile*/)
+                     const std::string &saveDegreeDistMode, std::mt19937_64 &generator/*, std::vector<BenStructure> &benToFile*/)
 {
     size_t cntDel = 0;
     size_t cntAdd = 0;
@@ -44,8 +44,12 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
     double p = 0.75;
     double p1 = 0.9;
     double q = 0.98;
-    updateDegreeDistributio(updateDegreeDistr, t, timeSteps, degreeDistr, contNetwork);
 
+    if (saveDegreeDistMode == "c")
+    {
+        timeSteps.push_back(t);
+        degreeDistr.push_back(contNetwork.getDegreeDistribution());
+    }
     std::vector<std::vector<int>> nu = {{-1, 1}, {1, -1}};
     std::vector<size_t> X = {propDel.size() - 1, propAdd.size() - 1};
     double tau = getTau(N, nu, propensities, epsilon, X);
@@ -55,7 +59,11 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
         if (propensities.at(0) + propensities.at(1) == 0)
         {
             t = tEnd;
-            updateDegreeDistributio(updateDegreeDistr, t, timeSteps, degreeDistr, contNetwork);
+            if (saveDegreeDistMode == "c")
+            {
+                timeSteps.push_back(t);
+                degreeDistr.push_back(contNetwork.getDegreeDistribution());
+            }
             break;
         }
 
@@ -63,13 +71,12 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
         if (tau < 10.0 / (propensities.at(0) + propensities.at(1)))
         {
             executeSSA(100, tEnd, contNetwork, t, tLastNetworkUpdate, timeSteps, degreeDistr,
-                       updateDegreeDistr, generator, T, C, S);
+                       saveDegreeDistMode, generator, T, C, S);
             propDel = contNetwork.getEdgeDeletionRateSum();
             propAdd = contNetwork.getEdgeAdditionRateSum();
 
             propensities.at(0) = propDel.at(propDel.size() - 1).first;
             propensities.at(1) = propAdd.at(propAdd.size() - 1).first;
-            updateDegreeDistributio(updateDegreeDistr, t, timeSteps, degreeDistr, contNetwork);
             X = {propDel.size() - 1, propAdd.size() - 1};
             tau = getTau(2, nu, propensities, epsilon, X);
         }
@@ -87,24 +94,6 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
 
                     int aaa = poiss(generator);
                     NN.at(i) = aaa + (Sk.at(B).second - C.at(i));
-                    //std::cout << "NN_i = " << NN.at(i) << ", prop = " << propensities.at(i) << ", p.add size  = " << propAdd.size()<<std::endl;
-                    //std::cout << "p.add last = " << propAdd.at(propAdd.size() -1).first  << ", p.add prev last = " << propAdd.at(propAdd.size() - 2).first<<std::endl;
-
-                    if (NN.at(i) < 0 || NN.at(i) >= 2147483647)
-                    {
-                        std::cout << "less 0; i = " << i<< ", prop = " << propensities.at(i) << "; aaa =" << aaa << ", NN =" << NN.at(i) << "; lam = " << propensities.at(i) * tau + T.at(i) - Sk.at(B).first <<
-                                  "; Sk.at(B, 2) = " << Sk.at(B).second << "; Ci = " << C.at(i)<<std::endl;
-                        std::cout << "NN_i = " << NN.at(i)<<std::endl;
-                        std::cout << "p.add size  = " << propAdd.size()<<std::endl;
-                        for (auto pa : propAdd)
-                        {
-                            std::cout << pa.first << ", ";
-                        }
-                        std::cout <<std::endl;
-
-                        throw std::domain_error("NN less than zero1");
-                    }
-
                     row.at(i) = B;
                 }
                 else
@@ -119,15 +108,13 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
                             break;
                         }
                     }
-                    //std::cout << "index = " << index << "; tauk = " << propensities.at(i) * tau + T.at(i) << std::endl;
                     if (index ==0)
                     {
                         std::cout << "index 0" << std::endl;
                     }
-                    //std::cout << "check 7 " << std::endl;
-                    //std::cout << "binom, ";
+
                     double r = (T.at(i) + propensities.at(i) * tau - Sk.at(index - 1).first) / (Sk.at(index).first - Sk.at(index - 1).first);
-                    //std::cout << "r =" << r << std::endl;
+
 
                     std::binomial_distribution<> binom(Sk.at(index).second - Sk.at(index - 1).second, r);
 
@@ -155,7 +142,11 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
                 {
                     //tLastNetworkUpdate = t;
                     t = tEnd;
-                    updateDegreeDistributio(updateDegreeDistr, t, timeSteps, degreeDistr, contNetwork);
+                    if (saveDegreeDistMode == "c")
+                    {
+                        timeSteps.push_back(t);
+                        degreeDistr.push_back(contNetwork.getDegreeDistribution());
+                    }
                     break;
                 }
                 cntDel += NN.at(0);
@@ -195,8 +186,11 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
 
                 propensities.at(0) = propDel.at(propDel.size() - 1).first;
                 propensities.at(1) = propAdd.at(propAdd.size() - 1).first;
-                updateDegreeDistributio(updateDegreeDistr, t, timeSteps, degreeDistr, contNetwork);
-
+                if (saveDegreeDistMode == "c")
+                {
+                    timeSteps.push_back(t);
+                    degreeDistr.push_back(contNetwork.getDegreeDistribution());
+                }
 
             }
             else
@@ -221,7 +215,6 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
         }
     }
 
-    std::cout << "del = " << cntDel << ", add = "<< cntAdd <<", edges = " << contNetwork.countEdges()<<std::endl;
 }
 
 
@@ -288,7 +281,6 @@ void updateNetwork(std::vector<BenStructure> &benToFile, std::vector<int> k, int
             }
 
             std::pair<int, int> b = contNetwork.removeEdge(propDel.at(index).second);
-            //std::cout << "del: "<< b.first << ", " << b.second << std::endl;
             propDel.erase(propDel.begin() + index);
             benToFile.emplace_back(t, b.first, b.second, false);
         }
@@ -308,33 +300,33 @@ void updateNetwork(std::vector<BenStructure> &benToFile, std::vector<int> k, int
             }
 
             std::pair<int, int> b = contNetwork.addEdge(propAdd.at(index).second);
-           // std::cout << "add: "<< b.first << ", " << b.second << std::endl;
             propAdd.erase(propAdd.begin() + index);
             //benToFile.push_back(BenStructure(t, b.first, b.second, true));
             benToFile.emplace_back(t, b.first, b.second, true);
         }
     }
 
-    //std::cout << contNetwork.countEdges() << std::endl;
-    std::cout << "res = " <<  k.at(1) - k.at(0) << std::endl;
-
 }
 
 
 //TODO change contNetwork reference to const
-void updateDegreeDistributio(bool updateDegreeDistr, double t, std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr, const ContactNetwork  &contNetwork)
+void updateDegreeDistributio(const std::string & saveDegreeDistMode, double t,
+                             std::vector<double> &timeSteps,
+                             std::vector<std::vector<size_t>> &degreeDistr,
+                             const ContactNetwork  &contNetwork)
 {
-    if (updateDegreeDistr)
+    if (saveDegreeDistMode == "c" || saveDegreeDistMode == "v")
     {
         timeSteps.push_back(t);
         degreeDistr.push_back(contNetwork.getDegreeDistribution());
     }
+
 }
 
 
 void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
                 double &tLastNetworkUpdate, std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr,
-                bool updateDegreeDistr, std::mt19937_64 &generator,
+                const std::string & saveDegreeDistMode, std::mt19937_64 &generator,
                 std::vector<double> &T, std::vector<int> &C,
                 std::vector<std::vector<std::pair<double, int>>> &S)
 
@@ -358,7 +350,11 @@ void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
         {
             //tLastNetworkUpdate = tEnd; //used to update netw.Upd.Time
             t = tEnd;
-            updateDegreeDistributio(updateDegreeDistr, t, timeSteps, degreeDistr, contNetwork);
+            if (saveDegreeDistMode == "c")
+            {
+                timeSteps.push_back(t);
+                degreeDistr.push_back(contNetwork.getDegreeDistribution());
+            }
             break;
         }
 
@@ -370,7 +366,11 @@ void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
         {
             //tLastNetworkUpdate = t;
             t = tEnd;
-            updateDegreeDistributio(updateDegreeDistr, t, timeSteps, degreeDistr, contNetwork);
+            if (saveDegreeDistMode == "c")
+            {
+                timeSteps.push_back(t);
+                degreeDistr.push_back(contNetwork.getDegreeDistribution());
+            }
             break;
         }
 
@@ -429,7 +429,11 @@ void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
             }
             S.at(i).emplace(S.at(i).begin(), std::make_pair(T.at(i), C.at(i)));
         }
-        updateDegreeDistributio(updateDegreeDistr, t, timeSteps, degreeDistr, contNetwork);
+        if (saveDegreeDistMode == "c")
+        {
+            timeSteps.push_back(t);
+            degreeDistr.push_back(contNetwork.getDegreeDistribution());
+        }
 
     }
 }
@@ -561,17 +565,11 @@ void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, in
                 //benToFile.push_back(BenStructure(t, b.first, b.second, true));
 
                 lemon::ListGraph::Edge e = contNetwork.getEdge(b.first, b.second);
-
-                // TODO: with every del /add new contact rate of the edge changes. Take this into account? How?
-                //propDel.emplace_back(propDel.at(propDel.size() - 1).first + contNetwork.getEdgeDeletionRate(e), e);
+                propDel.emplace_back(propDel.at(propDel.size() - 1).first + contNetwork.getEdgeDeletionRate(e), e);
                 benToFile.emplace_back(t, b.first, b.second, true);
 
             }
         }
 
     }
-
-    //std::cout << contNetwork.countEdges() << std::endl;
-    std::cout << "res = " <<  k.at(1) - k.at(0) << std::endl;
-
 }

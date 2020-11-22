@@ -11,7 +11,7 @@
 
 void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & contNetwork, double epsilon,
                     std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr,
-                    bool updateDegreeDistr, std::mt19937_64 &generator/*, std::vector<BenStructure> &benToFile*/);
+                     const std::string &saveDegreeDistMode, std::mt19937_64 &generator/*, std::vector<BenStructure> &benToFile*/);
 
 void updateNetwork(std::vector<BenStructure> &benToFile, std::vector<int> k, int nDel, std::mt19937_64 &generator,
                     std::vector<std::pair<double, lemon::ListGraph::Edge>> &propAdd,
@@ -25,8 +25,9 @@ void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, in
                    ContactNetwork & contNetwork,
                    std::vector<double> &props);
 
-void updateDegreeDistributio(bool updateDegreeDistr, double t, std::vector<double> &timeSteps,
-                              std::vector<std::vector<size_t>> &degreeDistr, const ContactNetwork  &contNetwork);
+void updateDegreeDistributio(const std::string & saveDegreeDistMode, double t,
+                             std::vector<double> &timeSteps,
+                             std::vector<std::vector<size_t>> &degreeDistr, const ContactNetwork  &contNetwork);
 
 /*void exactAlgorithm(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
                     double &tLastNetworkUpdate, std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr,
@@ -36,7 +37,7 @@ void updateDegreeDistributio(bool updateDegreeDistr, double t, std::vector<doubl
 
 void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
                 double &tLastNetworkUpdate, std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr,
-                bool updateDegreeDistr, std::mt19937_64 &generator,
+                const std::string & saveDegreeDistMode, std::mt19937_64 &generator,
                 std::vector<double> &T, std::vector<int> &C,
                 std::vector<std::vector<std::pair<double, int>>> &S);
 
