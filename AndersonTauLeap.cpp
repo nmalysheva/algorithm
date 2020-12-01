@@ -218,7 +218,7 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
 }
 
 
-void updateNetwork(std::vector<BenStructure> &benToFile, std::vector<int> k, int nDel, std::mt19937_64 &generator,
+/*void updateNetwork(std::vector<BenStructure> &benToFile, std::vector<int> k, int nDel, std::mt19937_64 &generator,
                     std::vector<std::pair<double, lemon::ListGraph::Edge>> &propAdd,
                     std::vector<std::pair<double, lemon::ListGraph::Edge>> &propDel, double t,
                     ContactNetwork & contNetwork,
@@ -307,21 +307,8 @@ void updateNetwork(std::vector<BenStructure> &benToFile, std::vector<int> k, int
     }
 
 }
+*/
 
-
-//TODO change contNetwork reference to const
-void updateDegreeDistributio(const std::string & saveDegreeDistMode, double t,
-                             std::vector<double> &timeSteps,
-                             std::vector<std::vector<size_t>> &degreeDistr,
-                             const ContactNetwork  &contNetwork)
-{
-    if (saveDegreeDistMode == "c" || saveDegreeDistMode == "v")
-    {
-        timeSteps.push_back(t);
-        degreeDistr.push_back(contNetwork.getDegreeDistribution());
-    }
-
-}
 
 
 void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,

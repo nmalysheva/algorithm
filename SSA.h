@@ -1,6 +1,10 @@
-//
-// Created by Malysheva, Nadezhda on 2019-07-28.
-//
+/* Created by Malysheva, Nadezhda on 2019-07-28.
+ *
+ *
+ * Gillespie algorithm (SSA)
+ * TODO:: make it STATIC
+ */
+
 
 #ifndef ALGO_SSA_H
 #define ALGO_SSA_H
@@ -15,11 +19,11 @@ class SSA
 {
 public:
     SSA();
-    void exe();
+    void exe(); //
     void execute(double tStart, double tEnd, ContactNetwork &contNetwork,
                  std::vector<double> &tSteps, std::vector<double> &tInfect,
-                 //std::vector<uint32_t> &nInfected,
                  std::unordered_map<Specie::State, std::vector<uint32_t>> &populationState,
+                 std::vector<uint32_t> &numberOfTransmitEdges,
                  std::vector<std::vector<size_t>> &degreeDistr,
                  const std::string &saveDegreeDist/*, std::vector<BenStructure> &benToFile*/);
     ~SSA() {};
@@ -35,6 +39,7 @@ private:
                             std::vector<std::pair<double, lemon::ListGraph::Node>> &propDeath,
                             std::vector<double> &tSteps, std::vector<double> &tInfect,
                            std::unordered_map<Specie::State, std::vector<uint32_t>> &populationState,
+                           std::vector<uint32_t> &numberOfTransmitEdges,
                             std::vector<std::vector<size_t>> &degreeDistr, const std::string &saveDegreeDist
                            /*, std::vector<BenStructure> &benToFile*/);
     double recycleRandUni();

@@ -12,8 +12,6 @@
 
 Specie::Specie()
 {
-    //age = static_cast<unsigned char> (-1);
-
     maxNumberOfContacts = 0;
     numberOfContacts = 0;
 
@@ -22,7 +20,7 @@ Specie::Specie()
     looseContactRate = 0;
 
     state = S;
-    stateChangeTime =   0; // -infinity
+    stateChangeTime =   0;
 }
 
 
@@ -61,11 +59,7 @@ double Specie::getNewContactRate() const
 
 double Specie::getLooseContactRate() const
 {
-    double result = looseContactRate;// / numberOfContacts; //* numberOfContacts;
-    /*if (numberOfContacts == 0)
-    {
-        result = 0;
-    }*/
+    double result = looseContactRate;
     return result;
 }
 
@@ -128,7 +122,7 @@ double Specie::getLastStateChangeTime() const
 
 bool Specie::operator== (const Specie &sp) const
 {
-    bool result = ( /*age == sp.getAge() &&*/
+    bool result = (
                    maxNumberOfContacts == sp.getMaxNumberOfContacts() &&
                    numberOfContacts == sp.getNumberOfContacts() &&
                    deathRate == sp.getDeathRate() &&

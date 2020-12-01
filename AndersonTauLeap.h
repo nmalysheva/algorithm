@@ -1,6 +1,7 @@
-//
-// Created by Malysheva, Nadezhda on 21.07.20.
-//
+/*
+ * Created by Malysheva, Nadezhda on 21.07.20.
+ * TODO STATIC Class out of it
+*/
 
 #ifndef ALGO_ANDERSONTAULEAP_H
 #define ALGO_ANDERSONTAULEAP_H
@@ -13,11 +14,11 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
                     std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr,
                      const std::string &saveDegreeDistMode, std::mt19937_64 &generator/*, std::vector<BenStructure> &benToFile*/);
 
-void updateNetwork(std::vector<BenStructure> &benToFile, std::vector<int> k, int nDel, std::mt19937_64 &generator,
+/*void updateNetwork(std::vector<BenStructure> &benToFile, std::vector<int> k, int nDel, std::mt19937_64 &generator,
                     std::vector<std::pair<double, lemon::ListGraph::Edge>> &propAdd,
                     std::vector<std::pair<double, lemon::ListGraph::Edge>> &propDel, double t,
                     ContactNetwork & contNetwork,
-                    std::vector<double> &props);
+                    std::vector<double> &props);*/
 
 void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, int nDel, std::mt19937_64 &generator,
                    std::vector<std::pair<double, lemon::ListGraph::Edge>> &propAdd,
@@ -25,15 +26,6 @@ void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, in
                    ContactNetwork & contNetwork,
                    std::vector<double> &props);
 
-void updateDegreeDistributio(const std::string & saveDegreeDistMode, double t,
-                             std::vector<double> &timeSteps,
-                             std::vector<std::vector<size_t>> &degreeDistr, const ContactNetwork  &contNetwork);
-
-/*void exactAlgorithm(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
-                    double &tLastNetworkUpdate, std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr,
-                    bool updateDegreeDistr,  std::mt19937_64 &generator,
-                    std::vector<double> &T, std::vector<double> &C,
-                    std::vector<std::vector<std::pair<double, int>>> &S);*/
 
 void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
                 double &tLastNetworkUpdate, std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr,

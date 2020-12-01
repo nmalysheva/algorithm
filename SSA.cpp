@@ -25,7 +25,7 @@ void SSA::exe()
 void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
                   std::vector<double> &tSteps, std::vector<double> &tInfect,
                   std::unordered_map<Specie::State, std::vector<uint32_t>> &populationState,
-                  //std::vector<uint32_t> &nInfected,
+                  std::vector<uint32_t> &numberOfTransmitEdges,
                   std::vector<std::vector<size_t>> &degreeDistr, const std::string & saveDegreeDistMode
                   /*, std::vector<BenStructure> &benToFile*/)
 {
@@ -45,6 +45,7 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
         populationState.at(Specie::I).push_back(nInf);
         populationState.at(Specie::D).push_back(contNetwork.countByState(Specie::D));
         populationState.at(Specie::S).push_back(contNetwork.countByState(Specie::S));
+        numberOfTransmitEdges.push_back(contNetwork.getTransmissionRateSum().size() - 1);
     }
 
     std::vector<std::pair<double, lemon::ListGraph::Edge>> propDel;
@@ -97,6 +98,7 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
             if (saveDegreeDistMode == "v")
             {
                 populationState.at(Specie::I).push_back(nInf);
+                numberOfTransmitEdges.push_back(propTransmit.size() - 1);
                 populationState.at(Specie::D).push_back(contNetwork.countByState(Specie::D));
                 populationState.at(Specie::S).push_back(contNetwork.countByState(Specie::S));
             }
@@ -118,6 +120,7 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
             if (saveDegreeDistMode == "v")
             {
                 populationState.at(Specie::I).push_back(nInf);
+                numberOfTransmitEdges.push_back(propTransmit.size() - 1);
                 populationState.at(Specie::D).push_back(contNetwork.countByState(Specie::D));
                 populationState.at(Specie::S).push_back(contNetwork.countByState(Specie::S));
             }
@@ -136,7 +139,7 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
                 {
                     executeReaction(contNetwork, it.first, pSum, propensitieSum * r, time, nInf,
                                     propDel, propAdd, propTransmit, propDiagnos, propDeath,
-                                    tSteps, tInfect, populationState,
+                                    tSteps, tInfect, populationState, numberOfTransmitEdges,
                                     degreeDistr, saveDegreeDistMode);
                     break;
                 }
@@ -157,6 +160,7 @@ void SSA::executeReaction(ContactNetwork & contNetwork, const std::string &react
                            std::vector<std::pair<double, lemon::ListGraph::Node>> &propDeath,
                            std::vector<double> &tSteps, std::vector<double> &tInfect,
                            std::unordered_map<Specie::State, std::vector<uint32_t>> &populationState,
+                          std::vector<uint32_t> &numberOfTransmitEdges,
                            std::vector<std::vector<size_t>> &degreeDistr, const std::string &saveDegreeDistMode
                            /*,std::vector<BenStructure> &benToFile*/)
 {
@@ -206,6 +210,7 @@ void SSA::executeReaction(ContactNetwork & contNetwork, const std::string &react
             populationState.at(Specie::D).push_back(contNetwork.countByState(Specie::D));
             populationState.at(Specie::S).push_back(contNetwork.countByState(Specie::S));
             tInfect.push_back(time);
+            numberOfTransmitEdges.push_back(contNetwork.getTransmissionRateSum().size() - 1);
         }
 
     }
@@ -222,6 +227,7 @@ void SSA::executeReaction(ContactNetwork & contNetwork, const std::string &react
             populationState.at(Specie::I).push_back(nInf);
             populationState.at(Specie::D).push_back(contNetwork.countByState(Specie::D));
             populationState.at(Specie::S).push_back(contNetwork.countByState(Specie::S));
+            numberOfTransmitEdges.push_back(contNetwork.getTransmissionRateSum().size() - 1);
         }
     }
 
@@ -238,6 +244,7 @@ void SSA::executeReaction(ContactNetwork & contNetwork, const std::string &react
             populationState.at(Specie::I).push_back(nInf);
             populationState.at(Specie::D).push_back(contNetwork.countByState(Specie::D));
             populationState.at(Specie::S).push_back(contNetwork.countByState(Specie::S));
+            numberOfTransmitEdges.push_back(contNetwork.getTransmissionRateSum().size() - 1);
         }
     }
 
