@@ -19,11 +19,8 @@ NSA::NSA()
 
 }
 
-void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
-                  std::vector<double> &tSteps, std::vector<double> &tInfect,
-                  std::unordered_map<Specie::State, std::vector<uint32_t>> &populationState,
-                  std::vector<uint32_t> &numberOfTransmitEdges,
-                  std::vector<std::vector<size_t>> &degreeDistr, const std::string &saveDegreeDistMode,
+void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork, NetworkStorage &nwStorage,
+                  std::vector<double> &tInfect, const std::string &saveDegreeDistMode,
                   double epsilon, size_t &nRejections, size_t &nAcceptance, size_t &nThin/*,
                   std::vector<BenStructure> &benToFile*/)
 {
@@ -33,18 +30,8 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
 
     if (saveDegreeDistMode == "c" || saveDegreeDistMode == "v")
     {
-        tSteps.push_back(time);
-        degreeDistr.push_back(contNetwork.getDegreeDistribution());
+        nwStorage.emplace_back(time, contNetwork.getNetworkState());
     }
-
-    if (saveDegreeDistMode == "v")
-    {
-        populationState.at(Specie::I).push_back(nInf);
-        populationState.at(Specie::D).push_back(contNetwork.countByState(Specie::D));
-        populationState.at(Specie::S).push_back(contNetwork.countByState(Specie::S));
-        numberOfTransmitEdges.push_back(contNetwork.getTransmissionRateSum().size() - 1);
-    }
-
 
     double lookAheadTime  =  0; //init look-ahead time
     double propUpperLimit = -1; //init upper limit for propensitie sum
@@ -84,16 +71,7 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
             time = tEnd;
             if (saveDegreeDistMode == "c" || saveDegreeDistMode == "v")
             {
-                tSteps.push_back(time);
-                degreeDistr.push_back(contNetwork.getDegreeDistribution());
-            }
-
-            if (saveDegreeDistMode == "v")
-            {
-                populationState.at(Specie::I).push_back(nInf);
-                populationState.at(Specie::D).push_back(contNetwork.countByState(Specie::D));
-                populationState.at(Specie::S).push_back(contNetwork.countByState(Specie::S));
-                numberOfTransmitEdges.push_back(contNetwork.getTransmissionRateSum().size() - 1);
+                nwStorage.emplace_back(time, contNetwork.getNetworkState());
             }
             break;
         }
@@ -109,16 +87,7 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
                 time += lookAheadTime;
                 if (saveDegreeDistMode == "c" || saveDegreeDistMode == "v")
                 {
-                    tSteps.push_back(time);
-                    degreeDistr.push_back(contNetwork.getDegreeDistribution());
-                }
-
-                if (saveDegreeDistMode == "v")
-                {
-                    populationState.at(Specie::I).push_back(nInf);
-                    populationState.at(Specie::D).push_back(contNetwork.countByState(Specie::D));
-                    populationState.at(Specie::S).push_back(contNetwork.countByState(Specie::S));
-                    numberOfTransmitEdges.push_back(contNetwork.getTransmissionRateSum().size() - 1);
+                    nwStorage.emplace_back(time, contNetwork.getNetworkState());
                 }
             }
             else
@@ -128,7 +97,7 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
                 //update network
                 //PoissonTauleap(networkLastUpdate, time, contNetwork, epsilon, tSteps, degreeDistr, false/*, benToFile*/, generator);
                 double tmpUpd = networkLastUpdate;
-                AndersonTauLeap(networkLastUpdate, time, contNetwork, epsilon, tSteps, degreeDistr, "v"/*, benToFile*/, generator);
+                AndersonTauLeap(networkLastUpdate, time, contNetwork, epsilon, nwStorage, "v"/*, benToFile*/, generator);
 
                 if (tmpUpd < networkLastUpdate)
                 {
@@ -143,8 +112,7 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
 
                     if (saveDegreeDistMode == "c")
                     {
-                        tSteps.push_back(time);
-                        degreeDistr.push_back(contNetwork.getDegreeDistribution());
+                        nwStorage.emplace_back(time, contNetwork.getNetworkState());
                     }
                 }
 
@@ -170,8 +138,7 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
                             //std::cout << "accepted: " << it.first << std::endl;
 
                             executeReaction(contNetwork, it.first, pSum,propUpperLimit * r, time, nInf,
-                                    propTransmit,propDiagnos,propDeath, tSteps, tInfect,
-                                    populationState, numberOfTransmitEdges, degreeDistr, saveDegreeDistMode);
+                                    propTransmit,propDiagnos,propDeath, tInfect, nwStorage, saveDegreeDistMode);
 
                             propTransmit = contNetwork.getTransmissionRateSum();
                             propensities.at("transmission") = propTransmit.at(propTransmit.size() - 1).first;
@@ -242,10 +209,7 @@ void NSA::executeReaction(ContactNetwork & contNetwork, const std::string &react
                           std::vector<std::pair<double, lemon::ListGraph::Edge>> &propTransmit,
                           std::vector<std::pair<double, lemon::ListGraph::Node>> &propDiagnos,
                           std::vector<std::pair<double, lemon::ListGraph::Node>> &propDeath,
-                          std::vector<double> &tSteps, std::vector<double> &tInfect,
-                          std::unordered_map<Specie::State, std::vector<uint32_t>> &populationState,
-                          std::vector<uint32_t> &numberOfTransmitEdges,
-                          std::vector<std::vector<size_t>> &degreeDistr, const std::string &saveDegreeDistMode)
+                          std::vector<double> &tInfect,NetworkStorage &nwStorage, const std::string &saveDegreeDistMode)
 {
 
     if (reactId == "transmission")
@@ -257,13 +221,8 @@ void NSA::executeReaction(ContactNetwork & contNetwork, const std::string &react
 
         if (saveDegreeDistMode == "v")
         {
-            tSteps.push_back(time);
-            degreeDistr.push_back(contNetwork.getDegreeDistribution());
-            populationState.at(Specie::I).push_back(nInf);
-            populationState.at(Specie::D).push_back(contNetwork.countByState(Specie::D));
-            populationState.at(Specie::S).push_back(contNetwork.countByState(Specie::S));
+            nwStorage.emplace_back(time, contNetwork.getNetworkState());
             tInfect.push_back(time);
-            numberOfTransmitEdges.push_back(contNetwork.getTransmissionRateSum().size() - 1);
         }
     }
     else if (reactId == "diagnosis")
@@ -273,12 +232,7 @@ void NSA::executeReaction(ContactNetwork & contNetwork, const std::string &react
 
         if (saveDegreeDistMode == "v")
         {
-            tSteps.push_back(time);
-            degreeDistr.push_back(contNetwork.getDegreeDistribution());
-            populationState.at(Specie::I).push_back(nInf);
-            populationState.at(Specie::D).push_back(contNetwork.countByState(Specie::D));
-            populationState.at(Specie::S).push_back(contNetwork.countByState(Specie::S));
-            numberOfTransmitEdges.push_back(contNetwork.getTransmissionRateSum().size() - 1);
+            nwStorage.emplace_back(time, contNetwork.getNetworkState());
         }
     }
 
@@ -291,12 +245,7 @@ void NSA::executeReaction(ContactNetwork & contNetwork, const std::string &react
 
         if (saveDegreeDistMode == "v")
         {
-            tSteps.push_back(time);
-            degreeDistr.push_back(contNetwork.getDegreeDistribution());
-            populationState.at(Specie::I).push_back(nInf);
-            populationState.at(Specie::D).push_back(contNetwork.countByState(Specie::D));
-            populationState.at(Specie::S).push_back(contNetwork.countByState(Specie::S));
-            numberOfTransmitEdges.push_back(contNetwork.getTransmissionRateSum().size() - 1);
+            nwStorage.emplace_back(time, contNetwork.getNetworkState());
         }
     }
 }

@@ -11,7 +11,7 @@
 #include "ContactNetwork.h"
 
 void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & contNetwork, double epsilon,
-                    std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr,
+                     NetworkStorage &nwStorage,
                      const std::string &saveDegreeDistMode, std::mt19937_64 &generator/*, std::vector<BenStructure> &benToFile*/);
 
 /*void updateNetwork(std::vector<BenStructure> &benToFile, std::vector<int> k, int nDel, std::mt19937_64 &generator,
@@ -28,7 +28,7 @@ void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, in
 
 
 void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
-                double &tLastNetworkUpdate, std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr,
+                double &tLastNetworkUpdate, NetworkStorage &nwStorage,
                 const std::string & saveDegreeDistMode, std::mt19937_64 &generator,
                 std::vector<double> &T, std::vector<int> &C,
                 std::vector<std::vector<std::pair<double, int>>> &S);

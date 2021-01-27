@@ -54,9 +54,6 @@ template <typename T> size_t binarySearch(std::vector<std::pair<double, T>> prop
         throw std::domain_error(msg);
     }
 
-    // We reach here when element is not
-    // present in array
-
 }
 
 

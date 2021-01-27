@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include "AndersonTauLeap.h"
+#include "types.h"
 
 using namespace lemon;
 using namespace std;
@@ -33,11 +34,6 @@ void executeSSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
     std::cout <<"Nodes: "  << nPopulation <<std::endl;
     std::cout <<"Edges: "  << startEdges <<std::endl;
 
-    std::vector<double> timeSteps;
-    timeSteps.reserve(1e4 + 1);
-
-    std::vector<std::vector<size_t>> degreeDistr; // vector stores degree dist. per time step
-    degreeDistr.reserve(1e6 + 1);
 
     std::vector<double> timeInfection; // vector stores times of infection
     timeInfection.reserve(1e4 + 1);
@@ -45,15 +41,12 @@ void executeSSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
     std::vector<uint32_t> numberOfTransmitEdges;// vector stores num. of edges eligible for transmission
     numberOfTransmitEdges.reserve(1e+4 + 1);
 
-    std::unordered_map<Specie::State, std::vector<uint32_t>> populationState{
-            {Specie::I, {}},
-            {Specie::D, {}},
-            {Specie::S, {}}
-    };// map stores num. of species of each state
+    NetworkStorage nwStorage;
+    nwStorage.reserve(1e6 + 1);
 
     SSA ssa;
     auto start_time = std::chrono::high_resolution_clock::now();
-    ssa.execute(tStart, tEnd, contNetwork, timeSteps, timeInfection, populationState, numberOfTransmitEdges, degreeDistr, "v"/*, benToFile*/);
+    ssa.execute(tStart, tEnd, contNetwork, nwStorage,timeInfection,numberOfTransmitEdges,"v"/*, benToFile*/);
     auto end_time = std::chrono::high_resolution_clock::now();
     auto time = end_time - start_time;
 
@@ -85,77 +78,74 @@ void executeSSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
     ofstream newFile;
     newFile.open(fileName);
 
-    //newFile << "duration in CPU time: " << time;
-    newFile << "duration in milliseconds: " << chrono::duration <double, milli> (time).count() << std::endl;
-    newFile << "population start: " << nPopulation << std::endl;
-    newFile << "population end: " << contNetwork.size() << std::endl;
-    newFile << "edges: " << startEdges << std::endl;
-    newFile << "infected start: " << nInfected << std::endl;
-    newFile << "infected end: " << contNetwork.countByState(Specie::I) + contNetwork.countByState(Specie::D) << std::endl;
+    newFile << "{";
+    newFile << "\"duration_in_milliseconds\" : " << chrono::duration <double, milli> (time).count() << ", ";
+    newFile << "\"population_start\" : " << nPopulation << ",";
+    newFile << "\"population_end\": " << contNetwork.size() << ",";
+    newFile << "\"edges\": " << startEdges << ",";
+    newFile << "\"infected_start\": " << nInfected << ",";
+    newFile << "\"infected_end\": " << contNetwork.countByState(Specie::I) + contNetwork.countByState(Specie::D) << ",";
 
 
-    newFile << "max contact range: " << maxContactsA << " "  << maxContactsB << std::endl;
-    newFile << "transmission rate: " << transmRate << std::endl;
-    newFile << "rate of make a new contact: " << newContRate << std::endl;
-    newFile << "rate of loose a contact: " << looseContRate << std::endl;
-    newFile << "death rate: " << dRate << std::endl;
-    newFile << "birth rate: " << bRate << std::endl;
-    newFile << "diagnosis rate: " << diagnRate << std::endl;
-    newFile << "transmission rate: " << transmRate << std::endl;
-
-    newFile << "time steps: "<< std::endl;
-    for (const auto &tStep: timeSteps)
-    {
-        newFile << tStep << ' ';
-    }
-    newFile << std::endl;
-
-    newFile << "number of infected: "<< std::endl;
-    for (size_t i = 0; i < populationState.at(Specie::I).size(); i++)
-    {
-        newFile << populationState.at(Specie::I).at(i) << ' ';
-    }
-    newFile << std::endl;
-
-    newFile << "number of diagnosed: "<< std::endl;
-    for (size_t i = 0; i < populationState.at(Specie::D).size(); i++)
-    {
-        newFile << populationState.at(Specie::D).at(i) << ' ';
-    }
-    newFile << std::endl;
-
-    newFile << "number of susceptible: "<< std::endl;
-    for (size_t i = 0; i < populationState.at(Specie::S).size(); i++)
-    {
-        newFile << populationState.at(Specie::S).at(i) << ' ';
-    }
-    newFile << std::endl;
-
-    newFile << "infect. time: "<< std::endl;
+    newFile << "\"max_contact_range\" : [" << maxContactsA << ", "  << maxContactsB << "],";
+    newFile << "\"transmission_rate\" : " << transmRate << ",";
+    newFile << "\"rate_of_make_a_new_contact\" : " << newContRate << ",";
+    newFile << "\"rate_of_loose_a_contact\" : " << looseContRate << ",";
+    newFile << "\"death_rate\" : " << dRate << ",";
+    newFile << "\"birth_rate\" : " << bRate << ",";
+    newFile << "\"diagnosis_rate\" : " << diagnRate << ",";
+    newFile << "\"transmission_rate\" : " << transmRate << ",";
+    newFile << "\"infect_time\" : [";
+    std::string delim = "";
     for (size_t i = 0; i < timeInfection.size(); i++)
     {
-        newFile << timeInfection.at(i) << ' ';
+        newFile << delim << timeInfection.at(i);
+        delim = ", ";
     }
-    newFile << std::endl;
+    newFile << "], ";
 
-    newFile << "number of edges with inf.: "<< std::endl;
+    /*newFile << "number of edges with inf.: "<< std::endl;
     for (size_t i = 0; i < numberOfTransmitEdges.size(); i++)
     {
         newFile << numberOfTransmitEdges.at(i) << ' ';
-    }
-    newFile <<  std::endl;
+    }*/
 
-    newFile << "degree distribution:" << std::endl;
-    for (const auto &deegreDist: degreeDistr)
+
+    newFile << "\"networkStates\" : " <<  "[";
+
+
+    delim = "";
+    for (const auto &item : nwStorage)
     {
-        std::vector<size_t> degreeDatTime = deegreDist;
-        for (size_t j = 0;  j < degreeDatTime.size(); j++)
-        {
-            newFile << degreeDatTime.at(j) << ' ';
-        }
-        newFile << std::endl;
+        newFile << delim;
+        delim = ",";
+        newFile << "{";
 
+        newFile << "\"time\" : " << item.first << ", ";
+        newFile << "\"nw_states\" : " <<  "[";
+
+        std::string delim2 = "";
+        for (const auto &spcs : item.second)
+        {
+            newFile << delim2;
+            delim2 = ", ";
+            newFile << "{";
+            newFile << "\"id\" : " << spcs.id << ", ";
+            newFile << "\"state\" : " << spcs.state << ", ";
+            newFile << "\"neighbors\" : " <<  "[";
+            std::string delim3 = "";
+            for (const auto &nghbr : spcs.contacts)
+            {
+                newFile  << delim3 << nghbr;
+                delim3 = ",";
+            }
+            newFile << "]}";
+        }
+
+        newFile << "]}";
     }
+    newFile << "]}";
+    newFile << std::endl;
 
 
     newFile.close();
@@ -183,23 +173,12 @@ void executeNSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
     size_t nPopulation = contNetwork.size();
     size_t startEdges = contNetwork.countEdges();
 
-    std::vector<double> timeSteps;
-    timeSteps.reserve(1e4 + 1);
-
-    std::vector<std::vector<size_t>> degreeDistr; // vector stores degree dist. per time step
-    degreeDistr.reserve(1e6 + 1);
 
     std::vector<double> timeInfection;
     timeInfection.reserve(1e4 + 1);
 
-    std::vector<uint32_t> numberOfTransmitEdges;
-    numberOfTransmitEdges.reserve(1e+4 + 1);
-
-    std::unordered_map<Specie::State, std::vector<uint32_t>> populationState{
-            {Specie::I, {}},
-            {Specie::D, {}},
-            {Specie::S, {}}
-    };
+    NetworkStorage nwStorage;
+    nwStorage.reserve(1e6 + 1);
 
     size_t nRejections = 0;
     size_t nAcceptance = 0;
@@ -208,7 +187,7 @@ void executeNSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
 
     NSA nsa;
     auto start_time = std::chrono::high_resolution_clock::now();
-    nsa.execute(tStart, tEnd, contNetwork, timeSteps, timeInfection, populationState, numberOfTransmitEdges, degreeDistr, "v",  epsilon,nRejections, nAcceptance, nThin/*, benToFile*/);
+    nsa.execute(tStart, tEnd, contNetwork, nwStorage, timeInfection,  "v",  epsilon,nRejections, nAcceptance, nThin/*, benToFile*/);
     auto end_time = std::chrono::high_resolution_clock::now();
     auto time = end_time - start_time;
 
@@ -240,78 +219,72 @@ void executeNSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
     ofstream newFile;
     newFile.open(fileName);
 
-    newFile << "duration in milliseconds: " << chrono::duration <double, milli> (time).count() << std::endl;
-    newFile << "population start: " << nPopulation << std::endl;
-    newFile << "population end: " << contNetwork.size() << std::endl;
-    newFile << "edges: " << startEdges << std::endl;
-    newFile << "infected start: " << nInfected << std::endl;
-    newFile << "infected end: " << contNetwork.countByState(Specie::I) + contNetwork.countByState(Specie::D)<< std::endl;
+    newFile << "{";
+    newFile << "\"duration_in_milliseconds\" : " << chrono::duration <double, milli> (time).count() << ", ";
+    newFile << "\"population_start\" : " << nPopulation << ",";
+    newFile << "\"population_end\": " << contNetwork.size() << ",";
+    newFile << "\"edges\": " << startEdges << ",";
+    newFile << "\"infected_start\": " << nInfected << ",";
+    newFile << "\"infected_end\": " << contNetwork.countByState(Specie::I) + contNetwork.countByState(Specie::D) << ",";
 
-    newFile << "max contact range: " << maxContactsA << " "  << maxContactsB << std::endl;
-    newFile << "transmission rate: " << transmRate << std::endl;
-    newFile << "rate of make a new contact: " << newContRate << std::endl;
-    newFile << "rate of loose a contact: " << looseContRate << std::endl;
-    newFile << "death rate: " << dRate << std::endl;
-    newFile << "birth rate: " << bRate << std::endl;
-    newFile << "diagnosis rate: " << diagnRate << std::endl;
-    newFile << "transmission rate: " << transmRate << std::endl;
-    newFile << "epsilon: " << epsilon << std::endl;
-    newFile << "rejected: " << nRejections << std::endl;
-    newFile << "accepted: " << nAcceptance << std::endl;
-    newFile << "thined: "   << nThin << std::endl;
+    newFile << "\"max_contact_range\" : [" << maxContactsA << ", "  << maxContactsB << "],";
+    newFile << "\"transmission_rate\" : " << transmRate << ",";
+    newFile << "\"rate_of_make_a_new_contact\" : " << newContRate << ",";
+    newFile << "\"rate_of_loose_a_contact\" : " << looseContRate << ",";
+    newFile << "\"death_rate\" : " << dRate << ",";
+    newFile << "\"birth_rate\" : " << bRate << ",";
+    newFile << "\"diagnosis_rate\" : " << diagnRate << ",";
+    newFile << "\"transmission_rate\" : " << transmRate << ",";
+    newFile << "\"epsilon\" : " << epsilon <<  ",";
+    newFile << "\"rejected\" : " << nRejections << ",";
+    newFile << "\"accepted\" : " << nAcceptance << ",";
+    newFile << "\"thined\" : "   << nThin << ",";
 
-    newFile << "time steps: "<< std::endl;
-    for (const auto &tStep: timeSteps)
-    {
-        newFile << tStep << ' ';
-    }
-    newFile << std::endl;
-
-    newFile << "number of infected: "<< std::endl;
-    for (size_t i = 0; i < populationState.at(Specie::I).size(); i++)
-    {
-        newFile << populationState.at(Specie::I).at(i) << ' ';
-    }
-    newFile << std::endl;
-
-    newFile << "number of diagnosed: "<< std::endl;
-    for (size_t i = 0; i < populationState.at(Specie::D).size(); i++)
-    {
-        newFile << populationState.at(Specie::D).at(i) << ' ';
-    }
-    newFile << std::endl;
-
-    newFile << "number of susceptible: "<< std::endl;
-    for (size_t i = 0; i < populationState.at(Specie::S).size(); i++)
-    {
-        newFile << populationState.at(Specie::S).at(i) << ' ';
-    }
-    newFile << std::endl;
-
-    newFile << "infect. time: "<< std::endl;
+    newFile << "\"infect_time\" : [";
+    std::string delim = "";
     for (size_t i = 0; i < timeInfection.size(); i++)
     {
-        newFile << timeInfection.at(i) << ' ';
+        newFile << delim << timeInfection.at(i);
+        delim = ", ";
     }
-    newFile <<  std::endl;
+    newFile << "], ";
 
-    newFile << "number of edges with inf.: "<< std::endl;
-    for (size_t i = 0; i < numberOfTransmitEdges.size(); i++)
-    {
-        newFile << numberOfTransmitEdges.at(i) << ' ';
-    }
-    newFile <<  std::endl;
+    newFile << "\"networkStates\" : " <<  "[";
 
-    newFile << "degree distribution:" << std::endl;
-    for (size_t i = 0; i < degreeDistr.size(); i++)
+
+    delim = "";
+    for (const auto &item : nwStorage)
     {
-        std::vector<size_t> degrreDatTime = degreeDistr.at(i);
-        for (size_t j = 0;  j< degrreDatTime.size(); j++)
+        newFile << delim;
+        delim = ",";
+        newFile << "{";
+
+        newFile << "\"time\" : " << item.first << ", ";
+        newFile << "\"nw_states\" : " <<  "[";
+
+        std::string delim2 = "";
+        for (const auto &spcs : item.second)
         {
-            newFile << degrreDatTime.at(j) << ' ';
+            newFile << delim2;
+            delim2 = ", ";
+            newFile << "{";
+            newFile << "\"id\" : " << spcs.id << ", ";
+            newFile << "\"state\" : " << spcs.state << ", ";
+            newFile << "\"neighbors\" : " <<  "[";
+            std::string delim3 = "";
+            for (const auto &nghbr : spcs.contacts)
+            {
+                newFile  << delim3 << nghbr;
+                delim3 = ",";
+            }
+            newFile << "]}";
         }
-        newFile << std::endl;
+
+        newFile << "]}";
     }
+    newFile << "]}";
+    newFile << std::endl;
+
     newFile.close();
 
 }
@@ -424,7 +397,6 @@ void executeNSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
 void executeSSAOnlyContactUpdate(double tStart, double tEnd, size_t nPopulation, size_t nEdges,int maxContactsA, int maxContactsB,
                  double newContRate, double looseContRate,  size_t simulationNumber)
 {
-    ///UniqueID().reset();
     ContactNetwork contNetwork(0,
                                nPopulation,
                                nEdges,
@@ -444,28 +416,18 @@ void executeSSAOnlyContactUpdate(double tStart, double tEnd, size_t nPopulation,
     std::cout <<"Nodes: "  << nPopulation <<std::endl;
     std::cout <<"Edges: "  << startEdges <<std::endl;
 
-    std::vector<double> timeSteps;
-    timeSteps.reserve(1e4 + 1);
-
-    std::vector<std::vector<size_t>> degreeDistr; // vector stores degree dist. per time step
-    degreeDistr.reserve(1e6 + 1);
-
     std::vector<double> timeInfection;
     timeInfection.reserve(1e4 + 1);
 
     std::vector<uint32_t> numberOfTransmitEdges;
     numberOfTransmitEdges.reserve(1e+4 + 1);
 
-    std::unordered_map<Specie::State, std::vector<uint32_t>> populationState{
-            {Specie::I, {}},
-            {Specie::D, {}},
-            {Specie::S, {}}
-    };
-
+    NetworkStorage nwStorage;
+    nwStorage.reserve(1e6 + 1);
 
     SSA ssa;
     auto start_time = std::chrono::high_resolution_clock::now();
-    ssa.execute(tStart, tEnd, contNetwork, timeSteps, timeInfection, populationState, numberOfTransmitEdges, degreeDistr, "c"/*, benToFile*/);
+    ssa.execute(tStart, tEnd, contNetwork, nwStorage, /*timeSteps,*/ timeInfection, /*populationState,*/ numberOfTransmitEdges, /*degreeDistr,*/ "c"/*, benToFile*/);
     auto end_time = std::chrono::high_resolution_clock::now();
     auto time = end_time - start_time;
 
@@ -497,23 +459,42 @@ void executeSSAOnlyContactUpdate(double tStart, double tEnd, size_t nPopulation,
     newFile << "rate of make a new contact: " << newContRate << std::endl;
     newFile << "rate of loose a contact: " << looseContRate << std::endl;
 
+    newFile << "{";
+    newFile << "\"networkStates\" : " <<  "[";
 
-    for (size_t i = 0; i < timeSteps.size(); i++)
+    std::string delim = "";
+    for (const auto &item : nwStorage)
     {
-        newFile << timeSteps.at(i) << ' ';
+        newFile << delim;
+        delim = ",";
+        newFile << "{";
+
+        newFile << "\"time\" : " << item.first << ", ";
+        newFile << "\"nw_states\" : " <<  "[";
+
+        std::string delim2 = "";
+        for (const auto &spcs : item.second)
+        {
+            newFile << delim2;
+            delim2 = ", ";
+            newFile << "{";
+            newFile << "\"id\" : " << spcs.id << ", ";
+            newFile << "\"state\" : " << spcs.state << ", ";
+            newFile << "\"neighbors\" : " <<  "[";
+            std::string delim3 = "";
+            for (const auto &nghbr : spcs.contacts)
+            {
+                newFile  << delim3 << nghbr;
+                delim3 = ",";
+            }
+            newFile << "]}";
+        }
+
+        newFile << "]}";
     }
+    newFile << "]}";
     newFile << std::endl;
 
-    newFile << "degree distribution:" << std::endl;
-    for (size_t i = 0; i < degreeDistr.size(); i++)
-    {
-        std::vector<size_t> degrreDatTime = degreeDistr.at(i);
-        for (size_t j = 0;  j< degrreDatTime.size(); j++)
-        {
-            newFile << degrreDatTime.at(j) << ' ';
-        }
-        newFile << std::endl;
-    }
 
     newFile.close();
     std::cout << "end save SSA" << std::endl;
@@ -575,8 +556,9 @@ void executeNSAOnlyContactUpdate(double tStart, double tEnd, size_t nPopulation,
     std::mt19937_64 generator = std::mt19937_64(rDev());
     generator.seed(::time(nullptr) * getpid()); //to change the seed for every run
 
+    NetworkStorage nwStorage;
     //PoissonTauleap(tStart, tEnd, contNetwork, epsilon, timeSteps, degreeDistr, true/*, benToFile*/, generator);
-    AndersonTauLeap(tStart, tEnd, contNetwork, epsilon, timeSteps, degreeDistr, "c"/*, benToFile*/, generator);
+    AndersonTauLeap(tStart, tEnd, contNetwork, epsilon, nwStorage, "c"/*, benToFile*/, generator);
 
     auto end_time = std::chrono::high_resolution_clock::now();
     auto time = end_time - start_time;

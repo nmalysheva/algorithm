@@ -429,6 +429,7 @@ void ContactNetwork::executeDiagnosis(lemon::ListGraph::Node & node, double time
 
     diagnosisRates[node] = 0;
 
+    std::cout << "DIAGNOSIS!!!!" << std::endl;
     //adaptivity: as soon as diagnosed, cut all contacts and reduce
     //new contact rate to 30%
     lemon::ListGraph::IncEdgeIt ieIt(network, node);
@@ -438,8 +439,10 @@ void ContactNetwork::executeDiagnosis(lemon::ListGraph::Node & node, double time
         ++ieIt;
         removeEdge(tmpIt);
     }
+    std::cout << "old rate: " << population.at(nodeUID).getNewContactRate() << std::endl;
     population.at(nodeUID).setNewContactRate(
-            population.at(nodeUID).getNewContactRate() * 0.3);
+            population.at(nodeUID).getNewContactRate() * 0.03);
+    std::cout << "new rate: " << population.at(nodeUID).getNewContactRate() << std::endl;
 
 }
 
@@ -571,7 +574,7 @@ ContactNetwork& ContactNetwork::operator=(const ContactNetwork& other)
 std::vector<size_t> ContactNetwork::getDegreeDistribution() const
 {
     std::vector<size_t> result;
-    result.reserve(maxContactsLimitU); //reserving space for vector.
+    result.reserve(1e6); //reserving space for vector.
 
     for(lemon::ListGraph::NodeIt nIt(network); nIt!=lemon::INVALID; ++nIt)
     {
@@ -583,6 +586,39 @@ std::vector<size_t> ContactNetwork::getDegreeDistribution() const
         }
 
         result.push_back(degree);
+    }
+
+    return result;
+}
+
+std::vector<specieState> ContactNetwork::getNetworkState() const
+{
+    std::vector<specieState> result;
+    result.reserve(this->size()); //reserving space for vector.
+
+    for(lemon::ListGraph::NodeIt nIt(network); nIt!=lemon::INVALID; ++nIt)
+    {
+        specieState spState;
+
+        int nodeId = nodeIdMap[nIt];
+
+        spState.id = nodeId;
+        Specie::State st = population.at(nodeId).getState();
+
+        spState.state = st;
+
+        std::vector<int> neighbors;
+        neighbors.reserve(maxContactsLimitU);
+        for(lemon::ListGraph::IncEdgeIt e(network, nIt); e!=lemon::INVALID; ++e)
+        {
+            lemon::ListGraph::Node neighbor = network.oppositeNode(nIt, e);
+            neighbors.push_back(nodeIdMap[neighbor]);
+        }
+        neighbors.shrink_to_fit();
+
+        spState.contacts = neighbors;
+
+        result.push_back(spState);
     }
 
     return result;

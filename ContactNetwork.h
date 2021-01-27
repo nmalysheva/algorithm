@@ -22,6 +22,7 @@
 #include <lemon/maps.h>
 #include "Specie.h"
 #include <random>
+#include "types.h"
 
 
 struct BenStructure
@@ -135,6 +136,7 @@ public:
      * @return vector of the degrees of each node in the network
     */
     std::vector<size_t> getDegreeDistribution() const;
+    std::vector<specieState> getNetworkState() const;
 
     std::vector<BenStructure> getBenStructure(double t); //
 

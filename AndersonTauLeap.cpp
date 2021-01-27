@@ -4,10 +4,11 @@
 
 #include "AndersonTauLeap.h"
 #include "Utility.h"
+#include "types.h"
 #include <queue>
 
 void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & contNetwork, double epsilon,
-                     std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr,
+                     NetworkStorage &nwStorage,
                      const std::string &saveDegreeDistMode, std::mt19937_64 &generator/*, std::vector<BenStructure> &benToFile*/)
 {
     size_t cntDel = 0;
@@ -47,8 +48,7 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
 
     if (saveDegreeDistMode == "c")
     {
-        timeSteps.push_back(t);
-        degreeDistr.push_back(contNetwork.getDegreeDistribution());
+        nwStorage.emplace_back(t, contNetwork.getNetworkState());
     }
     std::vector<std::vector<int>> nu = {{-1, 1}, {1, -1}};
     std::vector<size_t> X = {propDel.size() - 1, propAdd.size() - 1};
@@ -61,8 +61,7 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
             t = tEnd;
             if (saveDegreeDistMode == "c")
             {
-                timeSteps.push_back(t);
-                degreeDistr.push_back(contNetwork.getDegreeDistribution());
+                nwStorage.emplace_back(t, contNetwork.getNetworkState());
             }
             break;
         }
@@ -70,7 +69,7 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
         //TODO !! CHECK THE CONDITION
         if (tau < 10.0 / (propensities.at(0) + propensities.at(1)))
         {
-            executeSSA(100, tEnd, contNetwork, t, tLastNetworkUpdate, timeSteps, degreeDistr,
+            executeSSA(100, tEnd, contNetwork, t, tLastNetworkUpdate, nwStorage,
                        saveDegreeDistMode, generator, T, C, S);
             propDel = contNetwork.getEdgeDeletionRateSum();
             propAdd = contNetwork.getEdgeAdditionRateSum();
@@ -144,8 +143,7 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
                     t = tEnd;
                     if (saveDegreeDistMode == "c")
                     {
-                        timeSteps.push_back(t);
-                        degreeDistr.push_back(contNetwork.getDegreeDistribution());
+                        nwStorage.emplace_back(t, contNetwork.getNetworkState());
                     }
                     break;
                 }
@@ -188,8 +186,7 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
                 propensities.at(1) = propAdd.at(propAdd.size() - 1).first;
                 if (saveDegreeDistMode == "c")
                 {
-                    timeSteps.push_back(t);
-                    degreeDistr.push_back(contNetwork.getDegreeDistribution());
+                    nwStorage.emplace_back(t, contNetwork.getNetworkState());
                 }
 
             }
@@ -312,7 +309,7 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
 
 
 void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
-                double &tLastNetworkUpdate, std::vector<double> &timeSteps, std::vector<std::vector<size_t>> &degreeDistr,
+                double &tLastNetworkUpdate, NetworkStorage &nwStorage,
                 const std::string & saveDegreeDistMode, std::mt19937_64 &generator,
                 std::vector<double> &T, std::vector<int> &C,
                 std::vector<std::vector<std::pair<double, int>>> &S)
@@ -339,8 +336,7 @@ void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
             t = tEnd;
             if (saveDegreeDistMode == "c")
             {
-                timeSteps.push_back(t);
-                degreeDistr.push_back(contNetwork.getDegreeDistribution());
+                nwStorage.emplace_back(t, contNetwork.getNetworkState());
             }
             break;
         }
@@ -355,8 +351,7 @@ void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
             t = tEnd;
             if (saveDegreeDistMode == "c")
             {
-                timeSteps.push_back(t);
-                degreeDistr.push_back(contNetwork.getDegreeDistribution());
+                nwStorage.emplace_back(t, contNetwork.getNetworkState());
             }
             break;
         }
@@ -418,8 +413,7 @@ void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
         }
         if (saveDegreeDistMode == "c")
         {
-            timeSteps.push_back(t);
-            degreeDistr.push_back(contNetwork.getDegreeDistribution());
+            nwStorage.emplace_back(t, contNetwork.getNetworkState());
         }
 
     }
@@ -468,6 +462,7 @@ void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, in
     if (maxEdgesDelete < k.at(0))
     {
         std::cout << "EXceed NDEL!!!" << std::endl;
+        std::cout << "del: " << k.at(0) << ", add: " << k.at(1) << ", total: " << maxEdgesDelete << std::endl;
         for (size_t i = 1; i < propDel.size(); i ++)
         {
             contNetwork.removeEdge(propDel.at(i).second);
