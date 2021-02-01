@@ -94,13 +94,12 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork, Netwo
             {
                 time += proposedTime;
 
-                //update network
-                //PoissonTauleap(networkLastUpdate, time, contNetwork, epsilon, tSteps, degreeDistr, false/*, benToFile*/, generator);
-                double tmpUpd = networkLastUpdate;
+                //double tmpUpd = networkLastUpdate;
                 AndersonTauLeap(networkLastUpdate, time, contNetwork, epsilon, nwStorage, "v"/*, benToFile*/, generator);
+                networkLastUpdate = time;
 
-                if (tmpUpd < networkLastUpdate)
-                {
+                //if (tmpUpd < networkLastUpdate)
+                //{
                     std::cout << "time = " << time <<", lastUpdate = " << networkLastUpdate<<std::endl;
                     propTransmit = contNetwork.getTransmissionRateSum();
                     propensities.at("transmission") = propTransmit.at(propTransmit.size() - 1).first;
@@ -114,7 +113,7 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork, Netwo
                     {
                         nwStorage.emplace_back(time, contNetwork.getNetworkState());
                     }
-                }
+                //}
 
                 double propensitieSum = 0;
                 for (auto &it: propensities)

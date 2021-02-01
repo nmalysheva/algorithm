@@ -5,7 +5,7 @@
 #include "AndersonTauLeap.h"
 #include "Utility.h"
 #include "types.h"
-#include <queue>
+#include <fstream>
 
 void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & contNetwork, double epsilon,
                      NetworkStorage &nwStorage,
@@ -465,7 +465,13 @@ void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, in
         std::cout << "del: " << k.at(0) << ", add: " << k.at(1) << ", total: " << maxEdgesDelete << std::endl;
         for (size_t i = 1; i < propDel.size(); i ++)
         {
-            contNetwork.removeEdge(propDel.at(i).second);
+            std::pair<int, int> b = contNetwork.removeEdge(propDel.at(i).second);
+
+            //for ben structure
+            std::ofstream out;
+            out.open("Ben_Cont_Dyn_NSA.txt", std::ios::app);
+            out << t << " " << b.first << " " << b.second << " False" << std::endl ;
+            out.close();
         }
 
         propAdd = contNetwork.getEdgeAdditionRateSum();
@@ -485,6 +491,12 @@ void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, in
 
             std::pair<int, int> b = contNetwork.addEdge(propAdd.at(index).second);
             propAdd.erase(propAdd.begin() + index);
+
+            //for ben structure
+            std::ofstream out;
+            out.open("Ben_Cont_Dyn_NSA.txt", std::ios::app);
+            out << t << " " << b.first << " " << b.second << " True" << std::endl ;
+            out.close();
         }
     }
 
@@ -521,6 +533,12 @@ void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, in
 
                 std::pair<int, int> b = contNetwork.removeEdge(propDel.at(index).second);
 
+                //for ben structure
+                std::ofstream out;
+                out.open("Ben_Cont_Dyn_NSA.txt", std::ios::app);
+                out << t << " " << b.first << " " << b.second << " False" << std::endl ;
+                out.close();
+
 
                 propDel.erase(propDel.begin() + index);
 
@@ -542,9 +560,13 @@ void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, in
                 }
 
                 std::pair<int, int> b = contNetwork.addEdge(propAdd.at(index).second);
-                // std::cout << "add: "<< b.first << ", " << b.second << std::endl;
                 propAdd.erase(propAdd.begin() + index);
-                //benToFile.push_back(BenStructure(t, b.first, b.second, true));
+
+                //for ben structure
+                std::ofstream out;
+                out.open("Ben_Cont_Dyn_NSA.txt", std::ios::app);
+                out << t << " " << b.first << " " << b.second << " True" << std::endl ;
+                out.close();
 
                 lemon::ListGraph::Edge e = contNetwork.getEdge(b.first, b.second);
                 propDel.emplace_back(propDel.at(propDel.size() - 1).first + contNetwork.getEdgeDeletionRate(e), e);

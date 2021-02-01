@@ -6,13 +6,12 @@
 #include "UniqueID.h"
 #include <random>
 #include <lemon/full_graph.h>
-#include <map>
-#include <set>
 #include <unistd.h>
 #include <algorithm>
 #include <lemon/adaptors.h>
 #include <stdexcept>
 #include <iostream>
+#include <fstream>
 
 void ContactNetwork::init(size_t nInfected, size_t nSusceptible, size_t nEdges, int maxContactsL, int MaxContactsU,
                           double transmRate, double newContRate, double looseContRate, double diagnRate, double dRate, double bRate)
@@ -34,6 +33,7 @@ void ContactNetwork::init(size_t nInfected, size_t nSusceptible, size_t nEdges, 
     std::uniform_real_distribution<double> lcd(looseContactRate*0.8, looseContactRate);
     std::uniform_real_distribution<double> ncd(newContactRate*0.8, newContactRate);
     isContactsLimited = false;
+    //int iii = 0;
     for (size_t i = 0; i < nPopulation; i ++)
     {
         size_t maxContacts = maxContactsL;
@@ -47,6 +47,12 @@ void ContactNetwork::init(size_t nInfected, size_t nSusceptible, size_t nEdges, 
         double looseContRate = lcd(generator);
 
         double newContRate = ncd(generator);
+
+        /*if (iii < 20)
+        {
+            newContRate = newContRate * 0.03;
+            iii++;
+        }*/
 
         Specie::State st = Specie::S;
         //Specie sp = Specie(maxContacts, 0, dRate, newContRate, looseContRate, st);
@@ -72,6 +78,10 @@ void ContactNetwork::init(size_t nInfected, size_t nSusceptible, size_t nEdges, 
 
     int maxNumberOfEdges = complement.maxEdgeId();
 
+    //for ben structure
+    std::ofstream out;
+    out.open("Ben_Cont_Dyn_SSA.txt");
+
     for (size_t i = 0; i < nEdges; i ++)
     {
         std::uniform_int_distribution<int> dist(0, maxNumberOfEdges);
@@ -79,9 +89,13 @@ void ContactNetwork::init(size_t nInfected, size_t nSusceptible, size_t nEdges, 
         lemon::ListGraph::Edge cEdge = complement.edgeFromId(edgeId);
         if (complement.valid(cEdge) &&  getEdgeAdditionRate(cEdge) > 0)
         {
-            addEdge(cEdge);
+            std::pair<int, int> b = addEdge(cEdge);
+
+            //for ben structure
+            out << "0 " << b.first << " " << b.second << " True" << std::endl ;
         }
     }
+    out.close();
 
     generator.seed(::time(nullptr) * getpid()); //reset generator
 }
@@ -431,7 +445,7 @@ void ContactNetwork::executeDiagnosis(lemon::ListGraph::Node & node, double time
 
     std::cout << "DIAGNOSIS!!!!" << std::endl;
     //adaptivity: as soon as diagnosed, cut all contacts and reduce
-    //new contact rate to 30%
+    //new contact rate to 3%
     lemon::ListGraph::IncEdgeIt ieIt(network, node);
     while (ieIt != lemon::INVALID)
     {
@@ -439,6 +453,7 @@ void ContactNetwork::executeDiagnosis(lemon::ListGraph::Node & node, double time
         ++ieIt;
         removeEdge(tmpIt);
     }
+    std::cout << "num. of contacts: " << population.at(nodeUID).getNumberOfContacts() << std::endl;
     std::cout << "old rate: " << population.at(nodeUID).getNewContactRate() << std::endl;
     population.at(nodeUID).setNewContactRate(
             population.at(nodeUID).getNewContactRate() * 0.03);
@@ -983,92 +998,7 @@ double  ContactNetwork::getExpectedEdgeDeletionRate()const
     return result;
 }
 */
-/*size_t ContactNetwork::updateSurvivalProbability(size_t nDeletions, size_t nAdditions,
-        std::vector<BenStructure> &benToFile, double time)
-{
-    bool isPositive = (nAdditions >= nDeletions);
-    double change = 0;
-    if (isPositive)
-    {
-        change = static_cast<double>(nAdditions - nDeletions);
-    }
-    else
-    {
-        change = static_cast<double>(nDeletions - nAdditions);
-    }
 
-    double nEdges = static_cast<double>(countEdges());
-    double xAvg = nEdges * 2;
-
-    if (isPositive)
-    {
-        xAvg += change / 2;
-    }
-
-    else
-    {
-        xAvg -= change / 2;
-    }
-
-    double pSurvival = std::pow(1.0 - 1.0 / xAvg, static_cast<double>(nDeletions));
-    std::cout << "pSurvival = " << pSurvival << std::endl;
-    std::uniform_real_distribution<> randuni;
-
-    lemon::ListGraph::EdgeIt eIt(network);
-    size_t nSurvived = 0;
-    while (eIt != lemon::INVALID)
-    {
-        double r = randuni(generator);
-        while (r == 0)
-        {
-            r = randuni(generator);
-        }
-        if (r > pSurvival)
-        {
-            lemon::ListGraph::EdgeIt eTemp = eIt;
-            ++eIt;
-            std::pair<int, int> bP = removeEdge(eTemp);
-
-            BenStructure b(time, -1, -1, false);
-            if (bP.first < bP.second)
-            {
-                b.u = bP.first;
-                b.v = bP.second;
-            }
-            else
-            {
-                b.v = bP.first;
-                b.u = bP.second;
-            }
-            benToFile.push_back(b);
-        }
-        else
-        {
-            nSurvived++;
-            ++eIt;
-        }
-    }
-
-    return nSurvived;
-}
-*/
-
-/*bool ContactNetwork::isCapacityLimited()
-{
-    bool result = false;
-
-    size_t popSize = population.size();
-    for (auto& it: population)
-    {
-        if (it.second.getMaxNumberOfContacts() < popSize - 1)
-        {
-            result = true;
-            break;
-        }
-
-    }
-    return result;
-}*/
 
 std::vector<BenStructure> ContactNetwork::getBenStructure(double t)
 {

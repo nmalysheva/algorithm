@@ -8,6 +8,9 @@
 #include <unistd.h>
 #include "Utility.h"
 
+//for ben structure
+#include <fstream>
+
 SSA::SSA()
 {
     generator = std::mt19937_64(rDev());
@@ -175,6 +178,13 @@ void SSA::executeReaction(ContactNetwork & contNetwork, const std::string &react
             nwStorage.emplace_back(time, contNetwork.getNetworkState());
         }
 
+
+        //
+        std::ofstream out;
+        out.open("Ben_Cont_Dyn_SSA.txt", std::ios::app);
+        out << time << " " << b.first << " " << b.second << " False" << std::endl ;
+        out.close();
+
         //std::cout << b.first << ", " << b.second;
         //benToFile.emplace_back(time, b.first, b.second, false);
 
@@ -193,6 +203,11 @@ void SSA::executeReaction(ContactNetwork & contNetwork, const std::string &react
             //degreeDistr.push_back(contNetwork.getDegreeDistribution());
             nwStorage.emplace_back(time, contNetwork.getNetworkState());
         }
+
+        std::ofstream out;
+        out.open("Ben_Cont_Dyn_SSA.txt", std::ios::app);
+        out << time << " " << b.first << " " << b.second << " True" << std::endl ;
+        out.close();
 
     }
     else if (reactId == "transmission")
