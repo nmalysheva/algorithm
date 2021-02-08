@@ -79,8 +79,8 @@ void ContactNetwork::init(size_t nInfected, size_t nSusceptible, size_t nEdges, 
     int maxNumberOfEdges = complement.maxEdgeId();
 
     //for ben structure
-    std::ofstream out;
-    out.open("Ben_Cont_Dyn_SSA.txt");
+    //std::ofstream out;
+    //out.open("Ben_Cont_Dyn_SSA.txt");
 
     for (size_t i = 0; i < nEdges; i ++)
     {
@@ -92,7 +92,7 @@ void ContactNetwork::init(size_t nInfected, size_t nSusceptible, size_t nEdges, 
             std::pair<int, int> b = addEdge(cEdge);
 
             //for ben structure
-            out << "0 " << b.first << " " << b.second << " True" << std::endl ;
+            //out << "0 " << b.first << " " << b.second << " True" << std::endl ;
         }
     }
     out.close();
@@ -511,8 +511,6 @@ void ContactNetwork::executeBirth(double rStart, double rBound)
 
 double  ContactNetwork::getEdgeAdditionRate(const lemon::ListGraph::Edge &complementEdge) const
 {
-    double result = 0;
-
     lemon::ListGraph::Node complU = complement.u(complementEdge);
     lemon::ListGraph::Node complV = complement.v(complementEdge);
 
@@ -524,7 +522,7 @@ double  ContactNetwork::getEdgeAdditionRate(const lemon::ListGraph::Edge &comple
     double targetRate = population.at(targetUID).getNewContactRate();
 
     // rate of adding an edge is a multiplication of rates of both incident nodes
-    result = sourceRate * targetRate;
+    double result = sourceRate * targetRate;
     return result;
 }
 
@@ -539,7 +537,6 @@ double  ContactNetwork::getEdgeDeletionRate(const lemon::ListGraph::Edge &networ
     double sourceRate = population.at(sourceUID).getLooseContactRate();
     double targetRate = population.at(targetUID).getLooseContactRate();
 
-    //double result = (sourceRate + targetRate) / 2;
     // rate of deleting an edge is a multiplication of rates of both incident nodes
     double result = sourceRate * targetRate;
     return result;

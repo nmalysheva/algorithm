@@ -39,15 +39,12 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork, Netwo
 
     double proposedTime = -1;
     std::vector<std::pair<double, lemon::ListGraph::Edge>> propTransmit;
-    propTransmit.reserve(1e6 + 1);
     propTransmit = contNetwork.getTransmissionRateSum();
 
     std::vector<std::pair<double, lemon::ListGraph::Node>> propDeath;
-    propDeath.reserve(1e6 + 1);
     propDeath = contNetwork.getDeathRateSum();
 
     std::vector<std::pair<double, lemon::ListGraph::Node>> propDiagnos;
-    propDiagnos.reserve(1e6 + 1);
     propDiagnos = contNetwork.getDiagnosisRateSum();
 
     std::unordered_map<std::string, double >propensities{
@@ -80,7 +77,7 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork, Netwo
             double r = sampleRandUni();
 
             proposedTime = 1 / propUpperLimit * std::log(1/r);
-            std::cout << "proposedTime = " << proposedTime << std::endl;
+            //std::cout << "proposedTime = " << proposedTime << std::endl;
             if (proposedTime > lookAheadTime)
             {
                 nRejections ++;
@@ -96,11 +93,13 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork, Netwo
 
                 //double tmpUpd = networkLastUpdate;
                 AndersonTauLeap(networkLastUpdate, time, contNetwork, epsilon, nwStorage, "v"/*, benToFile*/, generator);
-                networkLastUpdate = time;
+
+                double tmpUpd = networkLastUpdate;
+                //networkLastUpdate = time;
 
                 //if (tmpUpd < networkLastUpdate)
                 //{
-                    std::cout << "time = " << time <<", lastUpdate = " << networkLastUpdate<<std::endl;
+                    std::cout << "time = " << time <<", lastUpdate = " << tmpUpd <<std::endl;
                     propTransmit = contNetwork.getTransmissionRateSum();
                     propensities.at("transmission") = propTransmit.at(propTransmit.size() - 1).first;
                     propDiagnos = contNetwork.getDiagnosisRateSum();
@@ -119,7 +118,6 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork, Netwo
                 for (auto &it: propensities)
                 {
                     propensitieSum += it.second;
-
                 }
 
                 r = sampleRandUni(); //TODO recycle random number, not sample it
@@ -134,8 +132,6 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork, Netwo
 
                         if (pSum + it.second >= propUpperLimit * r)
                         {
-                            //std::cout << "accepted: " << it.first << std::endl;
-
                             executeReaction(contNetwork, it.first, pSum,propUpperLimit * r, time, nInf,
                                     propTransmit,propDiagnos,propDeath, tInfect, nwStorage, saveDegreeDistMode);
 
@@ -214,7 +210,6 @@ void NSA::executeReaction(ContactNetwork & contNetwork, const std::string &react
     if (reactId == "transmission")
     {
         size_t index = binarySearch(propTransmit, 0, propTransmit.size() - 1, rStart, rBound);
-        //std::pair<int, int> b = contNetwork.
         contNetwork.executeTransmission(propTransmit.at(index).second, time);
         nInf++;
 
@@ -239,7 +234,6 @@ void NSA::executeReaction(ContactNetwork & contNetwork, const std::string &react
     {
         size_t index = binarySearch(propDeath, 0, propDeath.size() - 1, rStart, rBound);
         contNetwork.executeDeath(propDeath.at(index).second);
-        //std::cout << contNetwork.size() << std::endl;
         nInf = contNetwork.countByState(Specie::State::I) + contNetwork.countByState(Specie::State::D);
 
         if (saveDegreeDistMode == "v")

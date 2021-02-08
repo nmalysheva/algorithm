@@ -677,8 +677,8 @@ void viralDynamics(int argc, char* argv[])
 
         executeNSA(simulationTime.first, simulationTime.second, nInfected, nPopulation - nInfected, nEdges, maxContactsA, maxContactsB,
                    transmitRate, newContRate, looseContRate, diagnosisRate, deathRate, birthRate, epsilon, simulationNumber);
-        executeSSA(simulationTime.first, simulationTime.second, nInfected, nPopulation - nInfected, nEdges, maxContactsA, maxContactsB,
-                   transmitRate, newContRate, looseContRate, diagnosisRate, deathRate, birthRate, simulationNumber);
+        //executeSSA(simulationTime.first, simulationTime.second, nInfected, nPopulation - nInfected, nEdges, maxContactsA, maxContactsB,
+          //         transmitRate, newContRate, looseContRate, diagnosisRate, deathRate, birthRate, simulationNumber);
 
     }
 
