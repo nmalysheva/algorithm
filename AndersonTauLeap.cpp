@@ -136,8 +136,8 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
                 if (t + tau > tEnd)
                 {
                     std::cout << "exceed" << std::endl;
-                    tLastNetworkUpdate = t;
                     t = tEnd;
+                    tLastNetworkUpdate = t;
                     if (saveDegreeDistMode == "c")
                     {
                         nwStorage.emplace_back(t, contNetwork.getNetworkState());
@@ -326,8 +326,8 @@ void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
 
         if (propensitiesSum == 0)
         {
-            tLastNetworkUpdate = tEnd; //used to update netw.Upd.Time
             t = tEnd;
+            tLastNetworkUpdate = tEnd; //used to update netw.Upd.Time
             if (saveDegreeDistMode == "c")
             {
                 nwStorage.emplace_back(t, contNetwork.getNetworkState());
@@ -341,8 +341,8 @@ void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
 
         if (t + proposedTime > tEnd)
         {
-            tLastNetworkUpdate = t;
             t = tEnd;
+            tLastNetworkUpdate = t;
             if (saveDegreeDistMode == "c")
             {
                 nwStorage.emplace_back(t, contNetwork.getNetworkState());

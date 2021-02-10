@@ -95,7 +95,7 @@ void ContactNetwork::init(size_t nInfected, size_t nSusceptible, size_t nEdges, 
             //out << "0 " << b.first << " " << b.second << " True" << std::endl ;
         }
     }
-    out.close();
+//    out.close();
 
     generator.seed(::time(nullptr) * getpid()); //reset generator
 }
