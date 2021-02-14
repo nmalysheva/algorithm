@@ -91,15 +91,18 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork, Netwo
             {
                 time += proposedTime;
 
-                //double tmpUpd = networkLastUpdate;
+                double tmpUpd = networkLastUpdate;
                 AndersonTauLeap(networkLastUpdate, time, contNetwork, epsilon, nwStorage, "v"/*, benToFile*/, generator);
 
-                double tmpUpd = networkLastUpdate;
+                if (tmpUpd < networkLastUpdate)
+                {
+                    networkLastUpdate = time;
+                }
                 //networkLastUpdate = time;
 
                 //if (tmpUpd < networkLastUpdate)
                 //{
-                    std::cout << "time = " << time <<", lastUpdate = " << tmpUpd <<std::endl;
+                    std::cout << "time = " << time <<", lastUpdate = " << networkLastUpdate <<std::endl;
                     propTransmit = contNetwork.getTransmissionRateSum();
                     propensities.at("transmission") = propTransmit.at(propTransmit.size() - 1).first;
                     propDiagnos = contNetwork.getDiagnosisRateSum();
@@ -134,6 +137,10 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork, Netwo
                         {
                             executeReaction(contNetwork, it.first, pSum,propUpperLimit * r, time, nInf,
                                     propTransmit,propDiagnos,propDeath, tInfect, nwStorage, saveDegreeDistMode);
+                            if (it.first == "diagnosis")
+                            {
+                                networkLastUpdate = time;
+                            }
 
                             propTransmit = contNetwork.getTransmissionRateSum();
                             propensities.at("transmission") = propTransmit.at(propTransmit.size() - 1).first;
@@ -185,6 +192,11 @@ double  NSA::getPropUpperLimit (double lookAheadTime, ContactNetwork & contNetwo
     //std::cout << "prop.upper limit = " << result <<  std::endl;
                     ///contNetwork.getDeathRateSum() + contNetwork.getBirthRateSum();
     //std::cout << "-----------------------------" <<  std::endl;
+
+
+    //temporary!! For test
+     //result = static_cast<double>(tmp2) * contNetwork.getTransmissionRateLimit() + dignosisUpperLimit + deathUpperLimit;
+
     return result;
 }
 

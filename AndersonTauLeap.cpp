@@ -54,7 +54,7 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
         if (propensities.at(0) + propensities.at(1) == 0)
         {
             t = tEnd;
-            tLastNetworkUpdate = t;
+            //tLastNetworkUpdate = t;
             if (saveDegreeDistMode == "c")
             {
                 nwStorage.emplace_back(t, contNetwork.getNetworkState());
@@ -137,7 +137,7 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
                 {
                     std::cout << "exceed" << std::endl;
                     t = tEnd;
-                    tLastNetworkUpdate = t;
+                    //tLastNetworkUpdate = t;
                     if (saveDegreeDistMode == "c")
                     {
                         nwStorage.emplace_back(t, contNetwork.getNetworkState());
@@ -145,7 +145,6 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
                     break;
                 }
                 t = t + tau;
-                tLastNetworkUpdate = t;
                 for (int i = 0; i < M; i ++)
                 {
                     S.at(i).erase(S.at(i).begin(),  S.at(i).begin() + row.at(i) + 1);
@@ -175,6 +174,7 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
 
                 std::cout << "add: "<< NN.at(1) << ", del = " << NN.at(0) << std::endl;
                 updateNetwork2(benToFile, NN, contNetwork.countEdges(), generator, propAdd, propDel, t, contNetwork, propensities);
+                tLastNetworkUpdate = t;
                 propDel = contNetwork.getEdgeDeletionRateSum();
                 propAdd = contNetwork.getEdgeAdditionRateSum();
 
