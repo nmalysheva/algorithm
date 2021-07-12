@@ -46,7 +46,7 @@ void executeSSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
 
     SSA ssa;
     auto start_time = std::chrono::high_resolution_clock::now();
-    ssa.execute(tStart, tEnd, contNetwork, nwStorage,timeInfection,numberOfTransmitEdges,"v"/*, benToFile*/);
+    ssa.execute(tStart, tEnd, contNetwork, nwStorage,timeInfection,numberOfTransmitEdges,"none"/*, benToFile*/);
     auto end_time = std::chrono::high_resolution_clock::now();
     auto time = end_time - start_time;
 
@@ -187,7 +187,7 @@ void executeNSA(double tStart, double tEnd, size_t nInfected, size_t nSusceptibl
 
     NSA nsa;
     auto start_time = std::chrono::high_resolution_clock::now();
-    nsa.execute(tStart, tEnd, contNetwork, nwStorage, timeInfection,  "v",  epsilon,nRejections, nAcceptance, nThin/*, benToFile*/);
+    nsa.execute(tStart, tEnd, contNetwork, nwStorage, timeInfection,  "none",  epsilon,nRejections, nAcceptance, nThin/*, benToFile*/);
     auto end_time = std::chrono::high_resolution_clock::now();
     auto time = end_time - start_time;
 
@@ -618,12 +618,9 @@ void contactDynamics(int argc, char* argv[])
 
         executeNSAOnlyContactUpdate(simulationTime.first, simulationTime.second, nPopulation, nEdges, maxContactsA, maxContactsB,
                          newContRate, looseContRate, epsilon, simulationNumber);
-        executeSSAOnlyContactUpdate(simulationTime.first, simulationTime.second, nPopulation, nEdges, maxContactsA, maxContactsB,
-                                   newContRate, looseContRate, simulationNumber);
+        //executeSSAOnlyContactUpdate(simulationTime.first, simulationTime.second, nPopulation, nEdges, maxContactsA, maxContactsB,
+        //                           newContRate, looseContRate, simulationNumber);
         std::cout << "*********************************" << std::endl;
-        //executeRKF45OnlyContactUpdate(tStart, tEnd, nPopulation, nEdges, maxContactsA, MaxContactsB,
-        //                              newContRate, looseContRate, epsilon, simulationNumber);
-
 
     }
 
@@ -677,8 +674,8 @@ void viralDynamics(int argc, char* argv[])
 
         executeNSA(simulationTime.first, simulationTime.second, nInfected, nPopulation - nInfected, nEdges, maxContactsA, maxContactsB,
                    transmitRate, newContRate, looseContRate, diagnosisRate, deathRate, birthRate, epsilon, simulationNumber);
-        executeSSA(simulationTime.first, simulationTime.second, nInfected, nPopulation - nInfected, nEdges, maxContactsA, maxContactsB,
-                   transmitRate, newContRate, looseContRate, diagnosisRate, deathRate, birthRate, simulationNumber);
+       // executeSSA(simulationTime.first, simulationTime.second, nInfected, nPopulation - nInfected, nEdges, maxContactsA, maxContactsB,
+         //          transmitRate, newContRate, looseContRate, diagnosisRate, deathRate, birthRate, simulationNumber);
 
     }
 

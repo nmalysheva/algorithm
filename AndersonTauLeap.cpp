@@ -42,10 +42,10 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
     double p1 = 0.9;
     double q = 0.98;
 
-    if (saveDegreeDistMode == "c")
+    /*if (saveDegreeDistMode == "c")
     {
         nwStorage.emplace_back(t, contNetwork.getNetworkState());
-    }
+    }*/
     std::vector<std::vector<int>> nu = {{-1, 1}, {1, -1}};
     std::vector<size_t> X = {propDel.size() - 1, propAdd.size() - 1};
     double tau = getTau(N, nu, propensities, epsilon, X);
@@ -55,12 +55,17 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
         {
             t = tEnd;
             //tLastNetworkUpdate = t;
-            if (saveDegreeDistMode == "c")
+            /*if (saveDegreeDistMode == "c")
             {
                 nwStorage.emplace_back(t, contNetwork.getNetworkState());
-            }
+            }*/
             break;
         }
+
+        /*if (t + tau > tEnd)
+        {
+            tau = tEnd - t;
+        }*/
 
         //TODO !! CHECK THE CONDITION
         if (tau < 10.0 / (propensities.at(0) + propensities.at(1)))
@@ -119,31 +124,34 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
 
                     if (NN.at(i) < 0)
                     {
-                        std::cout << "less 0; aaa =" << aaa << " SK2 minus " << Sk.at(index).second - Sk.at(index - 1).second << ", NN =" << NN.at(i) << "; Ci = " << C.at(i)<<std::endl;
+                        //std::cout << "less 0; aaa =" << aaa << " SK2 minus " << Sk.at(index).second - Sk.at(index - 1).second << ", NN =" << NN.at(i) << "; Ci = " << C.at(i)<<std::endl;
                         throw std::domain_error("NN less than zero2");
                     }
 
                 }
             }
 
-            int change = NN.at(1) - NN.at(0);
+            /*int change = NN.at(1) - NN.at(0);
             bool pass = std::abs(change) <= std::max(epsilon * (propDel.size() - 1), 1.0) &&
-                        std::abs(change) <= std::max(epsilon * (propAdd.size() - 1), 1.0);
+                        std::abs(change) <= std::max(epsilon * (propAdd.size() - 1), 1.0);*/
+
+            bool pass = std::abs(NN.at(0)) <= std::max(epsilon * (propDel.size() - 1), 1.0) &&
+                        std::abs(NN.at(1)) <= std::max(epsilon * (propAdd.size() - 1), 1.0);
 
             if (pass)
             {
-                std::cout << "accept" << std::endl;
                 if (t + tau > tEnd)
                 {
-                    std::cout << "exceed" << std::endl;
+                    //std::cout << "exceed" << std::endl;
                     t = tEnd;
                     //tLastNetworkUpdate = t;
-                    if (saveDegreeDistMode == "c")
+                    /*if (saveDegreeDistMode == "c")
                     {
                         nwStorage.emplace_back(t, contNetwork.getNetworkState());
-                    }
+                    }*/
                     break;
                 }
+                //std::cout << "accept" << std::endl;
                 t = t + tau;
                 for (int i = 0; i < M; i ++)
                 {
@@ -155,8 +163,11 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
 
                 }
 
-                bool pass2 = std::abs(change) <= std::max(0.75 * epsilon * contNetwork.countEdges(), 1.0) &&
-                             std::abs(change) <= std::max(0.75 * epsilon * (propAdd.size() - 1), 1.0);
+                /*bool pass2 = std::abs(change) <= std::max(0.75 * epsilon * contNetwork.countEdges(), 1.0) &&
+                             std::abs(change) <= std::max(0.75 * epsilon * (propAdd.size() - 1), 1.0);*/
+                bool pass2 = std::abs(NN.at(0)) <= std::max(0.75 * epsilon * contNetwork.countEdges(), 1.0) &&
+                             std::abs(NN.at(1)) <= std::max(0.75 * epsilon * (propAdd.size() - 1), 1.0);
+
                 if (pass2)
                 {
                     tau = std::pow(tau, q);
@@ -172,7 +183,7 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
                      throw std::domain_error(msg);
                 }
 
-                std::cout << "add: "<< NN.at(1) << ", del = " << NN.at(0) << std::endl;
+                //std::cout << "add: "<< NN.at(1) << ", del = " << NN.at(0) << std::endl;
                 updateNetwork2(benToFile, NN, contNetwork.countEdges(), generator, propAdd, propDel, t, contNetwork, propensities);
                 tLastNetworkUpdate = t;
                 propDel = contNetwork.getEdgeDeletionRateSum();
@@ -181,15 +192,15 @@ void AndersonTauLeap(double &tLastNetworkUpdate, double tEnd, ContactNetwork & c
                 propensities.at(0) = propDel.at(propDel.size() - 1).first;
                 propensities.at(1) = propAdd.at(propAdd.size() - 1).first;
 
-                if (saveDegreeDistMode == "c")
+                /*if (saveDegreeDistMode == "c")
                 {
                     nwStorage.emplace_back(t, contNetwork.getNetworkState());
-                }
+                }*/
 
             }
             else
             {
-                std::cout << "reject" << std::endl;
+                //std::cout << "reject" << std::endl;
                 for (int i = 0; i < M; i ++)
                 {
                     if (row.at(i) == S.at(i).size() - 1)
@@ -308,7 +319,7 @@ void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
                 std::vector<std::vector<std::pair<double, int>>> &S)
 
 {
-    std::cout << "SSA " << n << std::endl;
+    //std::cout << "SSA " << n << std::endl;
     std::vector<double> propensities(2, 0);
     std::vector<std::pair<double, lemon::ListGraph::Edge>> propDel;
     std::vector<std::pair<double, lemon::ListGraph::Edge>> propAdd;
@@ -328,10 +339,10 @@ void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
         {
             t = tEnd;
             tLastNetworkUpdate = tEnd; //used to update netw.Upd.Time
-            if (saveDegreeDistMode == "c")
+            /*if (saveDegreeDistMode == "c")
             {
                 nwStorage.emplace_back(t, contNetwork.getNetworkState());
-            }
+            }*/
             break;
         }
 
@@ -343,10 +354,10 @@ void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
         {
             t = tEnd;
             tLastNetworkUpdate = t;
-            if (saveDegreeDistMode == "c")
+            /*if (saveDegreeDistMode == "c")
             {
                 nwStorage.emplace_back(t, contNetwork.getNetworkState());
-            }
+            }*/
             break;
         }
 
@@ -403,10 +414,10 @@ void executeSSA(size_t n, double tEnd, ContactNetwork & contNetwork, double &t,
             }
             S.at(i).emplace(S.at(i).begin(), std::make_pair(T.at(i), C.at(i)));
         }
-        if (saveDegreeDistMode == "c")
+        /*if (saveDegreeDistMode == "c")
         {
             nwStorage.emplace_back(t, contNetwork.getNetworkState());
-        }
+        }*/
 
     }
 }
@@ -414,21 +425,22 @@ double getTau(size_t nParts, std::vector<std::vector<int>> nu, std::vector<doubl
               std::vector<size_t> X)
 {
     double tau = std::numeric_limits<double>::infinity();
-    int gi = 1;
+    double gi = 1.0;
     for (size_t i = 0; i < nParts; i ++)
     {
         double mu = 0;
         double sigmaSq = 0;
         for (size_t j = 0; j < 2; j ++)
         {
-            mu      += nu.at(i).at(j) * props.at(j);
-            sigmaSq += nu.at(i).at(j) * nu.at(i).at(j) * props.at(j);
+            mu      += nu.at(j).at(i) * props.at(j);
+            sigmaSq += nu.at(j).at(i) * nu.at(j).at(i) * props.at(j);
         }
         double a1 = std::max(epsilon * X.at(i) / gi, 1.0);
         double a2 = std::max(epsilon * X.at(i) / gi, 1.0);
         a2 = a2 * a2;
 
-        tau = std::min(a1 / abs(mu), a2 / sigmaSq);
+        double loc_min = std::min(a1 / abs(mu), a2 / sigmaSq);
+        tau = std::min(tau, loc_min);
 
     }
     return tau;
@@ -442,8 +454,8 @@ void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, in
                    std::vector<double> &props)
 {
     //std::cout << "start = " << nDel << ", add: "<< k.at(1) << ", del = " << k.at(0) << ", ";
-    std::cout << "NW update!!" << std::endl;
-    std::cout << "add: "<< k.at(1) << ", del = " << k.at(0) << std::endl;
+    //std::cout << "NW update!!" << std::endl;
+    //std::cout << "add: "<< k.at(1) << ", del = " << k.at(0) << std::endl;
     std::unordered_map<std::string, double> propensities {
             {"edge_del", props.at(0)},
             {"edge_add", props.at(1)} };
@@ -451,8 +463,8 @@ void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, in
     int maxEdgesDelete = nDel;
     if (maxEdgesDelete < k.at(0))
     {
-        std::cout << "EXceed NDEL!!!" << std::endl;
-        std::cout << "del: " << k.at(0) << ", add: " << k.at(1) << ", total: " << maxEdgesDelete << std::endl;
+       // std::cout << "EXceed NDEL!!!" << std::endl;
+        //std::cout << "del: " << k.at(0) << ", add: " << k.at(1) << ", total: " << maxEdgesDelete << std::endl;
         for (size_t i = 1; i < propDel.size(); i ++)
         {
             std::pair<int, int> b = contNetwork.removeEdge(propDel.at(i).second);
@@ -492,7 +504,7 @@ void updateNetwork2(std::vector<BenStructure> &benToFile, std::vector<int> k, in
 
     else
     {
-        std::cout << "order" << std::endl;
+        //std::cout << "order" << std::endl;
         std::vector<int> order;
         for (size_t ind = 0; ind < k.size(); ind++)
         {

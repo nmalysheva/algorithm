@@ -39,11 +39,12 @@ private:
                             std::vector<std::pair<double, lemon::ListGraph::Edge>> &propTransmit,
                             std::vector<std::pair<double, lemon::ListGraph::Node>> &propDiagnos,
                             std::vector<std::pair<double, lemon::ListGraph::Node>> &propDeath,
-                            /*std::vector<double> &tSteps, */ std::vector<double> &tInfect,
-                           //std::unordered_map<Specie::State, std::vector<uint32_t>> &populationState,
+                             std::vector<double> &tInfect,
                            NetworkStorage &nwStorage,
                            std::vector<uint32_t> &numberOfTransmitEdges,
-                            /*std::vector<std::vector<size_t>> &degreeDistr,*/ const std::string &saveDegreeDist
+                           const std::string &saveDegreeDist,
+                           const size_t contactSaveFactor,
+                           size_t &contactSaveCounter
                            /*, std::vector<BenStructure> &benToFile*/);
     double recycleRandUni();
 

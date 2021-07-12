@@ -28,10 +28,10 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork, Netwo
     double time = tStart;
 
 
-    if (saveDegreeDistMode == "c" || saveDegreeDistMode == "v")
+   /* if (saveDegreeDistMode == "c" || saveDegreeDistMode == "v")
     {
         nwStorage.emplace_back(time, contNetwork.getNetworkState());
-    }
+    }*/
 
     double lookAheadTime  =  0; //init look-ahead time
     double propUpperLimit = -1; //init upper limit for propensitie sum
@@ -66,10 +66,10 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork, Netwo
         if (propUpperLimit == 0)
         {
             time = tEnd;
-            if (saveDegreeDistMode == "c" || saveDegreeDistMode == "v")
+            /*if (saveDegreeDistMode == "c" || saveDegreeDistMode == "v")
             {
                 nwStorage.emplace_back(time, contNetwork.getNetworkState());
-            }
+            }*/
             break;
         }
         else
@@ -82,10 +82,10 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork, Netwo
             {
                 nRejections ++;
                 time += lookAheadTime;
-                if (saveDegreeDistMode == "c" || saveDegreeDistMode == "v")
+                /*if (saveDegreeDistMode == "c" || saveDegreeDistMode == "v")
                 {
                     nwStorage.emplace_back(time, contNetwork.getNetworkState());
-                }
+                }*/
             }
             else
             {
@@ -102,7 +102,7 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork, Netwo
 
                 //if (tmpUpd < networkLastUpdate)
                 //{
-                    std::cout << "time = " << time <<", lastUpdate = " << networkLastUpdate <<std::endl;
+                    //std::cout << "time = " << time <<", lastUpdate = " << networkLastUpdate <<std::endl;
                     propTransmit = contNetwork.getTransmissionRateSum();
                     propensities.at("transmission") = propTransmit.at(propTransmit.size() - 1).first;
                     propDiagnos = contNetwork.getDiagnosisRateSum();
@@ -111,10 +111,10 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork, Netwo
                     propensities.at("death") = propDeath.at(propDeath.size() - 1).first;
                     propensities.at("birth") = contNetwork.getBirthRateSum();
 
-                    if (saveDegreeDistMode == "c")
+                    /*if (saveDegreeDistMode == "c")
                     {
                         nwStorage.emplace_back(time, contNetwork.getNetworkState());
-                    }
+                    }*/
                 //}
 
                 double propensitieSum = 0;
@@ -135,12 +135,24 @@ void NSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork, Netwo
 
                         if (pSum + it.second >= propUpperLimit * r)
                         {
-                            executeReaction(contNetwork, it.first, pSum,propUpperLimit * r, time, nInf,
-                                    propTransmit,propDiagnos,propDeath, tInfect, nwStorage, saveDegreeDistMode);
                             if (it.first == "diagnosis")
                             {
+                                //networkLastUpdate = time;
+                                /*std::vector<double> T(2, 0);
+                                std::vector<int> C(2, 0);
+
+                                std::vector<std::vector<std::pair<double, int>>> S;
+                                S.reserve(1e3 + 1);
+                                std::vector<std::pair<double, int>> temp = {{0.0, 0}};
+                                S.push_back(temp);
+                                S.push_back(temp);
+                                double t = time - proposedTime;
+                                executeSSA(1e6, tEnd, contNetwork, t, networkLastUpdate, nwStorage,
+                                           saveDegreeDistMode, generator, T, C, S);*/
                                 networkLastUpdate = time;
                             }
+                            executeReaction(contNetwork, it.first, pSum,propUpperLimit * r, time, nInf,
+                                    propTransmit,propDiagnos,propDeath, tInfect, nwStorage, saveDegreeDistMode);
 
                             propTransmit = contNetwork.getTransmissionRateSum();
                             propensities.at("transmission") = propTransmit.at(propTransmit.size() - 1).first;
@@ -184,15 +196,10 @@ double  NSA::getPropUpperLimit (double lookAheadTime, ContactNetwork & contNetwo
 
     size_t tmp = contNetwork.countByState(Specie::I) + contNetwork.countByState(Specie::D);
     size_t tmp2 = tmp * contNetwork.countByState(Specie::S);
-    //std::cout << "tmp2 = " << tmp2 <<  std::endl;
     rmc = std::min(rmc, static_cast<double>(tmp2));
 
     //std::cout << "rmc = " << rmc <<  std::endl;
     double result = rmc * contNetwork.getTransmissionRateLimit() + dignosisUpperLimit + deathUpperLimit;//+
-    //std::cout << "prop.upper limit = " << result <<  std::endl;
-                    ///contNetwork.getDeathRateSum() + contNetwork.getBirthRateSum();
-    //std::cout << "-----------------------------" <<  std::endl;
-
 
     //temporary!! For test
      //result = static_cast<double>(tmp2) * contNetwork.getTransmissionRateLimit() + dignosisUpperLimit + deathUpperLimit;
@@ -225,21 +232,21 @@ void NSA::executeReaction(ContactNetwork & contNetwork, const std::string &react
         contNetwork.executeTransmission(propTransmit.at(index).second, time);
         nInf++;
 
-        if (saveDegreeDistMode == "v")
+       /* if (saveDegreeDistMode == "v")
         {
             nwStorage.emplace_back(time, contNetwork.getNetworkState());
             tInfect.push_back(time);
-        }
+        }*/
     }
     else if (reactId == "diagnosis")
     {
         size_t index = binarySearch(propDiagnos, 0, propDiagnos.size() - 1, rStart, rBound);
         contNetwork.executeDiagnosis(propDiagnos.at(index).second, time);
 
-        if (saveDegreeDistMode == "v")
+       /* if (saveDegreeDistMode == "v")
         {
             nwStorage.emplace_back(time, contNetwork.getNetworkState());
-        }
+        }*/
     }
 
     else if (reactId  == "death" )
@@ -248,10 +255,10 @@ void NSA::executeReaction(ContactNetwork & contNetwork, const std::string &react
         contNetwork.executeDeath(propDeath.at(index).second);
         nInf = contNetwork.countByState(Specie::State::I) + contNetwork.countByState(Specie::State::D);
 
-        if (saveDegreeDistMode == "v")
+        /*if (saveDegreeDistMode == "v")
         {
             nwStorage.emplace_back(time, contNetwork.getNetworkState());
-        }
+        }*/
     }
 }
 

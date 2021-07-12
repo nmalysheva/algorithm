@@ -34,10 +34,15 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
 
     double time = tStart;
 
-    if (saveDegreeDistMode == "c" || saveDegreeDistMode == "v")
+
+    //used to store not ever contact update in "c" mode, but each contactSaveFactor-th
+    size_t contactSaveFactor = 20;
+    size_t contactSaveCounter = 0;
+
+    /*if (saveDegreeDistMode == "c" || saveDegreeDistMode == "v")
     {
         nwStorage.emplace_back(time, contNetwork.getNetworkState());
-    }
+    }*/
 
     uint32_t  nInf = contNetwork.countByState(Specie::State::I);
     /*if (saveDegreeDistMode == "v")
@@ -89,10 +94,10 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
         {
             time = tEnd;
 
-            if (saveDegreeDistMode == "c" || saveDegreeDistMode == "v")
+            /*if (saveDegreeDistMode == "c" || saveDegreeDistMode == "v")
             {
                 nwStorage.emplace_back(time, contNetwork.getNetworkState());
-            }
+            }*/
             break;
         }
         double r = sampleRandUni(generator);
@@ -101,10 +106,10 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
         {
             time = tEnd;
 
-            if (saveDegreeDistMode == "c" || saveDegreeDistMode == "v")
+            /*if (saveDegreeDistMode == "c" || saveDegreeDistMode == "v")
             {
                 nwStorage.emplace_back(time, contNetwork.getNetworkState());
-            }
+            }*/
             break;
         }
         else
@@ -120,7 +125,7 @@ void SSA::execute(double tStart, double tEnd, ContactNetwork &contNetwork,
                 {
                     executeReaction(contNetwork, it.first, pSum, propensitieSum * r, time, nInf,
                                     propDel, propAdd, propTransmit, propDiagnos, propDeath,
-                                    tInfect,nwStorage,numberOfTransmitEdges, saveDegreeDistMode);
+                                    tInfect,nwStorage,numberOfTransmitEdges, saveDegreeDistMode, contactSaveFactor, contactSaveCounter);
                     break;
                 }
                 pSum += it.second;
@@ -138,11 +143,12 @@ void SSA::executeReaction(ContactNetwork & contNetwork, const std::string &react
                            std::vector<std::pair<double, lemon::ListGraph::Edge>> &propTransmit,
                            std::vector<std::pair<double, lemon::ListGraph::Node>> &propDiagnos,
                            std::vector<std::pair<double, lemon::ListGraph::Node>> &propDeath,
-                           /*std::vector<double> &tSteps,*/ std::vector<double> &tInfect,
-                           //std::unordered_map<Specie::State, std::vector<uint32_t>> &populationState,
+                            std::vector<double> &tInfect,
                           NetworkStorage &nwStorage,
                           std::vector<uint32_t> &numberOfTransmitEdges,
-                           /*std::vector<std::vector<size_t>> &degreeDistr,*/ const std::string &saveDegreeDistMode
+                          const std::string &saveDegreeDistMode,
+                          const size_t contactSaveFactor,
+                          size_t &contactSaveCounter
                            /*,std::vector<BenStructure> &benToFile*/)
 {
     if (reactId == "edge_del")
@@ -150,10 +156,14 @@ void SSA::executeReaction(ContactNetwork & contNetwork, const std::string &react
         size_t index = binarySearch(propDel, 0, propDel.size() - 1, rStart, rBound);
         std::pair<int, int> b = contNetwork.removeEdge(propDel.at(index).second);
 
-        if (saveDegreeDistMode == "c")
+        /*if (saveDegreeDistMode == "c")
         {
-            nwStorage.emplace_back(time, contNetwork.getNetworkState());
-        }
+            contactSaveCounter ++;
+            if (contactSaveCounter % contactSaveFactor == 0)
+            {
+                nwStorage.emplace_back(time, contNetwork.getNetworkState());
+            }
+        }*/
 
 
         //
@@ -169,10 +179,14 @@ void SSA::executeReaction(ContactNetwork & contNetwork, const std::string &react
         size_t index = binarySearch(propAdd, 0, propAdd.size() - 1, rStart, rBound);
         std::pair<int, int> b = contNetwork.addEdge(propAdd.at(index).second);
 
-        if (saveDegreeDistMode == "c")
+        /*if (saveDegreeDistMode == "c")
         {
-            nwStorage.emplace_back(time, contNetwork.getNetworkState());
-        }
+            contactSaveCounter ++;
+            if (contactSaveCounter % contactSaveFactor == 0)
+            {
+                nwStorage.emplace_back(time, contNetwork.getNetworkState());
+            }
+        }*/
 
         /*std::ofstream out;
         out.open("Ben_Cont_Dyn_SSA.txt", std::ios::app);
@@ -186,11 +200,11 @@ void SSA::executeReaction(ContactNetwork & contNetwork, const std::string &react
         contNetwork.executeTransmission(propTransmit.at(index).second, time);
         nInf++;
 
-        if (saveDegreeDistMode == "v")
+        /*if (saveDegreeDistMode == "v")
         {
             nwStorage.emplace_back(time, contNetwork.getNetworkState());
             tInfect.push_back(time);
-        }
+        }*/
 
     }
 
@@ -198,10 +212,10 @@ void SSA::executeReaction(ContactNetwork & contNetwork, const std::string &react
     {
         size_t index = binarySearch(propDiagnos, 0, propDiagnos.size() - 1, rStart, rBound);
         contNetwork.executeDiagnosis(propDiagnos.at(index).second, time);
-        if (saveDegreeDistMode == "v")
+        /*if (saveDegreeDistMode == "v")
         {
             nwStorage.emplace_back(time, contNetwork.getNetworkState());
-        }
+        }*/
     }
 
     else if (reactId == "death")
@@ -210,10 +224,10 @@ void SSA::executeReaction(ContactNetwork & contNetwork, const std::string &react
         contNetwork.executeDeath(propDeath.at(index).second);
         nInf = contNetwork.countByState(Specie::State::I) + contNetwork.countByState(Specie::State::D);
 
-        if (saveDegreeDistMode == "v")
+        /*if (saveDegreeDistMode == "v")
         {
             nwStorage.emplace_back(time, contNetwork.getNetworkState());
-        }
+        }*/
     }
 
     else if (reactId == "birth")
